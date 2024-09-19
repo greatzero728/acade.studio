@@ -1,0 +1,101 @@
+<b>Help Vasilisa the Wise 2</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+Vasilisa the Wise from the Kingdom of Far Far Away got a magic box with a secret as a present from her friend Hellawisa the Wise from the Kingdom of A Little Closer. However, Vasilisa the Wise does not know what the box's secret is, since she cannot open it again. She hopes that you will help her one more time with that.
+
+The box's lock looks as follows: it contains \(4\) identical deepenings for gems as a \(2 × 2\) square, and some integer numbers are written at the lock's edge near the deepenings. The example of a lock is given on the picture below.
+
+<img 1>
+
+The box is accompanied with 9 gems. Their shapes match the deepenings' shapes and each gem contains one number from 1 to 9 (each number is written on exactly one gem). The box will only open after it is decorated with gems correctly: that is, each deepening in the lock should be filled with exactly one gem. Also, the sums of numbers in the square's rows, columns and two diagonals of the square should match the numbers written at the lock's edge. For example, the above lock will open if we fill the deepenings with gems with numbers as is shown on the picture below.
+
+<img 2>
+Now Vasilisa the Wise wants to define, given the numbers on the box's lock, which gems she should put in the deepenings to open the box. Help Vasilisa to solve this challenging task.
+
+<b>Input</b>
+The input contains numbers written on the edges of the lock of the box. The first line contains space-separated integers \(r_1\) and \(r_2\) that define the required sums of numbers in the rows of the square. The second line contains space-separated integers \(c_1\) and \(c_2\) that define the required sums of numbers in the columns of the square. The third line contains space-separated integers \(d_1\) and \(d_2\) that define the required sums of numbers on the main and on the side diagonals of the square \((1 ≤ r_1, r_2, c_1, c_2, d_1, d_2 ≤ 20)\). Correspondence between the above 6 variables and places where they are written is shown on the picture below. For more clarifications please look at the second sample test that demonstrates the example given in the problem statement.
+
+<img 3>
+
+<b>Output</b>
+Print the scheme of decorating the box with stones: two lines containing two space-separated integers from 1 to 9. The numbers should be pairwise different. If there is no solution for the given lock, then print the single number "-1" (without the quotes).
+
+If there are several solutions, output any.
+
+<b>Note</b>:
+Pay attention to the last test from the statement: it is impossible to open the box because for that Vasilisa the Wise would need 4 identical gems containing number "5". However, Vasilisa only has one gem with each number from 1 to 9.
+
+
+
+
+
+The naive approach would be to iterate over every possible configuration of \(4\) numbers chosen for our lock, after that we will just need to check whether all conditions are true.
+
+For integers \(a,b,c,d\) the conditions are:
+
+\(a+b=r_1\)
+\(c+d=r_2\)
+\(a+c=c_1\)
+\(b+d=c_2\)
+\(a+d=d_1\)
+\(b+c=d_2\)
+
+This solution is sufficient enough because it would work in \(O(n^4)\) time, but \(n=9\) so our code should output the answer immedeately.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main() {
+    int r1, r2, c1, c2, d1, d2;
+    cin >> r1 >> r2 >> c1 >> c2 >> d1 >> d2;
+
+    int a, b, c, d;
+    bool found = false;
+
+    for (a = 1; a <= 9; a++) {
+        for (b = 1; b <= 9; b++) {
+            if (a + b != r1) continue;
+            if (a == b) continue;
+            for (c = 1; c <= 9; c++) {
+                if (c == a || c == b) continue;
+                for (d = 1; d <= 9; d++) {
+                    if (d == a || d == b || d == c) continue;
+                    if (c + d != r2) continue;
+                    if (a + c != c1) continue;
+                    if (b + d != c2) continue;
+                    if (a + d != d1) continue;
+                    if (b + c != d2) continue;
+                    cout << a << " " << b << endl;
+                    cout << c << " " << d << endl;
+                    found = true;
+                    break;
+                }
+                if (found) break;
+            }
+            if (found) break;
+        }
+        if (found) break;
+    }
+
+    if (!found) cout << -1 << endl;
+
+    return 0;
+}
+
+
+
+
+For the custom test we will be using a test with maximal possible numbers, we will be doing that in order to check whether our code works fine.
+
+<b>Input</b>:
+20 20
+20 20
+20 20
+
+<b>Expected output</b>:
+-1
+
+This output is expected because for these conditions to be true we would need at least one integer that is equal to \(10\), but our integers in the statement are up to 9 inclusive.

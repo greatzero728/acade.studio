@@ -1,0 +1,98 @@
+<b>A. C+=</b>
+time limit per test: 2 seconds
+memory limit per test: 512 megabytes
+
+Leo has developed a new programming language C+=. In C+=, integer variables can only be changed with a "+=" operation that adds the right-hand side value to the left-hand side variable. For example, performing "a += b" when a = 2, b = 3 changes the value of \(a\) to 5 (the value of \(b\) does not change).
+
+In a prototype program Leo has two integer variables a and b, initialized with some positive values. He can perform any number of operations "a += b" or "b += a". Leo wants to test handling large integers, so he wants to make the value of either a or b strictly greater than a given value \(n\). What is the smallest number of operations he has to perform?
+
+<b>Input</b>
+The first line contains a single integer \(T (1≤T≤100)\) — the number of test cases.
+
+Each of the following \(T\) lines describes a single test case, and contains three integers \(a,b,n (1≤a,b≤n≤10^9)\) — initial values of \(a\) and \(b\), and the value one of the variables has to exceed, respectively.
+
+<b>Output</b>
+For each test case print a single integer — the smallest number of operations needed. Separate answers with line breaks.
+
+<b>Note</b>
+In the first case we cannot make a variable exceed 3 in one operation. One way of achieving this in two operations is to perform "b += a" twice.
+
+
+
+
+
+\(\bullet\) Given \(a\), \(b\), \(n\), we have to find out the minimum number operations to reach any of \(a\) and \(b\) strictly greater than then \(n\).
+The naive approach is: We can solve this problem using recursive method. Let's denote current state as \((A, B, n, num)\). (Here \(A\), \(B\) are current \(a\), \(b\), and \(num\) is the number of operations since beginning. We can start from state \((a, b, n, 0)\).) We can reach out all possible states in the current situation. There are two options; A += B, or B += A. So we can reach out \((A + B, B, n, num + 1)\), or \((A, A + B, n, num + 1)\). But this will be get time limit exceed error. We can simply check it in the case of \(a = 1, b = 1, n = 10^9\). We have to check all possible options in this naive approach, we also have to check the case where all operations are "a = a + b" to get one of \(a, b\) strictly greater than \(n\), but the value of \(b\) didn't change for the whole time, so even if we only check the case where all operations are "a = a + b", we have to perform \(10^9\) operations. So this naive approach is time limit exceed error.
+
+\(\bullet\) Let's check all possible options:
+If we select "a += b" operation, the next state will be "a + b, b".
+If we select "b += a" operation, the next state will be "a, b + a".
+In one operation, one of \(a, b\) changes to \(a + b\) and the another remains the same.
+It's obviously than we have to remain the bigger value among \(a, b\) to save the number of operations.
+So the optimal strategy is that every time add bigger value to smaller value.
+Every time we perform an operation, we add the larger value to the smaller one, resulting in the maximum value increasing by at least two times. Therefore, in the worst case, we can reach \(10^9\) in a maximum of \(\log_2(10^9)\) operations.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        int a, b, n; scanf("%d %d %d", &a, &b, &n);
+    }
+}
+
+
+
+
+
+We can implement the optimal strategy by repeatedly adding the larger value to the smaller one. We should keep track of the number of operations performed. We can stop the process when one of the values exceeds \(n\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        int a, b, n; scanf("%d %d %d", &a, &b, &n);
+        int ans = 0;
+        while(a <= n && b <= n) {
+            if(a > b) {
+                b += a;
+            } else {
+                a += b;
+            }
+            ans++;
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+
+Let's check a custom corner case, where \(a, b, n\) are their minimum values: \(a = b = n  = 1\).
+<b>Input</b>
+<code>
+1
+1 1 1
+</code>
+In this case, after one operation the maximum value will be 1 + 1 = 2, so in one operation \(a\), or \(b\) will be strictly greater than \(n\), so in this case, the answer will be 1.
+
+
+
+
+
+1
+1 1 1

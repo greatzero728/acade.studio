@@ -1,0 +1,25 @@
+F. Optimal Encoding
+time limit per test7 seconds
+memory limit per test1024 megabytes
+
+Touko's favorite sequence of numbers is a permutation a1,a2,…,an of 1,2,…,n, and she wants some collection of permutations that are similar to her favorite permutation.
+
+She has a collection of q intervals of the form [li,ri] with 1≤li≤ri≤n. To create permutations that are similar to her favorite permutation, she coined the following definition:
+
+A permutation b1,b2,…,bn allows an interval [l′,r′] to holds its shape if for any pair of integers (x,y) such that l′≤x<y≤r′, we have bx<by if and only if ax<ay.
+A permutation b1,b2,…,bn is k-similar if b allows all intervals [li,ri] for all 1≤i≤k to hold their shapes.
+Yuu wants to figure out all k-similar permutations for Touko, but it turns out this is a very hard task; instead, Yuu will encode the set of all k-similar permutations with directed acylic graphs (DAG). Yuu also coined the following definitions for herself:
+
+A permutation b1,b2,…,bn satisfies a DAG G′ if for all edge u→v in G′, we must have bu<bv.
+A k-encoding is a DAG Gk on the set of vertices 1,2,…,n such that a permutation b1,b2,…,bn satisfies Gk if and only if b is k-similar.
+Since Yuu is free today, she wants to figure out the minimum number of edges among all k-encodings for each k from 1 to q.
+
+Input
+The first line contains two integers n and q (1≤n≤25000, 1≤q≤100000).
+
+The second line contains n integers a1,a2,…,an which form a permutation of 1,2,…,n.
+
+The i-th of the following q lines contains two integers li and ri. (1≤li≤ri≤n).
+
+Output
+Print q lines. The k-th of them should contain a single integer  — The minimum number of edges among all k-encodings.

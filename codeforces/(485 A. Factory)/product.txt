@@ -1,0 +1,83 @@
+Problem Statement:
+<b>Factory</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+One industrial factory is reforming working plan. The director suggested to set a mythical detail production norm. If at the beginning of the day there were \(x\) details in the factory storage, then by the end of the day the factory has to produce \(x \mod m\) (remainder after dividing \(x\) by \(m\)) more details. Unfortunately, no customer has ever bought any mythical detail, so all the details produced stay on the factory.
+
+The board of directors are worried that the production by the given plan may eventually stop (that means that there will be а moment when the current number of details on the factory is divisible by \(m\)).
+
+Given the number of details \(a\) on the first day and number \(m\) check if the production stops at some moment.
+
+<b>Input</b>
+The first line contains two integers \(a\) and \(m\) \((1 ≤ a, m ≤ 10^5)\).
+
+<b>Output</b>
+Print "Yes" (without quotes) if the production will eventually stop, otherwise print "No".
+
+
+
+
+
+The naive solution is to perform the operations until \(a \mod m = 0\). But if it is impossible such that \(a\mod m = 0\), how can we know it?
+Let's denote the total number of details on the \(i\)-th day by \(a_i\). At first \(a_0=a\).
+\(a_{i+1}=a_i + (a_i \mod m)\), so \(a_{i+1}\equiv 2a_i(\mod m)\) is satisfied.
+This means \(a_i \equiv a \cdot 2^i (\mod m)\).
+Let's denote \(m\) by \(p\cdot 2^k\), where \(p\) is odd and \(k\) is non-negative integer.
+If \(a\) is divided by \(p\), then \(a_k \equiv a\cdot 2^k \equiv 0(\mod m)\), so the answer is "Yes".
+Otherwise, the answer is "No", because \(a\) is not divided by \(p\), and \(2^i\) and \(p\) are coprime, so \(a_i\) is not divided by \(m\).
+Let's take the input.
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+	int a, m;
+	cin >> a >> m;
+}
+
+
+
+
+
+Divide \(m\) by 2 while \(m\) is even.
+If \(a\) is divided by \(m\), print "Yes", otherwise print "No".
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+	int a, m;
+	cin >> a >> m;
+	while (m % 2 == 0) m /= 2;
+	if (a % m == 0) puts("Yes");
+	else puts("No");
+}
+
+
+
+
+
+Let's test with custom input with smallest \(a\) and \(m\).
+
+Input
+1 1
+
+\(a \mod m\) is already 0, so the answer is "Yes".
+
+Expected answer
+Yes
+
+
+
+
+
+1 1

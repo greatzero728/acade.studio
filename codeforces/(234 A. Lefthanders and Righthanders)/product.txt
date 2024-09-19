@@ -1,0 +1,137 @@
+<b>A. Lefthanders and Righthanders</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+input: input.txt
+output: output.txt
+
+One fine October day a mathematics teacher Vasily Petrov went to a class and saw there \(n\) pupils who sat at the \(\frac{n}{2}\) desks, two people at each desk. Vasily quickly realized that number \(n\) is even. Like all true mathematicians, Vasily has all students numbered from 1 to \(n\).
+
+But Vasily Petrov did not like the way the children were seated at the desks. According to him, the students whose numbers differ by 1, can not sit together, as they talk to each other all the time, distract others and misbehave.
+
+On the other hand, if a righthanded student sits at the left end of the desk and a lefthanded student sits at the right end of the desk, they hit elbows all the time and distract each other. In other cases, the students who sit at the same desk, do not interfere with each other.
+
+Vasily knows very well which students are lefthanders and which ones are righthanders, and he asks you to come up with any order that meets these two uncomplicated conditions (students do not talk to each other and do not bump their elbows). It is guaranteed that the input is such that at least one way to seat the students always exists.
+
+<b>Input</b>
+The first input line contains a single even integer \(n (4 ≤ n ≤ 100)\) — the number of students in the class. The second line contains exactly \(n\) capital English letters "L" and "R". If the \(i\)-th letter at the second line equals "L", then the student number \(i\) is a lefthander, otherwise he is a righthander.
+
+<b>Output</b>
+Print \(\frac{n}{2}\) integer pairs, one pair per line. In the \(i\)-th line print the numbers of students that will sit at the \(i\)-th desk. The first number in the pair stands for the student who is sitting to the left, and the second number stands for the student who is sitting to the right. Separate the numbers in the pairs by spaces. If there are multiple solutions, print any of them.
+
+
+
+
+
+We need to arrange the students such that no two students with consecutive numbers sit together, and a left-hander does not sit to the right of a right-hander.
+
+For every student, there are \(n\) possible positions they can occupy. If we iterate through all possible arrangements, we can check whether the current arrangement is valid in time complexity \(O(n)\) using the given logic. Thus, considering all possible ways to arrange the students, we require \(O(n \cdot n!)\) time complexity. However, since \(n \leq 100\), this value is extremely large, making it impossible to solve the problem using a naive algorithm.
+
+\(\bullet\) Because \( n \geq 4 \), if we create pairs of \(\left(1, \frac{n}{2} + 1\right), \left(2, \frac{n}{2} + 2\right), \ldots, \left(\frac{n}{2}, \frac{n}{2} + \frac{n}{2}\right)\), no neighboring numbers will differ by 1. Every difference is \(\frac{n}{2}\), and since \(\frac{n}{2} \geq \frac{4}{2} = 2\), above statement holds true.
+\(\bullet\) For each pair, we only need to avoid the situation where the left student is a right-hander and the right student is a left-hander. This can be easily resolved because if we encounter such a situation, we can simply swap the left and right students.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+char s[121];
+
+int main() {
+	freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
+	
+	int n; scanf("%d %s", &n, s + 1);
+	return 0;
+}
+
+
+
+
+
+
+Let's create pairs \(\left(1, \frac{n}{2} + 1\right), \left(2, \frac{n}{2} + 2\right), \ldots, \left(\frac{n}{2}, \frac{n}{2} + \frac{n}{2}\right)\) so that no neighboring numbers will differ by 1.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+char s[121];
+
+void print(int a, int b) {
+	return;
+}
+
+int main() {
+	freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
+	
+	int n; scanf("%d %s", &n, s + 1);
+	
+	for(int i = 1; i <= n >> 1; i++) {
+		print(i, i + (n >> 1));
+	}
+	return 0;
+}
+
+
+
+
+
+
+We have already determined the pairs in which no neighboring numbers differ by 1. Now, we only need to assign the positions to ensure that no one bumps elbows.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+char s[121];
+
+void print(int a, int b) {
+	if(s[a] == 'R' && s[b] == 'L') swap(a, b);
+	printf("%d %d\n", a, b);
+	return;
+}
+
+int main() {
+	freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
+	
+	int n; scanf("%d %s", &n, s + 1);
+	
+	for(int i = 1; i <= n >> 1; i++) {
+		print(i, i + (n >> 1));
+	}
+	return 0;
+}
+
+
+
+
+
+
+Let's add a custom corner case, where \(n\) is it's minimum value: \(n = 4\).
+And here, let's check the case where all students are lefthanders.
+<b>Input</b>
+<code>
+4
+LLLL
+</code>
+There aren't any right-handers in this case, so we only need to build \(\frac{n}{2}\) pairs so that no neighboring numbers differ by 1. According my algorithm, the pairs are \(\left(1, \frac{n}{2} + 1\right), \left(2, \frac{n}{2} + 2\right), \ldots, \left(\frac{n}{2}, \frac{n}{2} + \frac{n}{2}\right)\), so the answer will be \((1, 3), (2, 4)\).
+
+
+
+
+
+4
+LLLL

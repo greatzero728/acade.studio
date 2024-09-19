@@ -1,0 +1,118 @@
+<b>B. XY Sequence</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+You are given four integers \(n, B, x\) and \(y\). You should build a sequence \(a_0, a_1, a_2, \dots, a_n\) where \(a_0=0\) and for each \(i≥1\) you can choose:
+
+\(\bullet\) either \(a_i = a_{i - 1} + x\)
+\(\bullet\) or \(a_i = a_{i - 1} - y\).
+
+Your goal is to build such a sequence \(a\) that \(a_i≤B\) for all \(i\) and \(\sum\limits_{i=0}^{n}{a_i}\) is maximum possible.
+
+<b>Input</b>
+The first line contains a single integer \(t (1≤t≤10^4)\) — the number of test cases. Next \(t\) cases follow.
+
+The first and only line of each test case contains four integers \(n, B, x\) and \(y (1 \le n \le 2 \cdot 10^5; 1 \le B, x, y \le 10^9)\).
+
+It's guaranteed that the total sum of \(n\) doesn't exceed \(2⋅10^5\).
+
+<b>Output</b>
+For each test case, print one integer — the maximum possible \(\sum\limits_{i=0}^{n}{a_i}\).
+
+<b>Note</b>
+In the first test case, the optimal sequence \(a\) is [0,1,2,3,4,5].
+
+In the second test case, the optimal sequence \(a\) is \([0,10^9,0,10^9,0,10^9,0,10^9]\).
+
+In the third test case, the optimal sequence \(a\) is [0,−3,−6,1,−2].
+
+
+
+
+
+Let's analyze the problem. We are given four integers \(n\), \(B\), \(x\), and \(y\), and we need to build a sequence \(a_0, a_1, a_2, \ldots, a_n\) such that \(a_0 = 0\). For each \(i \geq 1\), we can choose either \(a_i = a_{i-1} + x\) or \(a_i = a_{i-1} - y\). The goal is to construct the sequence \(a\) such that \(a_i \leq B\) for all \(i\) and maximize \(\sum_{i=0}^{n} a_i\).
+
+\(\bullet\) We can observe that the sequence will be optimal if we always choose the maximum possible value for \(a_i\), which is \(a_{i-1} + x\), unless this would exceed \(B\). In that case, we would choose \(a_{i-1} - y\).
+
+Let's prove why this approach is optimal solution.
+
+To prove the optimality of this approach, we can use a greedy algorithm argument. At each step, we have two choices: either add \(x\) to the current value or subtract \(y\). If adding \(x\) does not exceed \(B\), it is clearly the better choice, as it increases the sum. If adding \(x\) would exceed \(B\), then subtracting \(y\) is the better choice, as it avoids exceeding \(B\) and still increases the sum.
+
+We can show that this greedy approach is optimal by considering the following: suppose we have an optimal sequence that does not follow this approach. Then, there must be a point where we chose to subtract \(y\) when we could have added \(x\) without exceeding \(B\). If that were the case, we could have obtained a better sequence by adding \(x\) instead of subtracting \(y\), which contradicts the optimality of the original sequence.
+
+Therefore, the greedy approach of always adding \(x\) unless it would exceed \(B\) is optimal.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    while (t--) {
+        int n, B, x, y;
+        cin >> n >> B >> x >> y;
+        
+    }
+    return 0;
+}
+
+
+
+
+
+Now that we have read the input values, we can start implementing the greedy approach. We will initialize the sequence with \(a_0 = 0\) and then iteratively calculate the next values of the sequence based on the given conditions.
+
+We will also keep track of the sum of the sequence values as we calculate them. If adding \(x\) to the current value would exceed \(B\), we will subtract \(y\) instead. This way, we ensure that the sequence values never exceed \(B\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    while (t--) {
+        int n, B, x, y;
+        cin >> n >> B >> x >> y;
+        long long sum = 0;
+        long long curr = 0;
+        for (int i = 0; i < n; i++) {
+            if (curr + x <= B) {
+                curr += x;
+            } else {
+                curr -= y;
+            }
+            sum += curr;
+        }
+        cout << sum << endl;
+    }
+    return 0;
+}
+
+
+
+
+
+Let's check a custom corner case, where \(n, B, x, y\) are their minimum values: (\(n = B = x = y = 1\))
+<b>Input</b>
+<code>
+1
+1 1 1 1
+</code>
+According my algorithm, a[0] = 0, a[1] = 0 + 1 = 1, so \(\sum\limits_{i=0}^{n}{a_i} = 0 + 1 = 1\). So in this test case, the answer should be 1.
+
+
+
+
+
+1
+1 1 1 1

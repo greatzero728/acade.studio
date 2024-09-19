@@ -1,0 +1,178 @@
+<b>C. Okabe and Boxes</b>
+time limit per test: 3 seconds
+memory limit per test: 256 megabytes
+
+Okabe and Super Hacker Daru are stacking and removing boxes. There are \(n\) boxes numbered from 1 to \(n\). Initially there are no boxes on the stack.
+
+Okabe, being a control freak, gives Daru \(2n\) commands: \(n\) of which are to add a box to the top of the stack, and \(n\) of which are to remove a box from the top of the stack and throw it in the trash. Okabe wants Daru to throw away the boxes in the order from 1 to \(n\). Of course, this means that it might be impossible for Daru to perform some of Okabe's remove commands, because the required box is not on the top of the stack.
+
+That's why Daru can decide to wait until Okabe looks away and then reorder the boxes in the stack in any way he wants. He can do it at any point of time between Okabe's commands, but he can't add or remove boxes while he does it.
+
+Tell Daru the minimum number of times he needs to reorder the boxes so that he can successfully complete all of Okabe's commands. It is guaranteed that every box is added before it is required to be removed.
+
+<b>Input</b>
+The first line of input contains the integer \(n (1 ≤ n ≤ 3·10^5)\) — the number of boxes.
+
+Each of the next \(2n\) lines of input starts with a string "add" or "remove". If the line starts with the "add", an integer \(x (1 ≤ x ≤ n)\) follows, indicating that Daru should add the box with number \(x\) to the top of the stack.
+
+It is guaranteed that exactly \(n\) lines contain "add" operations, all the boxes added are distinct, and \(n\) lines contain "remove" operations. It is also guaranteed that a box is always added before it is required to be removed.
+
+<b>Output</b>
+Print the minimum number of times Daru needs to reorder the boxes to successfully complete all of Okabe's commands.
+
+<b>Note</b>
+In the first sample, Daru should reorder the boxes after adding box 3 to the stack.
+
+In the second sample, Daru should reorder the boxes after adding box 4 and box 7 to the stack.
+
+
+
+
+
+\(\bullet\) Before each remove operation, if the top element is not the desired value, we need to sort the stack elements in increasing order.
+The top element should be the minimum value, as we have already removed elements smaller than the current desired value.
+But to sort all elements in the stack, it takes \(O(n \cdot log(n))\), and in the worst case, we have to perform this operation for all \(n\) remove operations, so the time complexity of this naive algorithm is \(O(n ^ 2 \cdot log(n))\).
+So we can't solve this problem with a naive approach, as \(n \leq 3\cdot10^5\). It will result of time limit exceed.
+
+\(\bullet\) It is obvious that if we need to sort current stack, we must sort all the elements of the stack, because there is no other way.
+And if we sort all the elements, then every element of current stack, will match the desired value during the removal operation. This is because the stack will be sorted, and when we remove an element, it will be the minimum possible value in the stack.
+So, if we have to sort all the elements, we can ignore the current elements and simply empty the stack.
+Finally, we reduced the time complexity of our algorithm into \(O(n)\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n; scanf("%d", &n);
+    
+    for(int i = n + n; i--; ) {
+        string s; cin>>s;
+        if(s == "add") {
+            int x; scanf("%d", &x);
+        }
+        else {
+            
+        }
+    }
+}
+
+
+
+
+
+In the add operation, we only need to add the given element to the top position of stack.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n; scanf("%d", &n);
+    
+    stack<int> st;
+    for(int i = n + n; i--; ) {
+        string s; cin>>s;
+        if(s == "add") {
+            int x; scanf("%d", &x);
+            st.push(x);
+        }
+        else {
+            
+        }
+    }
+}
+
+
+
+
+
+In the remove operation, if the top element of the stack is the desired value, then we only need to remove the top element. And also to maintain the desired value, we can count the number of remove operations until now.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n; scanf("%d", &n);
+    
+    stack<int> st;
+    int desiredValue = 0;
+    for(int i = n + n; i--; ) {
+        string s; cin>>s;
+        if(s == "add") {
+            int x; scanf("%d", &x);
+            st.push(x);
+        }
+        else {
+            desiredValue++;
+            if(st.empty()) continue;
+            if(st.top() == desiredValue) st.pop();
+        }
+    }
+}
+
+
+
+
+
+Otherwise, this is meaning the top element of the stack isn't same with the desired value, so in this case, we have to sort the stack. This is meaning we have to clear the stack.
+We can count the number of this type of operation, and this will be the answer.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n; scanf("%d", &n);
+    
+    stack<int> st;
+    int desiredValue = 0;
+    int ans = 0;
+    for(int i = n + n; i--; ) {
+        string s; cin>>s;
+        if(s == "add") {
+            int x; scanf("%d", &x);
+            st.push(x);
+        }
+        else {
+            desiredValue++;
+            if(st.empty()) continue;
+            if(st.top() == desiredValue) st.pop();
+            else st = stack<int>(), ans++;
+        }
+    }
+    cout<<ans;
+}
+
+
+
+
+
+Let's add a custom corner case, where \(n\) is its minimum possible value: \(n = 1\).
+Then, we only need to perform one add operation and one delete operation, and in this case no need to rearrange the stack, because it's size is just 1.
+So in this case the answer will be 0.
+
+
+
+
+
+1
+add 1
+remove

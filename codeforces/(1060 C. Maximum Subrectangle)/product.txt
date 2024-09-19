@@ -1,0 +1,157 @@
+<b>Maximum Subrectangle</b>
+time limit per test: 2 seconds
+memory limit per test: 512 megabytes
+
+You are given two arrays \(a\) and \(b\) of positive integers, with lengths \(n\) and \(m\) respectively.
+
+Let \(c\) be an \(n \times m\) matrix, where \(c_{i,j} = a_i \cdot b_j\).
+
+You need to find a subrectangle of the matrix \(c\) such that the sum of its elements is at most \(x\), and its area (the total number of elements) is the largest possible.
+
+Formally, you need to find the largest number \(s\) such that it is possible to choose integers \(x_1,x_2,y_1,y_2\) subject to \(1 \le x_1 \le x_2 \le n\), \(1 \le y_1 \le y_2 \le m\), \((x_2-x_1+1) \times (y_2-y_1+1)=s\), and \(\sum_{i=x_1}^{x_2} \sum_{j=y_1}^{y_2} c_{i,j} \le x\).
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(m\) (\(1 \le n,m \le 2000\)).
+
+The second line contains \(n\) integers \(a_1,a_2,\ldots,a_n\) (\(1 \le a_i \le 2000\)).
+
+The third line contains \(m\) integers \(b_1,b_2,\ldots,b_m\) (\(1 \le b_i \le 2000\)).
+
+The fourth line contains a single integer \(x\) (\(1 \le x \le 2 \cdot 10^9\)).
+
+<b>Output</b>
+If it is possible to choose four integers \(x_1,x_2,y_1,y_2\) such that \(1 \le x_1 \le x_2 \le n\), \(1 \le y_1 \le y_2 \le m\), and \(\sum_{i=x_1}^{x_2} \sum_{j=y_1}^{y_2} c_{i,j} \le x\), output the largest value of \((x_2-x_1+1) \times (y_2-y_1+1)\) among all such quadruplets, otherwise output \(0\).
+
+<b>Note</b>
+Matrix from the first sample and the chosen subrectangle (of blue color):
+<img img1>
+
+Matrix from the second sample and the chosen subrectangle (of blue color):
+<img img2>
+
+
+
+
+Notice that \(\sum_{i=x_1}^{x_2} \sum_{j=y_1}^{y_2} c_{i,j} = \sum_{i=x_1}^{x_2} \sum_{j=y_1}^{y_2} a_ib_j = \sum_{i=x_1}^{x_2}a_i \sum_{j=y_1}^{y_2}b_j\). Thus, the sum of a submatrix can be given by the product of sums of a pair of subarrays, one each from \(a\) and \(b\).
+
+We can naively iterate over each pair and find the largest submatrix, but each array has \(\mathcal{O}(n^2)\) subarrays, leading to a slow \(\mathcal{O}(n^2m^2)\) solution.
+
+Let's consider a subarray \(a[x_1\ldots x_2]\), and suppose \(A \triangleq \sum_{i=x_1}^{x_2}a_i\). Then, we need to choose the largest subarray from \(b\) whose sum is at most \(\left\lfloor \frac{x}{A} \right\rfloor\).
+
+Let's set up the boilerplate and read the inputs. We also generate prefix sums to calculate subarray sums in \(\mathcal{O}(1)\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n, m, x;
+    cin >> n >> m;
+    vector<int> a(n + 1), b(m + 1);
+    for (int i = 1; i <= n; i++) { cin >> a[i]; a[i] += a[i - 1]; }
+    for (int i = 1; i <= m; i++) { cin >> b[i]; b[i] += b[i - 1]; }
+    cin >> x;
+    return 0;
+}
+
+
+
+
+
+Observe that the sum of a subarray is at most \(2000 \times 2000 = 4 \times 10^6\) from the constraints. To speed up the solution at the cost of higher memory, we store for each possible subarray sum the maximum length of the subarray. Then, we compute prefix maximums since we need to compute the largest subarray length among all subarrays with sum at most some value (\(\left\lfloor \frac{x}{A} \right\rfloor\) in the above analysis). Keeping with the above analysis, this is done for subarrays of array \(b\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+constexpr int N = 4e6 + 1;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n, m, x;
+    cin >> n >> m;
+    vector<int> a(n + 1), b(m + 1);
+    for (int i = 1; i <= n; i++) { cin >> a[i]; a[i] += a[i - 1]; }
+    for (int i = 1; i <= m; i++) { cin >> b[i]; b[i] += b[i - 1]; }
+    cin >> x;
+    vector<int> sb(N);
+    for (int i = 1; i <= m; i++)
+        for (int j = 0; j < i; j++)
+            sb[b[i] - b[j]] = max(sb[b[i] - b[j]], i - j);
+    for (int i = 1; i < N; i++) sb[i] = max(sb[i], sb[i - 1]);
+    return 0;
+}
+
+
+
+
+
+Finally, we have to compute the answer. We iterate over all subarrays in \(a\). To find the maximum length among all possible subarrays of \(b\) for each subarray of \(a\), we have to lookup the prefix maximum for subarray lengths whose sum is at most \(\left\lfloor \frac{x}{A} \right\rfloor\) as per the analysis in [1]. Since \(\frac{x}{A}\) can be larger than \(4 \times 10^6\), we take the minimum with this upper limit for the subarray sum. Overall, the solution runs in \(\mathcal{O}(n^2 + AN)\), where \(A\) is the upper limit on the value of each array element and \(N\) is the upper limit on the array length, which will run fast enough.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+constexpr int N = 4e6 + 1;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n, m, x;
+    cin >> n >> m;
+    vector<int> a(n + 1), b(m + 1);
+    for (int i = 1; i <= n; i++) { cin >> a[i]; a[i] += a[i - 1]; }
+    for (int i = 1; i <= m; i++) { cin >> b[i]; b[i] += b[i - 1]; }
+    cin >> x;
+    vector<int> sb(N);
+    for (int i = 1; i <= m; i++)
+        for (int j = 0; j < i; j++)
+            sb[b[i] - b[j]] = max(sb[b[i] - b[j]], i - j);
+    for (int i = 1; i < N; i++) sb[i] = max(sb[i], sb[i - 1]);
+    int ans = 0;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 0; j < i; j++) {
+            int sa = a[i] - a[j];
+            ans = max(ans, sb[min(N - 1, x / sa)] * (i - j));
+        }
+    }
+    cout << ans;
+    return 0;
+}
+
+
+
+
+
+3 3
+1 2 3
+1 2 3
+9
+
+
+
+
+5 1
+5 4 2 4 5
+2
+5
+
+
+
+
+Consider a corner case where \(x = 1\) and all entries of \(a\) and \(b\) are greater than 1. Clearly, no submatrix in \(c\) can satisfy this condition and the answer should be 0.
+
+
+
+
+2 2
+6 9
+9 6
+1

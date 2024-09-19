@@ -1,0 +1,382 @@
+<b>Au Pont Rouge</b>
+<b>time limit per test:</b> 2 seconds
+<b>memory limit per test:</b> 512 megabytes
+
+VK just opened its second HQ in St. Petersburg! Side of its office building has a huge string \(s\) written on its side. This part of the office is supposed to be split into \(m\) meeting rooms in such way that meeting room walls are strictly between letters on the building. Obviously, meeting rooms should not be of size 0, but can be as small as one letter wide. Each meeting room will be named after the substring of \(s\) written on its side.
+
+<img au>
+For each possible arrangement of \(m\) meeting rooms we ordered a test meeting room label for the meeting room with lexicographically <b>minimal </b>name. When delivered, those labels got sorted<b> backward </b>lexicographically.
+
+What is printed on \(k\)-th label of the delivery?
+
+<b>Input</b>
+In the first line, you are given three integer numbers \(n, m, k\) — length of string \(s\), number of planned meeting rooms to split \(s\) into and number of the interesting label \((2 \leq n \leq 1000; 1 \leq m \leq 1000; 1 \leq k \leq 10^{18})\).
+
+Second input line has string \(s\), consisting of \(n\) lowercase english letters.
+
+For given \(n, m, k\), there are at least \(k\) ways to split \(s\) into \(m\) substrings.
+
+<b>Output</b>
+Output single string — name of meeting room printed on \(k\)-th label of the delivery.
+
+<b>Note</b>
+In the first example, delivery consists of the labels<i> "aba", "ab", "a".</i>
+
+In the second example, delivery consists of \(3060\) labels. The first label is <i>"aupontrougevkof" </i>and the last one is <i>"a".</i>
+
+
+
+
+
+An intuitive approach might involve listing all possible substrings of the string, sorting them lexicographically, and using a brute-force binary search to locate the \(k\)-th substring. This approach, however, is inefficient due to the potentially enormous number of substrings, which could cause time and memory limitations. Calculating and sorting all substrings could result in a Time Limit Exceeded error, especially when \(n\) and \(m\) are large.
+
+So, The approach I'm thinking of is to leverage <b>dynamic programming</b> and the <b>Longest Common Prefix (LCP)</b> array, both of which are well-known algorithms that handle string comparisons and substrings efficiently.
+
+<b>Dynamic Programming for Counting Valid Splits:</b>
+
+We define a DP table \( dp[i][j] \), where: \( dp[i][j] \) represents the number of ways to split the first \( j \) characters of the string into exactly \( i \) partitions (meeting rooms).
+
+The transition formula is:
+
+\( dp[i][j] = \sum\limits_{k=1}^{j-1} dp[i-1][k] \) if the substring \(s[k:j]\) is lexicographically larger than the reference substring (determined via LCP)
+
+<b>Explanation of the Transition Formula</b>:
+Here <b>\(i\)</b> represents the number of partitions (meeting rooms). <b>\(j\)</b> represents the first \(j\) characters of the string. To compute \( dp[i][j] \), we look at all valid partition points \( k \) before \( j \) and check if the substring \( s[k:j] \) can form a valid partition based on lexicographical order. We use the <b>LCP array</b> to determine whether the substring \( s[k:j] \) is lexicographically larger than a reference substring. If the partition is valid, we sum up \( dp[i-1][k] \) (the number of ways to split the previous part of the string).Each update to \( dp[i][j] \) takes \( O(1) \) time because we precompute the LCP values for efficient comparisons.
+
+Thus, the overall complexity of this DP step is \( O(n^2) \), where we iterate over all possible partitions and use the LCP array for efficient string comparisons.
+
+<b>Longest Common Prefix (LCP) Array:</b>
+The <b>LCP array</b> is a fundamental data structure in string processing. It stores the length of the longest common prefix<b> between consecutive suffixes</b> in the suffix array. The LCP helps to avoid comparing substrings character by character, allowing us to quickly determine how similar two substrings are. This reduces the time complexity from \(O(n^3)\) (when comparing all substrings naively) to \(O(n^2)\) by using the precomputed LCP values.
+
+<b>Binary Search for Finding the \(k\)-th Substring:</b>
+After sorting the valid substrings using the LCP values, a binary search is used to locate the \(k\)-th substring. The LCP helps optimize this by ensuring that we don't need to recompute substring comparisons repeatedly, making the binary search efficient.
+
+Thus, combining <b>LCP</b> with <b>dynamic programming</b> to precompute the number of valid splits allows us to find the optimal solution in <b>quadratic time</b> \(O(n^2)\), which is efficient given the constraints of the problem.
+
+The overall time complexity of this approach is <b>\(O(n^2 \log n)\)</b> due to the sorting step. The dynamic programming and LCP computation both run in <b>\(O(n^2)\)</b>, while the sorting takes <b>\(O(n^2 \log n)\)</b>, making this the dominant factor.
+
+
+
+
+We begin by including necessary libraries, defining constants, and declaring variables to store the length of the string, number of partitions, index of the desired meeting room name, and the string. The constants set the maximum size for the arrays. After this setup, we take input for the string's length, the number of partitions, the index \(k\), and the string.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long n,m,k; 
+char s[mx]; 
+
+int main() {
+    cin>>n>>m>>k>>s;
+}
+
+
+
+
+Next, we compute the <b>Longest Common Prefix (LCP)</b> between all pairs of starting points in the string. We aim to create a 2D array that stores how many consecutive characters match between two substrings starting at positions \(i\) and \(j\). Instead of comparing substrings character by character repeatedly, the precomputed LCP array allows us to quickly determine the similarity between two substrings.
+
+The LCP array is filled using the formula:
+
+\(lc[i][j] = \begin{cases} lc[i+1][j+1] + 1 & \text{if } s[i] = s[j] \\0 & \text{if } s[i] \neq s[j]\end{cases}\)
+
+This formula ensures that if the characters match, the common prefix length extends by one more character, otherwise, it resets to zero. Precomputing this helps in efficiently comparing substrings later.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long n,m,k; 
+long long lc[mx][mx],n,m,k; 
+char s[mx]; 
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+}
+
+
+
+
+Then, we generate all possible substrings of the string by creating pairs of starting and ending indices. Each pair represents a substring that we will later sort and evaluate.
+
+The reason for this step is that we need to compare all substrings to find the lexicographically smallest one, and by storing all possible substrings in this way, we can efficiently process and sort them later. This prepares the groundwork for the main operations on these substrings.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+}
+
+
+
+
+
+Now, we will define a comparison function that will help us compare two substrings efficiently. This function uses the LCP array to jump past any matching characters between two substrings and focuses on the first differing character.
+
+If one substring is longer than the other, it compares the next character in the longer substring. This approach ensures that we can quickly determine the lexicographical order of two substrings without having to compare every character manually, thus saving computation time.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+    auto get_val=[&](long long len,pair<long long,long long> p){
+        return len==p.second-p.first+1?0:s[p.first+len-1];
+    };
+}
+
+
+
+
+
+Now, we sort all the substrings based on their lexicographical order. By using the precomputed LCP values and the comparison function defined earlier, we ensure that the sorting is both efficient and correct. Sorting the substrings is a crucial step because it allows us to later apply binary search to quickly locate the \(k\)-th smallest substring. Sorting all substrings at once simplifies the subsequent search for the desired meeting room name.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+    auto get_val=[&](long long len,pair<long long,long long> p){
+        return len==p.second-p.first+1?0:s[p.first+len-1];
+    };
+    sort(v.begin(),v.end(),[&](pair<long long,long long> a,pair<long long,long long> b){
+        long long l=min(lc[a.first][b.first],min(a.second-a.first+1,b.second-b.first+1)),l1=get_val(l,a),l2=get_val(l,b);
+        return l1<l2;
+    });
+}
+
+
+
+
+At this point, We will begin with a<b> binary search</b> over the sorted substrings to locate the \(k\)-th smallest one. The goal is to efficiently narrow down the search space by repeatedly halving the possible range of substrings. By calculating the midpoint and checking if it contains the desired substring, we can determine whether to search the left or right half of the list. This binary search significantly reduces the complexity compared to a linear search over all substrings.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k,dp[mx][mx]; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+    auto get_val=[&](long long len,pair<long long,long long> p){
+        return len==p.second-p.first+1?0:s[p.first+len-1];
+    };
+    sort(v.begin(),v.end(),[&](pair<long long,long long> a,pair<long long,long long> b){
+        long long l=min(lc[a.first][b.first],min(a.second-a.first+1,b.second-b.first+1)),l1=get_val(l,a),l2=get_val(l,b);
+        return l1<l2;
+    });
+    for (long long l=0,r=v.size()-1;r>=l;){
+        long long md=(l+r)/2;
+        memset(dp,0,sizeof(dp)),dp[0][0]=1;
+    }
+}
+
+
+
+
+
+Now, we apply <b>dynamic programming (DP)</b> to calculate how many valid ways there are to partition the string into \(m\) meeting rooms based on the current midpoint \(md\) from the binary search. Here, \(dp[i][j]\) holds the number of ways to split the first \(j\) characters of the string into exactly \(i\) partitions. For each substring starting at position \(j\), we check if it is lexicographically larger than the substring starting at the midpoint \(md\). If it is, it can form a valid partition, and we update the DP table accordingly. This step is crucial as it helps us count whether there are enough valid partitions to cover the \(k\)-th smallest substring.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k,dp[mx][mx]; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+    auto get_val=[&](long long len,pair<long long,long long> p){
+        return len==p.second-p.first+1?0:s[p.first+len-1];
+    };
+    sort(v.begin(),v.end(),[&](pair<long long,long long> a,pair<long long,long long> b){
+        long long l=min(lc[a.first][b.first],min(a.second-a.first+1,b.second-b.first+1)),l1=get_val(l,a),l2=get_val(l,b);
+        return l1<l2;
+    });
+    for (long long l=0,r=v.size()-1;r>=l;){
+        long long md=(l+r)/2;
+        memset(dp,0,sizeof(dp)),dp[0][0]=1;
+        for (long long i=1;i<=m;i++){
+            for (long long j=1;j<=n;j++){
+                long long e=-1,ln=min(lc[j][v[md].first],min(n-j+1,v[md].second-v[md].first+1));
+                long long l1=ln==n-j+1?0:s[j+ln-1],l2=ln==v[md].second-v[md].first+1?0:s[v[md].first+ln-1];
+                if (l1>=l2) e=ln==v[md].second-v[md].first+1?j+ln-1:j+ln;
+                if (e!=-1) dp[i][e]+=dp[i-1][j-1];
+                dp[i][e]=min(dp[i][e],(long long)1e18);
+            }
+        }
+    }
+}
+
+
+
+
+
+Then, we <b>accumulates the DP values</b> across all possible partitions of the string, ensuring that we count all valid ways to split the string into \(m\) meeting rooms. We sum the values of \(dp[i][j]\) to include the valid ways from previous partitions, ensuring that each new partition builds upon the previous ones. This cumulative summation helps track the total number of valid partitioning configurations, which we’ll later use to decide if the current midpoint substring can be the \(k\)-th smallest. The values are capped at \(10^{18}\) to prevent overflow, ensuring the calculations remain manageable even with large inputs.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k,dp[mx][mx]; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+    auto get_val=[&](long long len,pair<long long,long long> p){
+        return len==p.second-p.first+1?0:s[p.first+len-1];
+    };
+    sort(v.begin(),v.end(),[&](pair<long long,long long> a,pair<long long,long long> b){
+        long long l=min(lc[a.first][b.first],min(a.second-a.first+1,b.second-b.first+1)),l1=get_val(l,a),l2=get_val(l,b);
+        return l1<l2;
+    });
+    for (long long l=0,r=v.size()-1;r>=l;){
+        long long md=(l+r)/2;
+        memset(dp,0,sizeof(dp)),dp[0][0]=1;
+        for (long long i=1;i<=m;i++){
+            for (long long j=1;j<=n;j++){
+                long long e=-1,ln=min(lc[j][v[md].first],min(n-j+1,v[md].second-v[md].first+1));
+                long long l1=ln==n-j+1?0:s[j+ln-1],l2=ln==v[md].second-v[md].first+1?0:s[v[md].first+ln-1];
+                if (l1>=l2) e=ln==v[md].second-v[md].first+1?j+ln-1:j+ln;
+                if (e!=-1) dp[i][e]+=dp[i-1][j-1];
+                dp[i][e]=min(dp[i][e],(long long)1e18);
+            }
+            for (long long j=1;j<=n;j++) dp[i][j]=min(dp[i][j]+dp[i][j-1],(long long)1e18);
+        }
+    }
+}
+
+
+
+
+Now, Based on the values we calculated using the DP table, we decide <b>whether to move to the left or right half of our search range</b>. If the number of valid partitions calculated at the current midpoint is greater than or equal to \(k\), it means the \(k\)-th smallest substring might lie further along, so we adjust our search to the right half by increasing \(l\). Otherwise, we move to the left half. This binary search continues until we zero in on the exact substring. Our goal here is to efficiently focus our search on the correct section of substrings, minimizing unnecessary comparisons.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const long long mx=1001;
+long long lc[mx][mx],n,m,k,dp[mx][mx],ans=0; 
+char s[mx]; 
+vector<pair<long long,long long>> v;
+
+int main() {
+    cin>>n>>m>>k>>s;
+    for (long long i=n;i;i--) for (long long j=n;j;j--) if (s[i-1]==s[j-1]) lc[i][j]=lc[i+1][j+1]+1;
+    for (long long i=1;i<=n;i++) for (long long j=i;j<=n;j++) v.emplace_back(i,j);
+    auto get_val=[&](long long len,pair<long long,long long> p){
+        return len==p.second-p.first+1?0:s[p.first+len-1];
+    };
+    sort(v.begin(),v.end(),[&](pair<long long,long long> a,pair<long long,long long> b){
+        long long l=min(lc[a.first][b.first],min(a.second-a.first+1,b.second-b.first+1)),l1=get_val(l,a),l2=get_val(l,b);
+        return l1<l2;
+    });
+    for (long long l=0,r=v.size()-1;r>=l;){
+        long long md=(l+r)/2;
+        memset(dp,0,sizeof(dp)),dp[0][0]=1;
+        for (long long i=1;i<=m;i++){
+            for (long long j=1;j<=n;j++){
+                long long e=-1,ln=min(lc[j][v[md].first],min(n-j+1,v[md].second-v[md].first+1));
+                long long l1=ln==n-j+1?0:s[j+ln-1],l2=ln==v[md].second-v[md].first+1?0:s[v[md].first+ln-1];
+                if (l1>=l2) e=ln==v[md].second-v[md].first+1?j+ln-1:j+ln;
+                if (e!=-1) dp[i][e]+=dp[i-1][j-1];
+                dp[i][e]=min(dp[i][e],(long long)1e18);
+            }
+            for (long long j=1;j<=n;j++) dp[i][j]=min(dp[i][j]+dp[i][j-1],(long long)1e18);
+        }
+        if (dp[m][n]>=k) l=md+1,ans=md; else r=md-1;
+    }
+}
+
+
+
+
+After completing the binary search, we retrieve the \(k\)-th lexicographically smallest substring. The program identifies the correct substring based on the computed indices and prints it character by character from the original string. This step finalizes the process by outputting the required substring in the correct order.
+
+
+
+
+4 2 1
+abac
+
+
+
+
+19 5 1821
+aupontrougevkoffice
+
+
+
+
+Now, I will add the following test case because I want to see if the code works when the input string consists of repeated characters, and I want to check if it correctly picks the smallest substring in lexicographical order.
+
+<b>Input</b>
+<code>
+6 3 5
+aaaaaa
+</code>
+
+<b>Expected output:</b>
+<code>
+a
+</code>
+
+Because, All possible substrings in the string are the same, but since we're looking for the lexicographically smallest one and the smallest substring is "a," the 5th lexicographical partition will also be "a."
+
+
+
+
+6 3 5
+aaaaaa

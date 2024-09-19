@@ -1,0 +1,146 @@
+<b>Ticket Game</b>
+<b>time limit per test:</b> 1 second
+<b>memory limit per test:</b> 256 megabytes
+
+Monocarp and Bicarp live in Berland, where every bus ticket consists of \( n \) digits ( \( n \) is an even number). During the evening walk Monocarp and Bicarp found a ticket where some of the digits have been erased. The number of digits that have been erased is even.
+
+Monocarp and Bicarp have decided to play a game with this ticket. Monocarp hates happy tickets, while Bicarp collects them. A ticket is considered happy if the sum of the first \( \frac{n}{2} \) digits of this ticket is equal to the sum of the last \( \frac{n}{2} \) digits.
+
+Monocarp and Bicarp take turns (and Monocarp performs the first of them). During each turn, the current player must replace any erased digit with any digit from 0 to 9. The game ends when there are no erased digits in the ticket.
+
+If the ticket is happy after all erased digits are replaced with decimal digits, then Bicarp wins. Otherwise, Monocarp wins. You have to determine who will win if both players play optimally.
+
+<b>Input </b>
+The first line contains one even integer \( n \) (2 ≤ \( n \) ≤ \(2 ⋅ 10^5\)) — the number of digits in the ticket.
+
+The second line contains a string of \( n \) digits and "?" characters — the ticket which Monocarp and Bicarp have found. If the \( i \)-th character is "?", then the \( i \)-th digit is erased. Note that there may be leading zeroes. The number of "?" characters is even.
+
+<b>Output</b>
+If Monocarp wins, print "Monocarp" (without quotes). Otherwise print "Bicarp" (without quotes).
+
+<b>Note</b>
+Since there is no question mark in the ticket in the first example, the winner is determined before the game even starts, and it is Bicarp.
+
+In the second example, Bicarp also wins. After Monocarp chooses an erased digit and replaces it with a new one, Bicap can choose another position with an erased digit and replace it with the same digit, so the ticket is happy.
+
+
+
+
+The problem is about determining who will win a game of filling in erased digits on a ticket, given that the number of erased digits is even and the ticket has \( n \) digits. To approach this problem, I need to think about the conditions under which Monocarp or Bicarp will win.
+
+Monocarp wins if the ticket is not happy, i.e., the sum of the first \( \frac{n}{2} \) digits is not equal to the sum of the last \( \frac{n}{2} \) digits. Since the number of erased digits is even, I can represent the number of erased digits in the first half as \( p \) and in the second half as \( p \) as well.
+
+I also need to consider the difference between the sums of the known digits in the two halves, which I can denote as \( q \).
+
+Now, let's think about how to use these variables to determine who will win the game.
+
+The main idea is to consider how Monocarp and Bicarp can make moves that will result in either a happy or unhappy ticket.
+
+I need to express the conditions under which Monocarp will win or lose.
+
+If Monocarp makes a move that results in a difference of 9 between the two halves, Bicarp can then make a move to make the ticket happy.
+
+However, if the difference between the two halves is not a multiple of 9, Monocarp will win.
+
+Therefore, I need to write code to calculate the difference between the two halves and determine who will win based on this difference.
+
+Next step is to write the code.
+
+
+
+
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int main() {
+	int n;
+	int p = 0;
+	int q = 0;
+	string s;
+	cin >> n >> s;
+	for(int i = 0; i < n / 2; i++) {
+		if(s[i] == '?') p ++;
+		else q += s[i] - '0';
+	}
+	for(int i = n / 2; i < n; i++) {
+		if(s[i] == '?') p --;
+		else q -= (s[i] - '0');
+	}
+
+	return 0;
+}
+
+
+
+
+Now, let's think about how to use the variables \( p \) and \( q \) to determine who will win the game.
+
+If \( p < 0 \), I need to swap the values of \( p \) and \( q \) to make the calculation easier.
+
+Next, I need to check if the difference between the two halves is a multiple of 9. If it is, Bicarp will win; otherwise, Monocarp will win.
+
+Specifically, I need to check if \( q \) is equal to 9 times the negative half of \( p \). If it is, Bicarp will win.
+
+Now, let's write the code to implement this logic.
+
+
+
+
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int main() {
+	int n;
+	int p = 0;
+	int q = 0;
+	string s;
+	cin >> n >> s;
+	for(int i = 0; i < n / 2; i++) {
+		if(s[i] == '?') p ++;
+		else q += s[i] - '0';
+	}
+	for(int i = n / 2; i < n; i++) {
+		if(s[i] == '?') p --;
+		else q -= (s[i] - '0');
+	}
+
+	if(p < 0) {
+		p *= -1;
+		q *= -1;
+	}
+
+	if(q == 9 * (-p / 2)) {
+		cout << "Bicarp";
+	}
+	else {
+		cout << "Monocarp";
+	}
+}
+
+
+
+
+Let's take a custom test case
+
+<b>Input</b>
+<code>4
+1?2?
+</code>
+
+In this case, the ticket `1?2?` with \( n = 4 \), the sums of the known digits are \( 1 \) and \( 2 \) for the first and second halves, respectively. With 2 '?' characters, we can adjust the total sum by up to \( 18 \), but we need to balance a difference of \( 1 \). Despite the flexibility with '?' replacements, the exact balance to make the sums equal is not achievable with these digits. Hence, Monocarp wins because Bicarp cannot make the ticket happy.
+
+<b>Output</b>
+<code>Monocarp
+</code>
+
+We chose this test case to verify that the solution correctly handles scenarios where the sums of the two halves differ by a small value and the number of '?' characters is distributed across both halves. It checks if the solution can determine that even with the ability to replace '?' with digits from 0 to 9, the exact balance required to make the ticket happy is not always achievable.
+
+
+
+
+4
+1?2?

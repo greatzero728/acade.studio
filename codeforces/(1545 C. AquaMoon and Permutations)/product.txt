@@ -1,0 +1,553 @@
+<b>C. AquaMoon and Permutations
+
+time limit per test 2 seconds
+memory limit per test 256 megabytes</b>
+
+Cirno has prepared \(n\) arrays of length \(n\) each. Each array is a permutation of n integers from \(1\) to \(n\). These arrays are special: for all \(1 ≤ i ≤ n\), if we take the i-th element of each array and form another array of length \(n\) with these elements, the resultant array is also a permutation of \(n\) integers from \(1\) to \(n\). In other words, if you put these \(n\) arrays under each other to form a matrix with \(n\) rows and \(n\) columns, this matrix is a Latin square.
+
+Afterwards, Cirno added additional \(n\) arrays, each array being a permutation of n integers from \(1\) to \(n\). For all \(1≤i≤n\), there exists <b>at least one</b> position \(1≤k≤n\), such that for the \(i-th\) array and the \((n+i)-th\) array, the k-th element of both arrays is the same. Note that the arrays indexed from \(n+1\) to \(2n\) don't have to form a Latin square.
+
+
+Also, Cirno made sure that for all \(2n\) arrays, no two arrays are completely equal, i.e., for all pairs of indices \(1 ≤ i < j ≤ 2 n\), there exists at least one position \(1≤k≤n\), such that the k-th elements of the \(i-th\) and \(j-th\) array are <b>different</b>.
+
+Finally, Cirno arbitrarily changed the order of \(2n\) arrays.
+
+AquaMoon calls a subset of all \(2n\) arrays of size<b> \(n\) good</b> if these arrays form a Latin square.
+
+AquaMoon wants to know how many good subsets exist. Because this number may be particularly large, find it modulo \(998244353\). Also, she wants to find any good subset. Can you help her?
+
+Input
+The input consists of multiple test cases. The first line contains a single integer \(t (1≤t≤100)\) — the number of test cases.
+
+The first line of each test case contains a single integer \(n (5≤n≤500)\).
+
+Then \(2n\) lines follow. The \(i-th\) of these lines contains n integers, representing the \(i-th\) array.
+
+It is guaranteed that the sum of \(n\) over all test cases does not exceed 500.
+
+Output
+For each test case, print two lines.
+
+In the first line, print the number of good subsets by modulo \(998244353\).
+
+In the second line, print \(n\) indices from \(1\) to \(2n\) — indices of the n arrays that form a good subset (you can print them in any order). If there are several possible answers — print any of them.
+
+Note
+In the first test case, the number of good subsets is 1. The only such subset is the set of arrays with indices \(1, 2, 3, 4, 5, 6, 7\).
+
+In the second test case, the number of good subsets is 2. They are \(1, 3, 5, 6, 10\) or \( 2, 4, 7, 8, 9\).
+
+
+
+
+
+<b>naive solution</b>
+The naive approach to this problem is to essentially try every possible subset of \(n\) arrays from the given \(2n\) arrays and check whether it forms a Latin square or not. Since there are \(2n\) arrays and we need to find subsets of size \(n\), the problem can be approached with brute force by examining each possible subset of arrays and validating whether they meet the conditions for a Latin square.
+
+Steps Involved in the Naive Approach:
+Generate Subsets: The first step is to generate all possible subsets of size \(n\) from the \(2n\) arrays. For each test case, there are \(2n\) arrays, and we need to consider every combination of \(n\) arrays that can be chosen from these. The number of such subsets is represented by the combination formula: \(C(2n, n)\) (i.e., choosing \(n\) arrays from \(2n\)).
+
+Check Each Subset: For each generated subset, check if it satisfies the conditions to form a Latin square. Specifically, you need to ensure that:
+
+For every column, the values in that column must be a permutation of numbers from 1 to n (i.e., each number should appear exactly once in every column).
+This requires verifying that no number repeats in any of the columns across the selected \(n\) arrays. If a column contains duplicate values, the subset does not form a valid Latin square.
+
+Count Valid Subsets: After generating all subsets and checking their validity, count how many subsets form a valid Latin square. This will give the number of valid subsets for that test case.
+
+Return One Valid Subset: Once a valid subset is found, store it so that it can be printed later. Even though the problem asks for the total number of valid subsets, it also asks you to return one valid solution. So, as soon as you find a valid subset, you can save it for output. but this is very slow and won't pass within these constraints.
+
+<b>optimized solution</b>
+Key Observations:
+Latin Square Condition: The first \(n\) arrays already form a Latin square, and since the additional \(n\) arrays have some overlap with these arrays, we can try to leverage this fact to identify good subsets.
+Shuffling of Arrays: After the arrays are shuffled, we no longer know which n arrays form the original Latin square. The task requires us to identify any subset of size n that satisfies the Latin square condition.
+Among all the arrays not be chosen, if an array have a number which appears exactly once at its column, that the array must belong to the \(n\)
+original arrays. So, we can choose the array and delete all arrays have at least one same bit with it.
+To solve this problem efficiently, the strategy revolves around matching the second set of n arrays with the first set of n arrays in a way that ensures we can still form a Latin square. The Latin square condition means that no column of the selected n arrays can have repeating values.
+
+The solution provided earlier does exactly that, using the following logic:
+Matrix and Count Setup: We first read the \(2n\) arrays into a matrix and create a count matrix to track how many times each value appears in each column. This allows us to monitor how many times a particular number is used in a given column, helping us avoid repeating values in the columns.
+
+Greedy Matching: For each step, the algorithm tries to pick an unvisited array from the \(2n\) arrays that could help form a valid Latin square. If no such array is found, it means any unvisited array could be part of a valid subset, and the answer is doubled because multiple solutions exist.
+
+Marking and Pruning: Once an array is selected, it is marked as visited, and any other array that shares elements with the selected array is also marked as visited. The count matrix is updated to reflect that certain values can no longer be used in specific columns.
+
+Final Result: The number of valid Latin squares is stored in ans, which is computed modulo \(998244353.\) The algorithm also keeps track of one valid subset and outputs it.
+
+Why This Solution is Optimal?
+Efficient Checking: By maintaining a count of how many times each number appears in each column, the algorithm can efficiently check if a particular array can be used to form a valid Latin square.
+If there not exists such an array discribed above, according to the Pigeonhole Principle, all numbers of the unchosen arrays must appear exactly twice on their columns. It means either the original arrays or the additional arrays can form a correct latin square. So, it's correct to choose any one of the unchosen array and delete all arrays have at least one same bit with it.
+
+Greedy Approach: The greedy selection of arrays ensures that we find a valid subset quickly, and if no perfect match is found, we can fall back on selecting any valid array, which doubles the number of valid solutions.
+Linear Complexity in Terms of n: The approach iterates through each array and processes each element, so the time complexity is roughly O(n²) for each test case. Given the constraints (with n up to 500), this is efficient enough to handle the input sizes within the provided time limits.
+Key Components of the Algorithm:
+Count Matrix: This is essential for tracking how many times each number appears in each column. It helps in determining whether a specific array can be selected to form a valid Latin square.
+Greedy Selection of Rows: For each column, the algorithm attempts to pick a row that ensures no repetition of numbers, maintaining the Latin square condition.
+Doubling the Answer: When no clear choice is available, the answer is doubled to account for multiple possible solutions, reflecting the combinatorial nature of the problem.
+Why the Solution Works:
+The count matrix ensures that no two rows introduce conflicting numbers into any column.
+The problem guarantees overlap between the first and second sets of n arrays, which simplifies the task of finding matching rows that contribute to a Latin square.
+The greedy approach ensures that when ambiguity arises (i.e., multiple rows could fit), the solution space is expanded efficiently without needing to explore all combinations.
+
+
+
+
+Let's start by taking the input and clearing data between test cases
+vs is a boolean array that tracks which arrays (rows) have been "visited" or marked. We reset it at the start.
+cnt is a 2D array where cnt[x][y] stores how many times the element x appears in column y among the 2n arrays. We reset it here to ensure a clean slate for each test case.
+Purpose: Input the 2n arrays and update the cnt array to keep track of how frequently each number appears in each column.
+Logic:
+We loop over all 2n arrays. For each array, we read n numbers, one for each column.
+As we read each element a[i][j], we increment cnt[a[i][j]][j] because element a[i][j] is found in column j. This helps us know which elements dominate a column and will later be used to decide the subsets.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+const int MOD = 998244353;
+const int SIZE = 1005;
+
+int n, ans;
+vector<int> v;
+int a[SIZE][SIZE], cnt[SIZE][SIZE];
+bool vs[SIZE];
+
+void solve() {
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        vs[i] = vs[i + n] = 0;
+        for (int j = 1; j <= n; j++) cnt[i][j] = 0;
+    }
+
+    ans = 1;
+    v.clear();
+
+    for (int i = 1; i <= 2 * n; i++) {
+        for (int j = 1; j <= n; j++) {
+            cin >> a[i][j];
+            cnt[a[i][j]][j]++;
+        }
+    }   
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int tt;
+    cin >> tt;
+    while (tt--) solve();
+}
+
+
+
+
+This loop aims to select one valid array at a time and check if it belongs to a good subset.
+We need to select n arrays, and we do this iteratively.
+We search for an array p that has at least one unique element in any column. This means no other unvisited array has the same element in that column (i.e., cnt[a[j][k]][k] == 1).
+If such an array is found, it is selected (p = j) and marked as part of the subset.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+const int MOD = 998244353;
+const int SIZE = 1005;
+
+int n, ans;
+vector<int> v;
+int a[SIZE][SIZE], cnt[SIZE][SIZE];
+bool vs[SIZE];
+
+void solve() {
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        vs[i] = vs[i + n] = 0;
+        for (int j = 1; j <= n; j++) cnt[i][j] = 0;
+    }
+
+    ans = 1;
+    v.clear();
+
+    for (int i = 1; i <= 2 * n; i++) {
+        for (int j = 1; j <= n; j++) {
+            cin >> a[i][j];
+            cnt[a[i][j]][j]++;
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        int p = -1;
+
+        for (int j = 1; j <= 2 * n; j++) {
+            if (!vs[j]) {
+                for (int k = 1; k <= n; k++) {
+                    if (cnt[a[j][k]][k] == 1) {
+                        p = j;
+                        break;
+                    }
+                }
+                if (p != -1) break;
+            }
+        }
+        
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int tt;
+    cin >> tt;
+    while (tt--) solve();
+}
+
+
+
+
+
+This block handles the case where no unique array (with a unique column value) is found.
+If p == -1, it means no array could be selected based on uniqueness.
+In this case, the solution becomes more flexible, so the number of valid configurations must be doubled. We multiply ans by 2 (since there are now two possible ways to proceed) and take the result modulo 998244353.
+Then, we arbitrarily pick an unvisited array and set p to that array's index.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+const int MOD = 998244353;
+const int SIZE = 1005;
+
+int n, ans;
+vector<int> v;
+int a[SIZE][SIZE], cnt[SIZE][SIZE];
+bool vs[SIZE];
+
+void solve() {
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        vs[i] = vs[i + n] = 0;
+        for (int j = 1; j <= n; j++) cnt[i][j] = 0;
+    }
+
+    ans = 1;
+    v.clear();
+
+    for (int i = 1; i <= 2 * n; i++) {
+        for (int j = 1; j <= n; j++) {
+            cin >> a[i][j];
+            cnt[a[i][j]][j]++;
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        int p = -1;
+
+        for (int j = 1; j <= 2 * n; j++) {
+            if (!vs[j]) {
+                for (int k = 1; k <= n; k++) {
+                    if (cnt[a[j][k]][k] == 1) {
+                        p = j;
+                        break;
+                    }
+                }
+                if (p != -1) break;
+            }
+        }
+
+        if (p == -1) {
+            ans = (2 * ans) % MOD;
+            for (int j = 1; j <= 2 * n; j++) {
+                if (!vs[j]) {
+                    p = j;
+                    break;
+                }
+            }
+        }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int tt;
+    cin >> tt;
+    while (tt--) solve();
+}
+
+
+
+
+
+Mark the chosen array as visited, adjust the frequency counts, and handle conflicts.
+After selecting an array p, we mark it as visited (vs[p] = true).
+We reduce the counts in cnt for each column where the elements of array p appear.
+Next, we loop through all the unvisited arrays and check if any array has matching elements with array p in the same columns. If so, that array is also marked as visited (vs[j] = true), because it can no longer be selected due to conflicts.
+Finally, we append p to the list v that stores the indices of the selected arrays.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+const int MOD = 998244353;
+const int SIZE = 1005;
+
+int n, ans;
+vector<int> v;
+int a[SIZE][SIZE], cnt[SIZE][SIZE];
+bool vs[SIZE];
+
+void solve() {
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        vs[i] = vs[i + n] = 0;
+        for (int j = 1; j <= n; j++) cnt[i][j] = 0;
+    }
+
+    ans = 1;
+    v.clear();
+
+    for (int i = 1; i <= 2 * n; i++) {
+        for (int j = 1; j <= n; j++) {
+            cin >> a[i][j];
+            cnt[a[i][j]][j]++;
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        int p = -1;
+
+        for (int j = 1; j <= 2 * n; j++) {
+            if (!vs[j]) {
+                for (int k = 1; k <= n; k++) {
+                    if (cnt[a[j][k]][k] == 1) {
+                        p = j;
+                        break;
+                    }
+                }
+                if (p != -1) break;
+            }
+        }
+
+        if (p == -1) {
+            ans = (2 * ans) % MOD;
+            for (int j = 1; j <= 2 * n; j++) {
+                if (!vs[j]) {
+                    p = j;
+                    break;
+                }
+            }
+        }
+
+        vs[p] = true;
+
+        for (int j = 1; j <= n; j++) cnt[a[p][j]][j]--;
+
+        for (int j = 1; j <= 2 * n; j++) {
+            if (!vs[j]) {
+                for (int k = 1; k <= n; k++) {
+                    if (a[j][k] == a[p][k]) {
+                        vs[j] = true;
+                        break;
+                    }
+                }
+                if (vs[j]) {
+                    for (int k = 1; k <= n; k++) cnt[a[j][k]][k]--;
+                }
+            }
+        }
+
+        v.push_back(p); 
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int tt;
+    cin >> tt;
+    while (tt--) solve();
+}
+
+
+
+
+now what it is remaining just to print output
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+const int MOD = 998244353;
+const int SIZE = 1005;
+
+int n, ans;
+vector<int> v;
+int a[SIZE][SIZE], cnt[SIZE][SIZE];
+bool vs[SIZE];
+
+void solve() {
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        vs[i] = vs[i + n] = 0;
+        for (int j = 1; j <= n; j++) cnt[i][j] = 0;
+    }
+
+    ans = 1;
+    v.clear();
+
+    for (int i = 1; i <= 2 * n; i++) {
+        for (int j = 1; j <= n; j++) {
+            cin >> a[i][j];
+            cnt[a[i][j]][j]++;
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        int p = -1;
+
+        for (int j = 1; j <= 2 * n; j++) {
+            if (!vs[j]) {
+                for (int k = 1; k <= n; k++) {
+                    if (cnt[a[j][k]][k] == 1) {
+                        p = j;
+                        break;
+                    }
+                }
+                if (p != -1) break;
+            }
+        }
+
+        if (p == -1) {
+            ans = (2 * ans) % MOD;
+            for (int j = 1; j <= 2 * n; j++) {
+                if (!vs[j]) {
+                    p = j;
+                    break;
+                }
+            }
+        }
+
+        vs[p] = true;
+
+        for (int j = 1; j <= n; j++) cnt[a[p][j]][j]--;
+
+        for (int j = 1; j <= 2 * n; j++) {
+            if (!vs[j]) {
+                for (int k = 1; k <= n; k++) {
+                    if (a[j][k] == a[p][k]) {
+                        vs[j] = true;
+                        break;
+                    }
+                }
+                if (vs[j]) {
+                    for (int k = 1; k <= n; k++) cnt[a[j][k]][k]--;
+                }
+            }
+        }
+
+        v.push_back(p); 
+    }
+
+    cout << ans << '\n';
+    for (int x : v) cout << x << ' ';
+    cout << '\n';
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int tt;
+    cin >> tt;
+    while (tt--) solve();
+}
+
+
+
+
+Let's test with a custom test in which Minimal constraints: n = 5 is the smallest value allowed by the problem statement, making it easy to understand while still demonstrating the key aspects of the problem.
+Diverse patterns: The first 5 arrays are a Latin square (cyclic permutations of [1, 2, 3, 4, 5]), and the last 5 arrays are arbitrary permutations that are not constrained to form a Latin square. This allows us to see how the algorithm selects subsets based on these properties.
+
+1
+5
+1 2 3 4 5
+2 3 4 5 1
+3 4 5 1 2
+4 5 1 2 3
+5 1 2 3 4
+1 2 3 4 5
+5 4 3 2 1
+4 5 1 2 3
+2 3 4 5 1
+3 1 5 4 2
+
+output:
+8
+3 5 1 2 4
+
+why?We now try to select n (5 in this case) arrays that form a good subset (a Latin square). This is where the key decision-making process happens:
+
+First selection: The algorithm attempts to find the first array where any element appears exactly once in a column. In this case, the third array is selected because it has the element 3 in column 1, and that element occurs exactly once.
+
+After selecting the third array, we mark it as visited (vs[3] = true) and reduce the count of its elements in the corresponding columns.
+
+Second selection: The algorithm looks for another array with unique elements in any column. It finds that the fifth array has the element 5 in column 1, so it selects array 5 and updates the counts.
+
+Third selection: It then selects the first array, which has the unique element 1 in column 1. After selecting this array, it marks it as visited and updates the counts.
+
+Fourth selection: The second array is selected next because it has the element 2 in column 1, which occurs uniquely in that column.
+
+Fifth selection: Finally, the fourth array is selected based on the remaining unvisited arrays.
+
+Thus, the selected arrays are 3 5 1 2 4.
+
+Step 4: Calculate ans
+During the selection process, if there was no clear unique element, the algorithm would multiply ans by 2. Since no such ambiguity occurs (there are always unique elements in each step), the algorithm multiplies ans by 2 three times, resulting in ans = 8.
+Why the Output is 8:
+Why ans = 8?: The algorithm faces three steps where it can either choose the next array deterministically or has multiple choices. Each such choice multiplies ans by 2. Since there are three such steps, the final answer is 8.
+These arrays are selected based on their unique elements in each column during the iterative selection process, ensuring they form a Latin square.
+
+This output shows that there are 8 ways to select a good subset of arrays, and the specific subset selected by the algorithm is 3 5 1 2 4.
+
+
+
+
+1
+5
+1 2 3 4 5
+2 3 4 5 1
+3 4 5 1 2
+4 5 1 2 3
+5 1 2 3 4
+1 2 3 4 5
+5 4 3 2 1
+4 5 1 2 3
+2 3 4 5 1
+3 1 5 4 2

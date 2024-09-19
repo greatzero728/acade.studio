@@ -1,0 +1,140 @@
+PAVEMENT - Pavement Blood
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+You live in a dangerous neighbourhood. Each night you walk home, the path home consists of a N by 3 tiled path (N rows).
+
+Recently there have been many murders, and the tiles have been stained with blood.
+
+Your feet are large, each step you take on the path home will cover a 2 by 2 grid of tiles, gathering some of the blood that has been left on the tiles onto your boots.
+
+To make things simpler, you have marked each tile with a number representing the amount of blood on the tile, the i-th row and j-th column having value a[i][j]. Each step will add an amount of blood onto your boots (equal to the sum of the 2×2 grid of the tiles you step on). Moreover, some tiles may have soap on them and such, which previous murderers have dropped whilst trying to clean up after themselves, these will have negative numbers representing how much they clean your boots. Once you step on a tile, to get home as quick as possible, you cannot step on the same tile again.
+
+You are smart, you know that the more blood you gather onto your boots, the less likely people are to attack you. You wish to gather as much blood as possible onto your boots by the end of your journey across the pavement. Your legs are long and you can skip over as many tiles as you wish on your way home.
+
+Given the values of all the tiles, determine the maximum amount of blood you can get on your boots.
+
+NOTE: Should you take a step, it must cover a 2×2 grid of tiles, you can't have half a foot out of the path or otherwise.
+
+Input
+The first line contains a single integer n, the length of the path home.
+
+The next N lines contain 3 integers each, representing the values of tiles that lead home.
+
+1 <= N <= 100,000
+
+-1,000,000,000 <= a[i][j] <= 1,000,000,000
+
+Output
+A single integer representing the maximum amount of you can pick up on your boots.
+
+
+
+
+Let's formulate the give problem again:
+Given a 2D array \( a[i][j] \), we can delete certain \(( 2 \times 2 )\)-grid sections such that no two erased sections share any elements. (\( 1 \leq i \leq N, 1 \leq j \leq 3 \))
+Calculate the maximum sum of the values of the erased elements from the \(( 2 \times 2 )\)-grids.
+
+\(\bull\) naive algorithm
+We can explore all possible ways to erase the \(( 2 \times 2 )\)-grid and ultimately determine the maximum sum of the values of the erased elements from these grids.
+First, we can determine how many \(( 2 \times 2 )\)-grids we will delete, and checking all possible numbers of erasing grids will take \(O(N)\) time complexity.
+After determining the number of \((2 \times 2)\) grids we will delete, we can identify the positions of each \((2 \times 2)\) grid from left to right, step by step.
+However, when determining the leftmost position, there are a total of \(2 \cdot (N - 1)\) candidates, so we need \(O(N)\) time complexity just to find the position of the leftmost \((2 \times 2)\) grid.
+Consequently, we have already used \(O(N^2)\) time complexity even though we haven't determined the positions of the other grids, making this naive algorithm exceed the time limit.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int N = 101010;
+
+INT a[N][5];
+
+int main() {
+    int n;
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= 3; j++) cin >> a[i][j];
+    }
+
+    return 0;
+}
+
+
+
+
+Let's analyze this problem again:
+Given a 2D array \( a[i][j] \), we can delete certain \(( 2 \times 2 )\)-grid sections such that no two erased sections share any elements.
+Calculate the maximum sum of the values of the erased elements from the \(( 2 \times 2 )\)-grids.
+
+\(\bull\) dynamic programming
+We can use dynamic programming to solve this problem. \(dp[i]\) represents the maximum sum of values from the \(( 2 \times 2 )\)-grids we can delete in the first i rows.
+
+Now we want to calculate \(dp[i]\). If we do not delete any \(( 2 \times 2 )\)-grid that contains the i-th row, \(dp[i] = dp[i - 1]\). Otherwise, we can choose to delete the \(( 2 \times 2 )\)-grid whose upper left corner is \((i - 1, 1)\) or \((i - 1, 2)\).
+
+- If we choose to delete the \(( 2 \times 2 )\)-grid whose upper left corner is \((i - 1, 1)\), the maximum sum of values is \(dp[i - 2] + a[i - 1][1] + a[i - 1][2] + a[i][1] + a[i][2]\).
+- If we choose to delete the \(( 2 \times 2 )\)-grid whose upper left corner is \((i - 1, 2)\), the maximum sum of values is \(dp[i - 2] + a[i - 1][2] + a[i - 1][3] + a[i][2] + a[i][3]\).
+
+We can now determine the formula for dynamic programming: \(dp[i] = max(dp[i - 1], dp[i - 2] + a[i - 1][1] + a[i - 1][2] + a[i][1] + a[i][2], dp[i - 2] + a[i - 1][2] + a[i - 1][3] + a[i][2] + a[i][3])\).
+
+The time complexity is \(O(N)\) and it should be within the time limit. We can now write the code.
+
+
+
+
+The initial state is set as dp[0] = dp[1] = 0. This initialization is necessary to address the base cases where no valid 2×2 grids can be selected.
+Indeed, the final state is clearly dp[n], as we have to delete the \((2 \times 2)\)-grids in the \(n\) rows.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int N = 101010;
+
+INT a[N][5];
+INT dp[N];
+
+int main() {
+    int n;
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= 3; j++) cin >> a[i][j];
+    }
+
+    dp[0] = dp[1] = 0;
+    for (int i = 2; i <= n; i++) {
+        dp[i] = max({dp[i - 1], dp[i - 2] + a[i - 1][1] + a[i - 1][2] + a[i][1] + a[i][2], dp[i - 2] + a[i - 1][2] + a[i - 1][3] + a[i][2] + a[i][3]});
+    }
+
+    cout << dp[n] << endl;
+
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case, where N is its minimum value: N = 1.
+<code>
+1
+0 0 0
+</code>
+In this case, we can't delete \((2 \times 2)\)-grid because the original 2D array has \(1 \times 3\) size.
+So in this case, the answer will be "0".
+
+
+
+
+1
+0 0 0

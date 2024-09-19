@@ -1,0 +1,142 @@
+Problem Statement:
+<b>Great Sequence</b>
+<b>time limit per test:</b> 1 second
+<b>memory limit per test:</b> 256 megabytes
+
+A sequence of positive integers is called great for a positive integer \(x\), if we can split it into pairs in such a way that in each pair the first number multiplied by \(x\) is equal to the second number. More formally, a sequence \(a\) of size \(n\) is great for a positive integer \(x\), if \(n\) is even and there exists a permutation \(p\) of size \(n\), such that for each \(i(1 \leq i \leq \frac{n}{2})\) \(a_{p_{2i-1}} \cdot x = a_{p_{2i}}\).
+
+Sam has a sequence \(a\) and a positive integer \(x\). Help him to make the sequence great: find the minimum possible number of positive integers that should be added to the sequence \(a\) to make it great for the number \(x\).
+
+<b>Input</b>
+Each test contains multiple test cases. The first line contains a single integer \(t\) \((1 \leq t \leq 20000)\) — the number of test cases. Description of the test cases follows.
+
+The first line of each test case contains two integers \(n, x\) \((1 \leq n \leq 2 \cdot 10^5, \ 2 \leq x \leq 10^6)\).
+
+The next line contains \(n\) integers \(a_1, a_2, \ldots, a_n\) \((1 \leq a_i \leq 10^9)\).
+
+It is guaranteed that the sum of \(n\) over all test cases does not exceed \(2 \cdot 10^5\).
+
+<b>Output</b>
+For each test case print a single integer — the minimum number of integers that can be added to the end of \(a\) to make it great for the number \(x\).
+
+<b>Note</b>
+In the first test case, Sam got lucky and the sequence is already great for the number \(4\) because you can divide it into such pairs: \((1, 4)\), \((4, 16)\). Thus we can add \(0\) numbers.
+
+In the second test case, you can add numbers \(1\) and \(14\) to the sequence, then you can divide all \(8\) integers into such pairs: \((1, 2)\), \((1, 2)\), \((2, 4)\), \((7, 14)\). It is impossible to add less than \(2\) integers to fix the sequence.
+
+
+
+
+An obvious approach to this problem might involve trying to pair elements directly in the given order by multiplying each element by \(x\) and checking for a match. This method is flawed because it doesn't account for the optimal pairing order, potentially missing matches that could reduce the number of required additions. This approach could lead to incorrect results as it fails to minimize the additions needed.
+
+So, what will be the correct approach? The approach I'm thinking of is to use a greedy strategy with sorting and frequency counting. First, sort the sequence to facilitate easier pairing. Then, use a frequency map to keep track of each element and attempt to pair each element \(a_i\) with \(a_i \cdot x\). If the pair is not possible, count it as an addition. This approach ensures the minimal number of additions by always attempting to form the required pairs in the most efficient order, achieving a time complexity of \(O(n \log n)\).
+
+
+
+
+We start by reading the number of test cases. For each test case, we read the length of the sequence and the value of the integer \(x\). We then read the sequence elements and store them in an array. Additionally, we use a map to count the frequency of each element in the sequence. This setup allows us to efficiently track the number of elements and their multiples by \(x\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    int t; cin>>t;
+    while(t--){
+        long long a,b; cin>>a>>b;
+        long long c[a]; map<long long,long long> d;
+        for(int i=0;i<a;i++) cin>>c[i],d[c[i]]++;
+    }
+}
+
+
+
+
+Next, we sort the sequence to ensure that we can pair smaller elements with their corresponding multiples efficiently. The sorting is crucial as it allows us to iterate through the sequence in increasing order, making it easier to form the required pairs where one number multiplied by \(x\) equals another.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    int t; cin>>t;
+    while(t--){
+        long long a,b; cin>>a>>b;
+        long long c[a]; map<long long,long long> d;
+        for(int i=0;i<a;i++) cin>>c[i],d[c[i]]++;
+        sort(c,c+a);
+    }
+}
+
+
+
+
+Then we initialize a counter to track the number of elements that cannot be paired and we iterate through the sorted sequence and try to form pairs by checking if the current element can be paired with its multiple \(x\). If it can, we decrease the count of both the current element and its multiple in the map. If it cannot be paired, we increment the counter as this element needs a new pair, which will be added to the sequence.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    int t; cin>>t;
+    while(t--){
+        long long a,b; cin>>a>>b;
+        long long c[a]; map<long long,long long> d;
+        for(int i=0;i<a;i++) cin>>c[i],d[c[i]]++;
+        sort(c,c+a);
+        long long e=0;
+        for(int i=0;i<a;i++) if(d[c[i]]) d[c[i]]--,d[b*c[i]]?d[b*c[i]]--:e++;
+    }
+}
+
+
+
+
+Finally, after processing all elements in the sequence, we output the count of elements that need to be added to make the sequence great for each test case. This count represents the minimum number of integers that must be appended to the sequence to satisfy the condition.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    int t; cin>>t;
+    while(t--){
+        long long a,b; cin>>a>>b;
+        long long c[a]; map<long long,long long> d;
+        for(int i=0;i<a;i++) cin>>c[i],d[c[i]]++;
+        sort(c,c+a);
+        long long e=0;
+        for(int i=0;i<a;i++) if(d[c[i]]) d[c[i]]--,d[b*c[i]]?d[b*c[i]]--:e++;
+        cout<<e<<endl;
+    }
+}
+
+
+
+
+Now, I will add the following test case because I want to see if the code works when all elements in the sequence already form perfect pairs without needing any additional elements.
+
+<b>Input</b>
+<code>
+1
+4 2
+2 4 8 16
+</code>
+
+<b>Expected output:</b>
+<code>
+0
+</code>
+
+Because, All elements can be paired as \(2 \times 2 = 4\) and \(8 \times 2 = 16\), meaning no additional elements are needed to make the sequence great for the given \(x = 2\). So, Output should be 0.
+
+
+
+
+1
+4 2
+2 4 8 16

@@ -1,0 +1,196 @@
+TAP2015B - Good kg of Flauta bread
+Time limit:	8s
+Source limit:	50000B
+Memory limit:	1536MB
+
+The company Flauta wants to introduce a new package containing one kg of bread (which curiously shall be sliced bread). As part of the package design team, you have been tasked with designing a nutritional pyramid in accordance to the company's requirements. The nutritional pyramid will be represented by a triangular grid of side L, which is an equilateral triangle divided in unitary triangles (i.e. equilateral triangles of side one) by drawing lines parallel to the sides of the bigger triangle. For example, in the following figure you can see triangular grids for L = 4, 5 and 6.
+
+<img 1>
+
+There are K different types of food to be shown on the nutritional pyramid, and each of them will be represented by a horizontal section of the grid. A horizontal section is that part of the pyramid that lies between two lines parallel to the base of the grid, drawn in such a way that they only touch the unitary triangles at their borders, without crossing them. In the following figure three valid horizontal sections can be seen shaded in a grid with L = 5.
+
+<img 2>
+
+It is important for the K sections in which the nutritional pyramid is divided to be easily seen, and for this reason each of them should be composed of many unitary triangles. However, because the size of the grid is fixed there is a limited number of unitary triangles to distribute among all K sections. To make sure that no section is left disproportionately small, you have been asked to find out the maximum number of unitary triangles that can make up the smallest section of the pyramid, if the sections are chosen optimally.
+
+For example, in the following figure three different ways to divide a grid of side L = 5 in K = 3 are represented.
+
+<img 3>
+
+The grid on the left has two sections with 9 unitary triangles each, having the other section 7 unitary triangles. In the central grid, the sections have 12, 9 and 4 unitary triangles, whereas in the grid on the right they have 16, 8 and 1. Of these three choices, the best one is then represented by the grid on the left, for it has 7 unitary triangles in its smallest section, while the central grid has 4 unitary triangles and the grid on the right has only 1 such triangle. In fact, the choice of sections represented in the grid on the left of the figure is optimal, as there is no other possible choice of K = 3 horizontal sections in which the smallest of them has more than 7 unitary triangles.
+
+Input
+There are multiple test cases in the input file. Each test case consists of one line containing two integers L and K, respectively representing the length of the side of the triangular grid and the number of sections in which said grid is to be divided (1 ≤ K ≤ L ≤ \(10^6\)).
+
+Output
+For each test case, print one line containing an integer representing the maximum number of unitary triangles that can make up the smallest horizontal section.
+
+
+
+
+In \(i\)-th layer there are \(2 \cdot i - 1\) triangles.
+
+So we can formulate the given problem as follows:
+Array \(a_1, a_2, \ldots, a_L\) (where \(a_i = 2 \cdot i - 1\)) and an integer \(K \leq L\) (where \(1 \leq L \leq 1000000\)) are given.
+We need to split the array \(a\) into exactly \(K\) subarrays. If we connect all \(K\) split subarrays, we will reconstruct the original array. 
+For each subarray, we can consider the total sum of the elements in that subarray, resulting in \(K\) sums. Let's denote the split cost as the minimum value among these \(K\) sums.
+Among all possible splitting methods, find the maximum value of the split cost.
+
+
+
+
+\(\bull\) naive algorithm
+Let's suppose we have already split the given array into \(K\) subarrays. Then, \(K - 1\) walls connecting two subarrays will exist, as there are \(K - 1\) neighboring subarray pairs.
+The splitting into \(K\) subarrays can be considered as selecting \(K - 1\) walls from the \(L - 1\) neighboring wall positions. So there are \(\binom{L - 1}{K - 1}\) possible ways to split array \(a\) into \(K\) subarrays.
+
+We can consider all \(\binom{L - 1}{K - 1}\) possible ways to split the array into \(K\) subarrays. For each candidate, we calculate the split cost in time complexity \(O(L)\) and maximize the answer with the current split cost.
+Thus, with this naive algorithm, we can solve the problem in time complexity \(O\left(\binom{L - 1}{K - 1} \cdot L\right)\).
+
+This naive algorithm exceeds the time limit because it evaluates all possible ways to split the array into \(K\) subarrays, leading to a time complexity of \(O\left(\binom{L - 1}{K - 1} \cdot L\right)\).
+
+For example, when \(L = 1000000\) and \(K = 3\), the number of ways to choose \(K - 1 = 2\) walls from \(L - 1 = 999999\) neighboring positions is \(\binom{999999}{2}\), which equals \(499998500001\). This results in a total time complexity of approximately \(O(499998500001 \cdot 1000000)\), making the algorithm infeasible within the given time limit constraints.
+
+
+
+
+\(\bull\) real algorithm
+If we can split the array \(a\) into \(K\) subarrays with a split cost of \(X\), then we can also split the array into \(K\) subarrays with a split cost of \(Y\) (where \(Y < X\)). We can use the same split that achieved the split cost \(X\) since the sum of all subarrays is already greater than or equal to \(X\). Therefore, because \(Y < X\), the valid split for the split cost \(X\) is also valid for the split cost \(Y\).
+
+This property allows us to use binary search to find the maximum possible minimum sum.
+We can iterate the split cost (the answer) using binary search.
+
+- The lower bound starts at 1 (the smallest possible sum).
+- The upper bound is \(L^2\) (the total sum of the array).
+- By checking if the midpoint of current range can be valid split cost to split the given array into \(K\) subarrays, we can adjust our search bounds accordingly.
+
+The core idea involves counting how many subarrays can be formed such that each has a sum greater than or equal to the current midpoint.
+We can determine the number of subarrays that meet this condition in \(O(L)\) time complexity. Specifically, we can traverse the array from left to right, continuously adding each element to the last subarray. If the sum of the last subarray is greater than or equal to the current midpoint, we maximize the number of subarrays by closing off the last subarray and starting a new one.
+Using this method, we can efficiently count the maximum number of subarrays that can be formed with sums greater than or equal to the current midpoint in \(O(L)\) time. If we can form \(K\) or more subarrays, we can potentially increase our minimum sum; otherwise, we decrease our target.
+
+The process continues until the search bounds converge, yielding the maximum feasible minimum sum for the subarrays.
+
+The time complexity of this algorithm is \(O(L \log(\text{total\_sum}))\), with \(\text{total\_sum} = L^2\). Thus, it simplifies to \(O(L \log L)\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int L, K;
+
+int main() {
+    while (~scanf("%d %d", &L, &K)) {
+        
+    }
+}
+
+
+
+
+
+We can iterate the split cost (the answer) using binary search.
+We can set the lower and upper bounds as follows:
+
+- The lower bound starts at 1 (the smallest possible sum).
+- The upper bound is \(L^2\) (the total sum of the array).
+
+We can maintain \(st\) as the candidate for the answer, as we aim to maximize the split cost. Suppose the current range of the answer is \([st, ed)\). At the beginning of binary search, \(st\) should be 1, and \(ed\) should be \(L^2 + 1\). After reducing the length of the range to 1, the answer will be \(st\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+int L, K;
+bool can_split(INT mn) {
+    
+}
+
+int main() {
+    while (~scanf("%d %d", &L, &K)) {
+        INT total_sum = 1LL * L * L;
+        INT st = 1, ed = total_sum + 1;
+
+        while(ed - st > 1) {
+            INT md = (st + ed) / 2;
+            if(can_split(md)) st = md;
+            else ed = md;
+        }
+        printf("%lld\n", st);
+    }
+}
+
+
+
+
+
+Let's complete the can_split(mn) function.
+We need to count the maximum number of subarrays that can be formed with sums greater than or equal to the current midpoint in \(O(L)\) time.
+Specifically, we can traverse the array from left to right, continuously adding each element to the last subarray.
+If the sum of the last subarray is greater than or equal to the current midpoint, we maximize the number of subarrays by closing off the last subarray and starting a new one.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+int L, K;
+bool can_split(INT mn) {
+    int ans = 0;
+    INT current_sum = 0;
+    for (int i = 1; i <= L; i++) {
+        current_sum += 2 * i - 1;
+        if (current_sum >= mn) {
+            ans++;
+            current_sum = 0;
+        }
+    }
+    return ans >= K;
+}
+
+int main() {
+    while (~scanf("%d %d", &L, &K)) {
+        INT total_sum = 1LL * L * L;
+        INT st = 1, ed = total_sum + 1;
+
+        while(ed - st > 1) {
+            INT md = (st + ed) / 2;
+            if(can_split(md)) st = md;
+            else ed = md;
+        }
+        printf("%lld\n", st);
+    }
+}
+
+
+
+
+
+5 3
+5 2
+1000000 1
+1000000 30000
+
+
+
+
+Let's examine a custom corner case where \(L\) and \(K\) are at their minimum values: \(L = K = 1\).
+
+<code>
+1 1
+</code>
+
+In this case, we should split the array \{1\} into 1 subarray, so the split subarray is simply \{1\}. The split cost is equal to the sum of all elements, which in this case is 1. Therefore, the answer will be "1".
+
+
+
+
+1 1

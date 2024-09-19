@@ -1,0 +1,142 @@
+<b>Right Triangle
+</b>Time limit: 0.100s
+Memory limit: 1536MB
+
+When Ant studied in middle school, he liked math very much and did well in it. One day, his teacher taught him the Pythagoras theorem (which was also called Pythagorean theorem). Pythagorean number is a group of three integers \(a, b, c (a^2 + b^2 = c^2)\) which can constitute the edges of a right triangle. Ant was interested in Pythagorean number. He thought every integer n (n > 2) could be the smallest integer of Pythagorean number. He also found that, if the integer was n (n > 2) a prime, there would be only one group of Pythagorean number whose smallest integer was n. Now here comes the question. Given you a prime n, calculate the Pythagorean number whose smallest one is n.
+
+<b>Input</b>
+There are several test cases. For each test case, there is a single line contains a prime n (n > 2 and n < 40000)
+
+<b>Output</b>
+For each test case, output all the three integers of the Pythagorean number separated by single spaces which is sorted in ascending order and n is the smallest of the three integers.
+
+
+
+
+The naive solution is to try all possible candidates of \(b\) and \(c\) and check if \(a^2 + b^2 = c^2\) and pick the pair (b,c) that satisfies the equation, but this is too slow.
+
+If \( n \) is a prime and the smallest number in a Pythagorean triple, we can utilize the fact that if \( n \) is odd (which it will be, since primes \( > 2 \) are odd), then a Pythagorean triple can be generated using the following formula for two integers \( m \) and \( k \), where \( m > k > 0 \):
+This statement arises from a well-known result in number theory and geometry.
+
+\(a = m^2 - k^2, \quad b = 2mk, \quad c = m^2 + k^2\)
+
+If \( n \) is the smallest number, \( a = n \). We need to reverse-engineer the formula to find \( m \) and \( k \) such that:
+
+\(n = m^2 - k^2\)
+
+Once we find appropriate values of \( m \) and \( k \), we can compute \( b \) and \( c \) as:
+
+\(b = 2mk, \quad c = m^2 + k^2\)
+
+For a given prime \( n \), find integers \( m \) and \( k \) such that \( n = m^2 - k^2 \). This simplifies to \( n = (m-k)(m+k) \), so we solve this equation.
+Once \( m \) and \( k \) are found, compute \( b \) and \( c \) using the formulas.
+
+
+
+
+```cpp
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+void solve() {
+    int n;
+    cin >> n;
+
+    int m = 0;
+    int k = 0;
+
+    for (int i = 1; i <= n; ++i) {
+        if (n % i == 0) {
+            int j = n / i;
+            if ((i + j) % 2 == 0 && (j - i) % 2 == 0) {
+                m = (i + j) / 2;
+                k = (j - i) / 2;
+                break;
+            }
+        }
+    }
+
+    int b = 2 * m * k;
+    int c = m * m + k * k;
+
+    cout << n << " " << b << " " << c << endl;
+}
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+    int t = 1;
+    while (t--) {
+        solve();
+    }
+
+    return 0;
+}
+```
+
+
+
+
+3
+5
+
+
+
+
+I've noticed two issues.
+1. We should remove the ```cpp```
+2. There's an issue while taking the input, we should read the input until the end of the file
+<code>
+while(cin >> n) {solve();}
+</code>
+and we shouldn't take \(n\) from the input in the function solve since we already took it in the main function
+
+
+
+
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+void solve(int n) {
+    int m = 0;
+    int k = 0;
+
+    for (int i = 1; i <= n; ++i) {
+        if (n % i == 0) {
+            int j = n / i;
+            if ((i + j) % 2 == 0 && (j - i) % 2 == 0) {
+                m = (i + j) / 2;
+                k = (j - i) / 2;
+                break;
+            }
+        }
+    }
+
+    int b = 2 * m * k;
+    int c = m * m + k * k;
+
+    cout << n << " " << b << " " << c << endl;
+}
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+    int n;
+    while(cin >> n) {solve(n);}
+
+    return 0;
+}
+
+
+
+
+3
+5

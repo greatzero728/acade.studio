@@ -1,0 +1,186 @@
+C. Nice Garland
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+You have a garland consisting of n lamps. Each lamp is colored red, green or blue. The color of the i-th lamp is \(s_i\) ('R', 'G' and 'B' — colors of lamps in the garland).
+
+You have to recolor some lamps in this garland (recoloring a lamp means changing its initial color to another) in such a way that the obtained garland is nice.
+
+A garland is called nice if any two lamps of the same color have distance divisible by three between them. I.e. if the obtained garland is t, then for each i,j such that \(t_i=t_j\) should be satisfied |i−j| mod 3=0. The value |x| means absolute value of x, the operation x mod y means remainder of x when divided by y.
+
+For example, the following garlands are nice: "RGBRGBRG", "GB", "R", "GRBGRBG", "BRGBRGB". The following garlands are not nice: "RR", "RGBG".
+
+Among all ways to recolor the initial garland to make it nice you have to choose one with the minimum number of recolored lamps. If there are multiple optimal solutions, print any of them.
+
+Input
+The first line of the input contains one integer n (1≤n≤\(2⋅10^5\)) — the number of lamps.
+
+The second line of the input contains the string s consisting of n characters 'R', 'G' and 'B' — colors of lamps in the garland.
+
+Output
+In the first line of the output print one integer r — the minimum number of recolors needed to obtain a nice garland from the given one.
+
+In the second line of the output print one string t of length n — a nice garland obtained from the initial one with minimum number of recolors. If there are multiple optimal solutions, print any of them.
+
+
+
+
+There are \(3 ^ n\) possible candidate arrays that can be our answer.
+We can iterate all possible candidate arrays, and can check the difference between current string and the given original string in time complexity O(n).
+So with this approach, we can find out the valid string in time complexity \(O(3 ^ n \cdot n)\). (1≤n≤\(2⋅10^5\))
+This will be the time limit exceed error, so we can't use this naive approach in this problem.
+
+
+
+
+We need to find a way to recolor the lamps such that the distance between any two lamps of the same color is divisible by 3. We can start by counting the number of lamps of each color in each position modulo 3.
+
+Let's denote \(R_i\), \(G_i\), and \(B_i\) as the number of red, green, and blue lamps at positions \(i \mod 3\), respectively. We want to maximize the number of lamps that don't need to be recolored, which means we want to maximize the sum of the maximum values of \(R_i\), \(G_i\), and \(B_i\) for each \(i\).
+
+We can then use this information to construct the optimal recoloring of the lamps.
+
+Next step: write a code to read the input and count the number of lamps of each color in each position modulo 3.
+
+
+
+
+#include <iostream>
+#include <string>
+
+int main() {
+    int n;
+    std::cin >> n;
+    std::string s;
+    std::cin >> s;
+
+    int R[3] = {0}, G[3] = {0}, B[3] = {0};
+
+    for (int i = 0; i < n; i++) {
+        switch (s[i]) {
+            case 'R':
+                R[i % 3]++;
+                break;
+            case 'G':
+                G[i % 3]++;
+                break;
+            case 'B':
+                B[i % 3]++;
+                break;
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+Now that we have the counts of each color in each position modulo 3, we can start thinking about how to use this information to construct the optimal recoloring of the lamps.
+
+Let's think about the possible cases for each position modulo 3. For each position, we have three options: we can make it red, green, or blue. We want to choose the option that will result in the fewest number of recolors needed.
+
+We can start by finding the maximum value among \(R_i\), \(G_i\), and \(B_i\) for each \(i\). This will tell us which color is most common in each position modulo 3.
+
+Next, we can use this information to construct the optimal recoloring of the lamps. We can start by assigning the most common color to each position modulo 3, and then fill in the remaining positions with the other two colors.
+
+We'll need to keep track of the number of recolors needed for each position modulo 3, and add them up to get the total number of recolors needed.
+
+Next step: implement this logic in code.
+
+
+
+
+The above approach is not perfect.
+The possible cases for each position modulo 3 are not independent of each other: their colors should be different because if they share the same color, the distance between two identical colors is not a multiple of 3.
+
+
+
+
+
+To find the optimal solution, we can iterate over all possible combinations of colors for the three positions modulo 3. For each combination, we can calculate the number of lamps that need to be recolored and keep track of the combination with the minimum number of recolors.
+
+There are \(3!=6\) possible combinations of colors for the three positions modulo 3. We can iterate over all these combinations and calculate the number of recolors needed for each one.
+
+Next step: implement this logic in code.
+
+
+
+
+#include <iostream>
+#include <string>
+
+int main() {
+    int n;
+    std::cin >> n;
+    std::string s;
+    std::cin >> s;
+
+    int R[3] = {0}, G[3] = {0}, B[3] = {0};
+
+    for (int i = 0; i < n; i++) {
+        switch (s[i]) {
+            case 'R':
+                R[i % 3]++;
+                break;
+            case 'G':
+                G[i % 3]++;
+                break;
+            case 'B':
+                B[i % 3]++;
+                break;
+        }
+    }
+
+    int minRecolors = n;
+    std::string bestRecoloring;
+
+    for (int r = 0; r < 3; r++) {
+        for (int g = 0; g < 3; g++) {
+            for (int b = 0; b < 3; b++) {
+                if (r == g || r == b || g == b) continue;
+
+                int recolors = 0;
+                for (int i = 0; i < n; i++) {
+                    int color = (i % 3 == r ? 'R' : (i % 3 == g ? 'G' : 'B'));
+                    if (s[i] != color) recolors++;
+                }
+
+                if (recolors < minRecolors) {
+                    minRecolors = recolors;
+                    bestRecoloring = "";
+                    for (int i = 0; i < n; i++) {
+                        int color = (i % 3 == r ? 'R' : (i % 3 == g ? 'G' : 'B'));
+                        bestRecoloring += color;
+                    }
+                }
+            }
+        }
+    }
+
+    std::cout << minRecolors << std::endl;
+    std::cout << bestRecoloring << std::endl;
+
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case, where n is its minimum value: n = 1.
+<code>
+1
+B
+</code>
+In this case the length of given string is just 1, so there are no neighboring characters.
+We don't need to do any operations to make the given string satisfies the given requirement.
+So in this case the answer will be as follows:
+<code>
+0
+B
+</code>
+
+
+
+
+1
+B

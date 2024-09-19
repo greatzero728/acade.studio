@@ -1,0 +1,298 @@
+<b>Biridian Forest</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+You're a mikemon breeder currently in the middle of your journey to become a mikemon master. Your current obstacle is go through the infamous Biridian Forest.
+
+\(\textbf{The forest}\)
+
+The Biridian Forest is a two-dimensional grid consisting of \(r\) rows and \(c\)
+columns. Each cell in Biridian Forest may contain a tree, or may be vacant.
+A vacant cell may be occupied by zero or more mikemon breeders (there may also be breeders other than you in the forest). Mikemon breeders (including you) cannot enter cells with trees. One of the cells is designated as the exit cell.
+
+The initial grid, including your initial position, the exit cell, and the initial positions of all other breeders, will be given to you. Here's an example of such grid (from the first example):
+
+<img img1>
+
+\(\textbf{Moves}\)
+
+Breeders (including you) may move in the forest. In a single move, breeders may perform one of the following actions:
+\(\bull\) Do nothing.
+\(\bull\) Move from the current cell to one of the four adjacent cells (two cells are adjacent if they share a side). Note that breeders cannot enter cells with trees.
+\(\bull\) If you are located on the exit cell, you may leave the forest. Only you can perform this move --- all other mikemon breeders will never leave the forest by using this type of movement.
+
+After each time you make a single move, each of the other breeders simultaneously make a single move (the choice of which move to make may be different for each of the breeders).
+
+\(\textbf{Mikemon battle}\)
+
+If you and \(t\) \((t > 0)\) mikemon breeders are located on the same cell, exactly \(t\) mikemon battles will ensue that time (since you will be battling each of those \(t\) breeders once). After the battle, all of those \(t\) breeders will leave the forest to heal their respective mikemons.
+
+Note that the moment you leave the forest, no more mikemon battles can ensue, even if another mikemon breeder move to the exit cell immediately after that. Also note that a battle only happens between you and another breeders --- there will be no battle between two other breeders (there may be multiple breeders coexisting in a single cell).
+
+\(\textbf{Your goal}\)
+
+You would like to leave the forest. In order to do so, you have to make a sequence of moves, ending with a move of the final type. Before you make any move, however, you post this sequence on your personal virtual idol Blog. Then, you will follow this sequence of moves faithfully.
+
+\(\textbf{Goal of other breeders}\)
+
+Because you post the sequence in your Blog, the other breeders will all know your exact sequence of moves even before you make your first move. All of them will move in such way that will guarantee a mikemon battle with you, if possible. The breeders that couldn't battle you will do nothing.
+
+\(\textbf{Your task}\)
+
+Print the minimum number of mikemon battles that you must participate in, assuming that you pick the sequence of moves that minimize this number. Note that you are not required to minimize the number of moves you make.
+
+<b>Input</b>
+The first line consists of two integers: \(r\) and \(c\) (\(1 \le r, c \le 1000\)), denoting the
+number of rows and the number of columns in Biridian Forest.
+The next \(r\) rows will each depict a row of the map, where each character represents
+the content of a single cell:
+
+\(\bull\) '\(\texttt{T}\)': A cell occupied by a tree.
+\(\bull\) '\(\texttt{S}\)': An empty cell, and your starting position. There will be exactly one occurrence of this in the map.
+\(\bull\) '\(\texttt{E}\)': An empty cell, and where the exit is located. There will be exactly one occurrence of this in the map.
+\(\bull\) A digit (0-9): A cell represented by a digit X means that the cell is empty and is occupied by X breeders (in particular, if X is zero, it means that the cell is not occupied by any breeder).
+
+It is guaranteed that it will be possible for you to go from your starting position to the exit cell through a sequence of moves.
+
+<b>Output</b>
+A single line denoted the minimum possible number of mikemon battles that you have to participate in if you pick a strategy that minimize this number.
+
+
+<b>Note</b>
+The following picture illustrates the first example. The blue line denotes a possible sequence of moves that you should post in your blog:
+
+<img img2>
+
+The three breeders on the left side of the map will be able to battle you --- the lone breeder can simply stay in his place until you come while the other two breeders can move to where the lone breeder is and stay there until you come. The three breeders on the right does not have a way to battle you, so they will stay in their place.
+
+For the second example, you should post this sequence in your Blog:
+
+<img img3>
+
+Here's what happens. First, you move one cell to the right.
+
+<img img4>
+
+Then, the two breeders directly to the right of the exit will simultaneously move to the left. The other three breeder cannot battle you so they will do nothing.
+
+<img img5>
+
+You end up in the same cell with \(2\) breeders, so \(2\) mikemon battles are conducted. After those battles, all of your opponents leave the forest.
+
+<img img6>
+
+Finally, you make another move by leaving the forest.
+
+<img img7>
+
+
+
+
+The naive solution is to try all possible paths and get the one with the least amount of fights, but this would be too slow.
+
+Every breeder knows your exact movement path beforehand, and they will attempt to intercept you. If a breeder can reach any cell in your path faster than or at the same time as you, they will intercept.
+
+If a breeder can reach any cell in your path faster than or at the same time as you, they can reach the exit faster than you. This is true because let's assume that the breeder can intercept the path at point \(x\) and \(t_1\) is the time it took you to get to cell \(x\) and \(t_2\) is the time it took the other breeder to get to cell \(x\) and \(t_2 \le t_1\), since the time from cell \(x\) to the exit cell is the same for both you and the other breeder, then the other breeder can reach the exit cell before you as \(t_2 \le t_1\).
+
+Instead of simulating the movements of all breeders, we can reverse the problem. We perform a Breadth-First Search (BFS) starting from the exit cell and propagate distances to all reachable cells in the grid. This BFS will give the shortest distance from the exit to every other cell. For every breeder's location, if the distance from the exit to that cell (computed by this BFS) is shorter than or equal to your distance to that cell, then the breeder can intercept you. Consequently, you'll have to fight them.
+
+For every cell in the grid, we will store the shortest distance to that cell from the exit. When starting the BFS from the exit, we will increment the distance each time we move into a new cell.
+
+The minimum number of fights you need to participate in is the sum of counts of breeders at each cell that can intercept you.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+int main() {
+    int n,m;
+    cin >> n >> m;
+    char a[n][m];
+    int ex_x,ex_y,st_x,st_y;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            cin >> a[i][j];
+            if(a[i][j]=='S'){
+                st_x=i;
+                st_y=j;
+            }
+            if(a[i][j]=='E'){
+                ex_x=i;
+                ex_y=j;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+
+
+
+
+Next we will implement the BFS algorithm we will create an array \(dist[i][j]\) to store the shortest distance from the exit cell to cell \((i,j)\).
+
+We will use a queue to store the cells that we need to visit next. We will start by adding the exit cell to the queue. Then we will enter a loop that continues until the queue is empty.
+
+Inside the loop, we will remove a cell from the queue and then add its neighbors to the queue if they are not blocked by a tree and have not been visited before.
+
+For each cell, we will store the distance from the exit cell to that cell in the \(dist\) array.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+int main() {
+    int n,m;
+    cin >> n >> m;
+    char a[n][m];
+    int ex_x,ex_y,st_x,st_y;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            cin >> a[i][j];
+            if(a[i][j]=='S'){
+                st_x=i;
+                st_y=j;
+            }
+            if(a[i][j]=='E'){
+                ex_x=i;
+                ex_y=j;
+            }
+        }
+    }
+    
+    int dx[]={0,0,1,-1};
+    int dy[]={1,-1,0,0};
+    int dist[n][m];
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            dist[i][j]=INT_MAX;
+        }
+    }
+    dist[ex_x][ex_y]=0;
+    queue<pair<int,int>> q;
+    q.push({ex_x,ex_y});
+    while(!q.empty()){
+        int x=q.front().first;
+        int y=q.front().second;
+        q.pop();
+        for(int i=0;i<4;i++){
+            int nx=x+dx[i];
+            int ny=y+dy[i];
+            if(nx>=0 && nx<n && ny>=0 && ny<m && a[nx][ny]!='T' && dist[nx][ny]==INT_MAX){
+                dist[nx][ny]=dist[x][y]+1;
+                q.push({nx,ny});
+            }
+        }
+    }
+    
+    return 0;
+}
+
+
+
+
+
+Next we will calculate the number of fights.
+
+For every cell in the grid, if the distance from the exit to that cell (computed by the BFS) is shorter than or equal to your distance from the exit cell, then the breeder can intercept you.
+
+We will iterate over the grid and for every cell that contains a breeder, we will add the number of breeders at that cell to the total number of fights.
+
+The minimum number of fights you need to participate in is the sum of counts of breeders at each cell that can intercept you.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+int main() {
+    int n,m;
+    cin >> n >> m;
+    char a[n][m];
+    int ex_x,ex_y,st_x,st_y;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            cin >> a[i][j];
+            if(a[i][j]=='S'){
+                st_x=i;
+                st_y=j;
+            }
+            if(a[i][j]=='E'){
+                ex_x=i;
+                ex_y=j;
+            }
+        }
+    }
+    
+    int dx[]={0,0,1,-1};
+    int dy[]={1,-1,0,0};
+    int dist[n][m];
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            dist[i][j]=INT_MAX;
+        }
+    }
+    dist[ex_x][ex_y]=0;
+    queue<pair<int,int>> q;
+    q.push({ex_x,ex_y});
+    while(!q.empty()){
+        int x=q.front().first;
+        int y=q.front().second;
+        q.pop();
+        for(int i=0;i<4;i++){
+            int nx=x+dx[i];
+            int ny=y+dy[i];
+            if(nx>=0 && nx<n && ny>=0 && ny<m && a[nx][ny]!='T' && dist[nx][ny]==INT_MAX){
+                dist[nx][ny]=dist[x][y]+1;
+                q.push({nx,ny});
+            }
+        }
+    }
+    
+    int ans=0;
+    for(int i = 0;i<n;i++) {
+        for(int j = 0;j<m;j++) {
+            if(a[i][j] == 'T' || a[i][j] == 'S' || a[i][j] == 'E') continue;
+            if(dist[i][j] <= dist[st_x][st_y]) {
+                ans += a[i][j] - '0';
+            }
+        }
+    }
+    cout << ans;
+    
+    return 0;
+}
+
+
+
+
+Now let's try a custom test case where there are no breeders except you.
+<code>
+3 3
+00E
+000
+S00
+</code>
+this should output <b>0</b> because there are no other breeders to fight.
+
+
+
+
+3 3
+00E
+000
+S00

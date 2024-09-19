@@ -1,0 +1,366 @@
+<b>Memory and Casinos</b>
+time limit per test: 4 seconds
+memory limit per test: 512 megabytes
+There are \(n\) casinos lined in a row. If Memory plays at casino \(i\), he has probability \(p_i\) to win and move to the casino on the right \((i + 1)\) or exit the row (if \(i = n\)), and a probability \(1 - p_i\) to lose and move to the casino on the left \((i - 1)\) or also exit the row (if \(i = 1\)).
+
+We say that Memory dominates on the interval \(i\ldots j\) if he completes a walk such that,
+
+\(\cdot\) He starts on casino \(i\).
+\(\cdot\) He never looses in casino \(i\).
+\(\cdot\) He finishes his walk by winning in casino \(j\).
+
+Note that Memory can still walk left of the \(1\)-st casino and right of the casino \(n\) and that always finishes the process.
+
+Now Memory has some requests, in one of the following forms:
+
+\(\cdot\) \(1\) \(i\) \(a\) \(b\): Set \(p_i=\frac{a}{b}\).
+\(\cdot\) \(2\) \(l\) \(r\): Print the probability that Memory will dominate on the interval \(l\ldots r\), i.e. compute the probability that Memory will first leave the segment \(l\ldots r\) after winning at casino \(r\), if she starts in casino \(l\).
+It is guaranteed that at any moment of time \(p\) is a non-decreasing sequence, i.e. \(p_i ≤ p_{i + 1}\) for all \(i\) from \(1\) to \(n - 1\).
+
+Please help Memory by answering all his requests!
+
+<b>Input</b>
+The first line of the input contains two integers \(n\) and \(q(1 ≤ n, q ≤ 100 000)\), — number of casinos and number of requests respectively.
+
+The next \(n\) lines each contain integers \(a_i\) and \(b_i\) \((1 ≤ a_i < b_i ≤ 10^9)\) — \(\frac{a_i}{b_i}\) is the probability \(p_i\) of winning in casino \(i\).
+
+The next \(q\) lines each contain queries of one of the types specified above \((1 ≤ a < b ≤ 10^9, 1 ≤ i ≤ n, 1 ≤ l ≤ r ≤ n)\).
+
+It's guaranteed that there will be at least one query of type 2, i.e. the output will be non-empty. Additionally, it is guaranteed that p forms a non-decreasing sequence at all times.
+
+<b>Output</b>
+Print a real number for every request of type 2 — the probability that boy will "dominate" on that interval. Your answer will be considered correct if its absolute error does not exceed \(10^{ - 4}\).
+
+Namely: let's assume that one of your answers is \(a\), and the corresponding answer of the jury is \(b\). The checker program will consider your answer correct if \(|a - b| ≤ 10^{ - 4}\).
+
+
+
+
+Calculating total probability from an array of probabilities seems very complicated.
+Let's use divide and conquer approaching to calculate the total probability of an interval.
+
+Let's define two probability \(L(i, j)\) and \(R(i, j)\) for interval \([i, j]\).
+1) \(L(i, j)\) is the probability to start on casino \(i\) and never loses in casino \(i\) and finishes by winning in casino \(j\).
+2) \(R(i, j)\) is the probability to start on casino \(j\) and never loses in casino \(i\) and finished by winning in casino \(j\).
+From the definition, \(L(l, r)\) is the answer for type-2 query \((l, r)\).
+
+Let's divide interval \([i, j]\) into two intervals \([i, m]\) and \([m+1, j]\) to calculate \(L(i, j), R(i, j)\) by using \(L(i, m), R(i, m), L(m + 1, j), R(m+ 1, j)\).
+Let's denote \(L(i, m)\) by \(L_1\), \(R(i, m)\) by \(R_1\), \(L(m+1, j)\) by \(L_2\) and \(R(m+1, j)\) by \(R_2\).
+Let's define two more probabilities \(M_1, M_2\).
+\(\cdot\) \(M_1\) is the probability to start on casino \(x\) and never loses in casino \(i\) and finish by winning in casino \(j\).
+\(\cdot\) \(M_2\) is the probability to start on casino \(x + 1\) and never loses in casino \(i\) and finish by winning in casino \(j\).
+
+
+
+
+To start on casino \(m\) and never loses in casino \(i\) and finish by winning in casino \(j\), Memory needs two steps.
+step 1: Start on casino \(m\) and finish by winning in casino \(m\). The probability for this is \(R_1\).
+step 2: Start on casino \(m+1\) and finish by winning in casino \(j\). The probability for this is \(M_2\).
+So \(M_1=R_1\cdot M_2\).
+
+To start on casino \(m+1\) and never loses in casino \(i\) and finish by winning in casino \(j\), there can be two cases.
+- case 1: Memory starts on casino \(m+1\) and never loses in casino \(m+1\) and finish by winning in casino \(j\). The probability for this is \(L_2\).
+- case 2: There are two steps.
+\(\cdot\) step 1: Memory loses in casino \(m+1\) and goes to casino \(m\). This probability is \(1-L_2\).
+\(\cdot\) step 2: Start on casino \(m\) and never loses in casino \(i\) and finish by winning in casino \(j\). This probability is \(M_1\).
+So the probability for step 2 is \((1-L_2)\cdot M_1\).
+So \(M_2=L_2+(1-L_2)\cdot M_1\).
+
+\(M_1=R_1\cdot M_2\), so \(M_2=L_2+(1-L_2)\cdot R_1\cdot M_2\) is satisfied.
+So \(M_2\cdot (1-R_1\cdot (1-L_2))=L_2\) is satisfied.
+This means \(M_2=\frac{L_2}{1-R_1\cdot(1-L_2)}\) and \(M_1=\frac{R_1\cdot L_2}{1-R_1\cdot(1-L_2)}\).
+
+
+
+
+Then let's calculate \(L(i, j), R(i, j)\) by using \(L_1, L_2, R_1, R_2, M_1, M_2\).
+Let's calculate \(L(i, j)\) first.
+To start on casino \(i\) and never loses in casino \(i\) and finish by winning in casino \(j\), Memory needs two steps.
+step 1: Start on casino \(i\) and finish by winning in casino \(m\). The probability for this is \(L_1\).
+stpe 2: Start on casino \(m+1\) and finish by winning in casino \(j\). The probability for this is \(M_2\).
+So \(L(i, j)=L_1\cdot M_2\).
+\(M_2=\frac{L_2}{1-R_1\cdot (1-L_2)}\), so \(L(i, j)=\frac{L_1\cdot L_2}{1-R_1\cdot(1-L_2)}\).
+
+Then let's calculate \(R(i, j)\).
+To start on casino \(j\) and never loses in casino \(i\) and finish by winning in casino \(j\), there can be two cases.
+- case 1: Memory start on casino \(j\) and never loses in casino \(m+1\) and finish by winning in casino \(j\). The probability for this is \(R_2\).
+- case 2: There are two steps.
+\(\cdot\) step 1: Memory loses in casino \(m+1\) and goes to casino \(m\). This probability is \(1-R_2\).
+\(\cdot\) step 2: Start on casino \(m\) and never loses in casino \(i\) and finish by winning in casino \(j\). This probability is \(M_1\).
+So the probability for step 2 is \((1-R_2)\cdot M_1\).
+So \(R(i, j)=R_2+(1-R_2)\cdot M_1\).
+\(M_1=\frac{R_1\cdot L_2}{1-R_1\cdot(1-L_2)}\), so \(R(i, j)=R_2+\frac{R_1\cdot L_2\cdot (1-R_2)}{1-R_1\cdot(1-L_2)}\).
+
+We can merge two intervals into one interval by using these formulas.
+Then we need to update the probability for one casino for type-1 query.
+We can manage this by using segment tree.
+Let's take the input.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 100010
+
+int n, q;
+double p[N];
+
+int main(){
+	cin >> n >> q;
+	for (int i = 1; i <= n; i++) {
+		int u, v;
+		cin >> u >> v;
+		p[i] = 1.0 * u / v;
+	}
+	while (q--) {
+		int t;
+		cin >> t;
+		if (t == 1){
+			int i, u, v;
+			cin >> i >> u >> v;
+		}
+		else {
+			int l, r;
+			cin >> l >> r;
+		}
+	}
+}
+
+
+
+
+Let's write a function to merge two interval into one interval.
+\(L(i, j)=\frac{L_1\cdot L_2}{1-R_1\cdot(1-L_2)}\), \(R(i, j)=R_2+\frac{R_1\cdot L_2\cdot (1-R_2)}{1-R_1\cdot(1-L_2)}\).
+We can use this formula to get \(L(i, j), R(i, j)\) for merged interval \([i, j]\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 100010
+#define prob pair <double, double> 
+
+int n, q;
+double p[N];
+
+prob push_up(prob p1, prob p2) {
+	prob rt;
+	rt.first = p1.first * p2.first / (1 - p1.second * (1 - p2.first));
+	rt.second = p1.second * p2.first * (1 - p2.second) / (1 - p1.second * (1 - p2.first)) + p2.second;
+	return rt;
+}
+
+int main(){
+	cin >> n >> q;
+	for (int i = 1; i <= n; i++) {
+		int u, v;
+		cin >> u >> v;
+		p[i] = 1.0 * u / v;
+	}
+	while (q--) {
+		int t;
+		cin >> t;
+		if (t == 1){
+			int i, u, v;
+			cin >> i >> u >> v;
+		}
+		else {
+			int l, r;
+			cin >> l >> r;
+		}
+	}
+}
+
+
+
+
+Write a code for building segment tree.
+array \(a\) denotes the pair of \(L(i, j), R(i, j)\) for each segment \([i, j]\).
+Build two children segments first and build their parent segment by merging them.
+If the segment is leaf, then \(L(i, i) = R(i, i) = p_i\) from the definition of \(L, R\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 100010
+#define prob pair <double, double> 
+
+int n, q;
+double p[N];
+prob a[N * 4];
+
+prob push_up(prob p1, prob p2) {
+	prob rt;
+	rt.first = p1.first * p2.first / (1 - p1.second * (1 - p2.first));
+	rt.second = p1.second * p2.first * (1 - p2.second) / (1 - p1.second * (1 - p2.first)) + p2.second;
+	return rt;
+}
+
+void build (int v, int l, int r) {
+	if (l == r) {
+		a[v] = {p[l], p[r]};
+		return;
+	}
+	int m = (l + r) / 2;
+	build (v * 2, l, m);
+	build (v * 2 + 1, m + 1, r);
+	a[v] = push_up(a[v * 2], a[v * 2 + 1]);
+}
+
+int main(){
+	cin >> n >> q;
+	for (int i = 1; i <= n; i++) {
+		int u, v;
+		cin >> u >> v;
+		p[i] = 1.0 * u / v;
+	}
+	build(1, 1, n);
+	while (q--) {
+		int t;
+		cin >> t;
+		if (t == 1){
+			int i, u, v;
+			cin >> i >> u >> v;
+		}
+		else {
+			int l, r;
+			cin >> l >> r;
+		}
+	}
+}
+
+
+
+
+Write a code for print the answer for type-2 query.
+Divide the interval into at smaller intervals and merge them into one interval according to the concept of segment tree.
+For every type-2 query, calculate the total probability by call query function and print it.
+The answer is \(L(l, r)\) of the interval \([l, r]\).
+We want the absolute error doesn't exceed \(10^{-4}\), so print 10 digits under the dot.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 100010
+#define prob pair <double, double> 
+
+int n, q;
+double p[N];
+prob a[N * 4];
+
+prob push_up(prob p1, prob p2) {
+	prob rt;
+	rt.first = p1.first * p2.first / (1 - p1.second * (1 - p2.first));
+	rt.second = p1.second * p2.first * (1 - p2.second) / (1 - p1.second * (1 - p2.first)) + p2.second;
+	return rt;
+}
+
+void build (int v, int l, int r) {
+	if (l == r) {
+		a[v] = {p[l], p[r]};
+		return;
+	}
+	int m = (l + r) / 2;
+	build (v * 2, l, m);
+	build (v * 2 + 1, m + 1, r);
+	a[v] = push_up(a[v * 2], a[v * 2 + 1]);
+}
+
+void update(int v, int l, int r, int i, double x) {
+	if (l == r) {
+		a[v] = {x, x};
+		return;
+	}
+	int m = (l + r) / 2;
+	if (i <= m) update(v * 2, l, m, i, x);
+	else update(v * 2 + 1, m + 1, r, i, x);
+	a[v] = push_up(a[v * 2], a[v * 2 + 1]);
+}
+
+prob query(int v, int l, int r, int L, int R) {
+	if (L <= l && r <= R) {
+		return a[v];
+	}
+	int m = (l + r) / 2;
+	if (m >= L) {
+		prob p1 = query(v * 2, l, m, L, R);
+		if (m + 1 <= R) {
+			prob p2 = query(v * 2 + 1, m + 1, r, L, R);
+			return push_up(p1, p2);
+		}
+		else return p1;
+	}
+	else return query(v * 2 + 1, m + 1, r, L, R);
+}
+
+int main(){
+	cin >> n >> q;
+	for (int i = 1; i <= n; i++) {
+		int u, v;
+		cin >> u >> v;
+		p[i] = 1.0 * u / v;
+	}
+	build(1, 1, n);
+	while (q--) {
+		int t;
+		cin >> t;
+		if (t == 1){
+			int i, u, v;
+			cin >> i >> u >> v;
+			update(1, 1, n, i, 1.0 * u / v);
+		}
+		else {
+			int l, r;
+			cin >> l >> r;
+			printf("%.10f\n", query(1, 1, n, l, r).first);
+		}
+	}
+}
+
+
+
+
+3 13
+1 3
+1 2
+2 3
+2 1 1
+2 1 2
+2 1 3
+2 2 2
+2 2 3
+2 3 3
+1 2 2 3
+2 1 1
+2 1 2
+2 1 3
+2 2 2
+2 2 3
+2 3 3
+
+
+
+
+Let's test with custom input for smallest \(n, q\).
+
+Input
+1 1
+1 2
+2 1 1
+
+The probability to win in casino \(1\) is 0.5.
+So the answer is 0.5.
+Any answer which the absolute error is less than \(10^{-4}\) is right.
+
+
+
+
+1 1
+1 2
+2 1 1

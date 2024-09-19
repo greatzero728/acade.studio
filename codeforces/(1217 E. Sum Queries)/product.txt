@@ -1,0 +1,631 @@
+E. Sum Queries?
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Let's define a balanced multiset the following way. Write down the sum of all elements of the multiset in its decimal representation. For each position of that number check if the multiset includes at least one element such that the digit of the element and the digit of the sum at that position are the same. If that holds for every position, then the multiset is balanced. Otherwise it's unbalanced.
+
+For example, multiset {20,300,10001} is balanced and multiset {20,310,10001} is unbalanced:
+<img 1>
+
+The red digits mark the elements and the positions for which these elements have the same digit as the sum. The sum of the first multiset is 10321, every position has the digit required. The sum of the second multiset is 10331 and the second-to-last digit doesn't appear in any number, thus making the multiset unbalanced.
+
+You are given an array \(a_1,a_2,…,a_n\), consisting of n integers.
+
+You are asked to perform some queries on it. The queries can be of two types:
+
+\(\bull\) 1 i x — replace \(a_i\) with the value x;
+\(\bull\) 2 l r — find the unbalanced subset of the multiset of the numbers \(a_l,a_{l+1},…,a_r\) with the minimum sum, or report that no unbalanced subset exists.
+
+Note that the empty multiset is balanced.
+
+For each query of the second type print the lowest sum of the unbalanced subset. Print -1 if no unbalanced subset exists.
+
+Input
+The first line contains two integers n and m (1≤n,m≤\(2⋅10^5\)) — the number of elements in the array and the number of queries, respectively.
+
+The second line contains n integers \(a_1,a_2,…,a_n (1≤a_i<10^9)\).
+
+Each of the following m lines contains a query of one of two types:
+
+\(\bull\) 1 i x (1≤i≤n, 1≤x<\(10^9\)) — replace \(a_i\) with the value x;
+\(\bull\) 2 l r (1≤l≤r≤n) — find the unbalanced subset of the multiset of the numbers \(a_l,a_{l+1},…,a_r\) with the lowest sum, or report that no unbalanced subset exists.
+
+It is guaranteed that there is at least one query of the second type.
+
+Output
+For each query of the second type print the lowest sum of the unbalanced subset. Print -1 if no unbalanced subset exists.
+
+Note
+All the subsets of multiset {20,300,10001} are balanced, thus the answer is -1.
+
+The possible unbalanced subsets in the third query are {20,310} and {20,310,10001}. The lowest sum one is {20,310}. Note that you are asked to choose a subset, not a subsegment, thus the chosen elements might not be adjancent in the array.
+
+The fourth query includes only the empty subset and subset {20}. Both of them are balanced.
+
+The last query includes the empty subset and the subsets {20}, {20} and {20,20}. Only {20,20} is unbalanced, its sum is 40. Note that you are asked to choose a multiset, thus it might include equal elements.
+
+
+
+
+\(\bull\) naive algorithm
+- For each query type-1: 1 i x, we will just replace \(a_i\) into x in time complexity O(1)
+- For each type-2 query (l r), we need to find the unbalanced subset of the multiset consisting of the numbers \(a_l, a_{l+1}, \ldots, a_r\) with the minimum sum, or determine if no unbalanced subset exists.
+To perform a type-2 query, we must iterate through all possible \(2^{r - l + 1}\) subsets and determine if each subset is unbalanced by calculating the sum of its elements. Here, \(r - l + 1\) represents the number of elements in the range \([l, r]\).
+Consequently, we can perform a type-2 query with a time complexity of \(O(2^n \cdot n)\) since the range \([l, r]\) can be as large as \([1, n]\).
+
+There are a total of \(m\) queries, so with this naive approach, we can solve the problem with a time complexity of \(O(2^n \cdot n \cdot m)\).
+This is not efficient enough to solve the problem within the given time constraints.
+
+
+
+
+Let's consider the type-2 query. This query has a high time complexity, so we need to optimize it.
+If there are unbalanced subsets, we need to select the one with the minimum sum. (This is the requirement of this problem.)
+
+\(\bull\) It is clear that an unbalanced multiset containing only one element cannot exist.
+The sum of all elements in this multiset is simply the single element itself, as the size of the current multiset is 1.
+This implies that, for all decimal representations, we can find an element that shares the same digit as the sum. In fact, this number is just the only element of the current multiset.
+\(\bull\) Let's suppose we select the unbalanced multiset that has 3 or more elements as the answer.
+This means, we already determine that the sum of these elements in the current multiset is the minimum possible among all potential unbalanced multisets.
+
+What is the meaning of an unbalanced multiset?
+This means we can select the decimal representation position where the corresponding position digit of the sum differs from the corresponding position digit of all elements.
+
+This is only possible if we can select at least two elements that have a non-zero digit in that position.
+If we only select the multiset containing these two elements, then since the digits in that position are both non-zero, when we add these two numbers, the digit of the sum in that position will differ from the corresponding position digit of both elements. This is true because \((a + b) \mod 10 \neq a\) and \((a + b) \mod 10 \neq b\) meets for any \(a, b\) such that \(1 \leq a, b \leq 9\).
+
+By selecting only these two elements from the current multiset, we reduce the sum of the unbalanced multiset.
+
+So, let's rephrase the above explanation. We only need to consider all unbalanced subsets that contain exactly two elements for type-2 query.
+
+
+
+
+For each type-2 query (2 l r), we first need to iterate through all possible decimal representation positions: \(10^0, 10^1, 10^2, \ldots, 10^8\). Since \(a_i < 10^9\), we only need to iterate up to the \(10^8\) decimal representation position.
+Then, we calculate the minimum sum of two elements that have a non-zero digit in the current decimal representation position.
+
+\(\bull\) This can be done by using a segment tree where each node maintains the answer for the range of the current node and the smallest element that has a non-zero digit in the current decimal representation position, in \(O((n + m) \log n)\).
+The type-1 query is simply an element update query, not a range query, so we don't need "push_down" operation.
+For the type-2 query, we need to implement a virtual "merge" operation that merges the largest range nodes included in the current query range.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 202020;
+
+int a[NN], l, r;
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+        }
+        else {
+            scanf("%d", &r);
+        }
+    }
+}
+
+
+
+
+Let's build a segment tree structure.
+We need to determine the indices of the left and right nodes using a recursive method when building the segment tree. (u: the index of current node, ls[u]: the index of left node, rs[u]: the index of right node)
+
+We need to calculate the minimum sum of two elements that have a non-zero digit in the \(i\)-th decimal representation position (\(10^i\)).
+Let's denote \( \text{ans}[u] \) as the answer for the type-2 query when the query range is the same as the range of the segment tree node \(u\).
+And let's denote \( \text{mn}[u][i] \) as the minimum element of the segment tree node \(u\) that has a non-zero digit at position \(10^i\) (where \(0 \leq i \leq 8\)).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, MM = NN << 1;
+
+int a[NN], l, r;
+
+#define mid (L + R >> 1)
+
+int ls[MM], rs[MM], nn;
+INT mn[MM][9], ans[MM];
+
+void push_up(int u) {
+    //merge ls[u] and rs[u] and update mn[u][i] and ans[u].
+}
+
+void update(int u, int L) {
+    //Initialize mn[u][i] and ans[u].
+}
+
+int build(int L, int R) {
+	int u = nn++;
+	if(R - L == 1) update(u, L);
+	else {
+		ls[u] = build(L, mid);
+		rs[u] = build(mid, R);
+		push_up(u);
+	}
+	return u;
+}
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    build(1, n + 1);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+        }
+        else {
+            scanf("%d", &r);
+        }
+    }
+}
+
+
+
+
+Let's implement update(u, L) function.
+The meaning of this function is that when \( a[L] \) is updated, we must also update \( \text{ans}[u] \) and \( \text{mn}[u][i] \). Here, \( u \) is the index of the leaf node in the segment tree that represents \( a[L] \).
+\(\bull\) If \( a[L] \) has a non-zero digit at the position of \(10^i\), we can initialize \( \text{mn}[u][i] \) as \( a[u] \) based on the meaning of \( \text{mn}[u][0] \).
+\(\bull\) Otherwise, we can initialize \( \text{mn}[u][i] \) as infinite value.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, MM = NN << 1, inf = 2e9;
+
+int a[NN], l, r;
+int f[9] = {1};
+
+#define mid (L + R >> 1)
+
+int ls[MM], rs[MM], nn;
+INT mn[MM][9], ans[MM];
+
+void push_up(int u) {
+    //merge ls[u] and rs[u] and update mn[u][i] and ans[u].
+}
+
+void update(int u, int L) {
+	ans[u] = inf;
+	for(int i = 9; i--; ) {
+		if(a[L] / f[i] % 10) mn[u][i] = a[L];
+		else mn[u][i] = inf;
+	}
+}
+
+int build(int L, int R) {
+	int u = nn++;
+	if(R - L == 1) update(u, L);
+	else {
+		ls[u] = build(L, mid);
+		rs[u] = build(mid, R);
+		push_up(u);
+	}
+	return u;
+}
+
+int main() {
+	for(int i = 1; i < 9; i++) f[i] = 10 * f[i - 1];
+	
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    build(1, n + 1);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+        }
+        else {
+            scanf("%d", &r);
+        }
+    }
+}
+
+
+
+
+Let's build implement push_up function.
+
+Let's update ans[u] first.
+\(\bull\) It's obvious that the answer for the current node \(u\) is the minimum of the answers from the left child node \( \text{ls}[u] \) and the right child node \( \text{rs}[u] \).
+\(\bull\) There is another special case: by merging \( \text{ls}[u] \) and \( \text{rs}[u] \), a new unbalanced subset can appear. In this case, we can select the minimum value from the left child and the minimum value from the right child to update \( \text{ans}[u] \).
+
+Finally let's update mn[u][i].
+The minimum value of the current node is the minimum of the minimum values of the left node and the right node.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, MM = NN << 1, inf = 2e9;
+
+int a[NN], l, r;
+int f[9] = {1};
+
+#define mid (L + R >> 1)
+
+int ls[MM], rs[MM], nn;
+INT mn[MM][9], ans[MM];
+
+void push_up(int u) {
+	ans[u] = min(ans[ls[u]], ans[rs[u]]);
+	for(int i = 9; i--; ) {
+		ans[u] = min(ans[u], mn[ls[u]][i] + mn[rs[u]][i]);
+		mn[u][i] = min(mn[ls[u]][i], mn[rs[u]][i]);
+	}
+}
+
+void update(int u, int L) {
+	ans[u] = inf;
+	for(int i = 9; i--; ) {
+		if(a[L] / f[i] % 10) mn[u][i] = a[L];
+		else mn[u][i] = inf;
+	}
+}
+
+int build(int L, int R) {
+	int u = nn++;
+	if(R - L == 1) update(u, L);
+	else {
+		ls[u] = build(L, mid);
+		rs[u] = build(mid, R);
+		push_up(u);
+	}
+	return u;
+}
+
+int main() {
+	for(int i = 1; i < 9; i++) f[i] = 10 * f[i - 1];
+	
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    build(1, n + 1);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+        }
+        else {
+            scanf("%d", &r);
+        }
+    }
+}
+
+
+
+
+Let's implement update function.
+The update function is the same as the build function, except that in the update function, we don't calculate \( \text{ls}[u] \) and \( \text{rs}[u] \) as we do in the build function.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, MM = NN << 1, inf = 2e9;
+
+int a[NN], l, r;
+int f[9] = {1};
+
+#define mid (L + R >> 1)
+
+int ls[MM], rs[MM], nn;
+INT mn[MM][9], ans[MM];
+
+void push_up(int u) {
+	ans[u] = min(ans[ls[u]], ans[rs[u]]);
+	for(int i = 9; i--; ) {
+		ans[u] = min(ans[u], mn[ls[u]][i] + mn[rs[u]][i]);
+		mn[u][i] = min(mn[ls[u]][i], mn[rs[u]][i]);
+	}
+}
+
+void update(int u, int L) {
+	ans[u] = inf;
+	for(int i = 9; i--; ) {
+		if(a[L] / f[i] % 10) mn[u][i] = a[L];
+		else mn[u][i] = inf;
+	}
+}
+
+int build(int L, int R) {
+	int u = nn++;
+	if(R - L == 1) update(u, L);
+	else {
+		ls[u] = build(L, mid);
+		rs[u] = build(mid, R);
+		push_up(u);
+	}
+	return u;
+}
+
+void update(int u, int L, int R) {
+	if(l <= L && R <= r) update(u, L);
+	else {
+		if(l < mid) update(ls[u], L, mid);
+		if(mid < r) update(rs[u], mid, R);
+		push_up(u);
+	}
+}
+
+int main() {
+	for(int i = 1; i < 9; i++) f[i] = 10 * f[i - 1];
+	
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    build(1, n + 1);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+            r = l + 1, update(0, 1, n + 1);
+        }
+        else {
+            scanf("%d", &r);
+        }
+    }
+}
+
+
+
+
+Finally, let's build calc function.
+The meaning of the calc function is to iterate through all nodes in the range \([l, r]\) from left to right. However, we only iterate over the largest possible nodes to reduce the time complexity. The range \([l, r]\) will be the connection of all nodes that are affected by the calc function.
+To maintain the current answer and minimum value for the decimal representation position \(10^i\), we can maintain \( \text{Ans} \) and \( \text{Mn}[i] \), where \( 0 \leq i \leq 8 \).
+Here, we only need to implement the same idea as the push_up function, as this operation also involves merging ranges.
+Of course, we have to initialize \( \text{Ans} \) and \( \text{Mn}[i] \) with infinite values before calling the calc function.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, MM = NN << 1, inf = 2e9;
+
+int a[NN], l, r;
+int f[9] = {1};
+
+#define mid (L + R >> 1)
+
+int ls[MM], rs[MM], nn;
+INT mn[MM][9], ans[MM];
+
+void push_up(int u) {
+	ans[u] = min(ans[ls[u]], ans[rs[u]]);
+	for(int i = 9; i--; ) {
+		ans[u] = min(ans[u], mn[ls[u]][i] + mn[rs[u]][i]);
+		mn[u][i] = min(mn[ls[u]][i], mn[rs[u]][i]);
+	}
+}
+
+void update(int u, int L) {
+	ans[u] = inf;
+	for(int i = 9; i--; ) {
+		if(a[L] / f[i] % 10) mn[u][i] = a[L];
+		else mn[u][i] = inf;
+	}
+}
+
+int build(int L, int R) {
+	int u = nn++;
+	if(R - L == 1) update(u, L);
+	else {
+		ls[u] = build(L, mid);
+		rs[u] = build(mid, R);
+		push_up(u);
+	}
+	return u;
+}
+
+void update(int u, int L, int R) {
+	if(l <= L && R <= r) update(u, L);
+	else {
+		if(l < mid) update(ls[u], L, mid);
+		if(mid < r) update(rs[u], mid, R);
+		push_up(u);
+	}
+}
+
+INT Mn[9], Ans;
+
+void calc(int u, int L, int R) {
+	if(l <= L && R <= r) {
+		Ans = min(Ans, ans[u]);
+		for(int i = 9; i--; ) {
+			Ans = min(Ans, Mn[i] + mn[u][i]);
+			Mn[i] = min(Mn[i], mn[u][i]);
+		}
+	}
+	else {
+		if(l < mid) calc(ls[u], L, mid);
+		if(mid < r) calc(rs[u], mid, R);
+	}
+}
+
+int main() {
+	for(int i = 1; i < 9; i++) f[i] = 10 * f[i - 1];
+	
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    build(1, n + 1);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+            r = l + 1, update(0, 1, n + 1);
+        }
+        else {
+            scanf("%d", &r), r++;
+            for(int i = 9; i--; ) Mn[i] = inf;
+            Ans = inf;
+            calc(0, 1, n + 1);
+        }
+    }
+}
+
+
+
+
+Finally let's print the answer for type-2 query.
+If \( \text{Ans} \) is still infinite after checking all \([l, r]\), then that means we can't select an unbalanced multiset in \([l, r]\). In this case, we can print "-1".
+Otherwise, we only need to print \( \text{Ans} \) as the answer.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, MM = NN << 1, inf = 2e9;
+
+int a[NN], l, r;
+int f[9] = {1};
+
+#define mid (L + R >> 1)
+
+int ls[MM], rs[MM], nn;
+INT mn[MM][9], ans[MM];
+
+void push_up(int u) {
+	ans[u] = min(ans[ls[u]], ans[rs[u]]);
+	for(int i = 9; i--; ) {
+		ans[u] = min(ans[u], mn[ls[u]][i] + mn[rs[u]][i]);
+		mn[u][i] = min(mn[ls[u]][i], mn[rs[u]][i]);
+	}
+}
+
+void update(int u, int L) {
+	ans[u] = inf;
+	for(int i = 9; i--; ) {
+		if(a[L] / f[i] % 10) mn[u][i] = a[L];
+		else mn[u][i] = inf;
+	}
+}
+
+int build(int L, int R) {
+	int u = nn++;
+	if(R - L == 1) update(u, L);
+	else {
+		ls[u] = build(L, mid);
+		rs[u] = build(mid, R);
+		push_up(u);
+	}
+	return u;
+}
+
+void update(int u, int L, int R) {
+	if(l <= L && R <= r) update(u, L);
+	else {
+		if(l < mid) update(ls[u], L, mid);
+		if(mid < r) update(rs[u], mid, R);
+		push_up(u);
+	}
+}
+
+INT Mn[9], Ans;
+
+void calc(int u, int L, int R) {
+	if(l <= L && R <= r) {
+		Ans = min(Ans, ans[u]);
+		for(int i = 9; i--; ) {
+			Ans = min(Ans, Mn[i] + mn[u][i]);
+			Mn[i] = min(Mn[i], mn[u][i]);
+		}
+	}
+	else {
+		if(l < mid) calc(ls[u], L, mid);
+		if(mid < r) calc(rs[u], mid, R);
+	}
+}
+
+int main() {
+	for(int i = 1; i < 9; i++) f[i] = 10 * f[i - 1];
+	
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%d", a + i);
+    
+    build(1, n + 1);
+    
+    while(m--) {
+        int t; scanf("%d %d", &t, &l);
+        if(t == 1) {
+        	scanf("%d", a + l);
+            r = l + 1, update(0, 1, n + 1);
+        }
+        else {
+            scanf("%d", &r), r++;
+            for(int i = 9; i--; ) Mn[i] = inf;
+            Ans = inf;
+            calc(0, 1, n + 1);
+            
+            if(Ans < inf) printf("%d\n", Ans);
+            else puts("-1");
+        }
+    }
+}
+
+
+
+
+Let's examine a custom corner case, where \(n, m, a_i\) are its minimum values: n = 1, m = 1, a_i = 1.
+Because we have to include at least one query of the second type, so let's check the following test case:
+<code>
+1 1
+1
+2 1 1
+</code>
+The original array \(a\) is "1."
+The query seeks to find the unbalanced subset of the multiset containing the number 1 with the lowest sum, or to report that no unbalanced subset exists.
+As the size of array is just 1, the possible subset is just {1}.
+We proved the following formula in block 2:
+"It is clear that an unbalanced multiset containing only one element cannot exist."
+So in this case, we can't find the unbalanced subset, so we should print "-1".
+
+
+
+
+1 1
+1
+2 1 1

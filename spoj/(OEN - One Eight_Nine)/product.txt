@@ -1,0 +1,158 @@
+OEN - One Eight_Nine
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Suppose you have a number of three digits, which is P. Add those three digits and store in X. Then subtract X from the actual number P. After Subtraction, now the resulting number is N. In this problem, you are given sum of last two digits of N. Your task is to find the first digit of N.
+
+For example, suppose P = 123, X = 1+2+3 = 6, N = P - X =123 - 6 = 117. Sum of last two digits is 8. So, in this case, first digit is 1
+
+Input
+Input starts with an integer T (T<=1000000), denoting the number of test cases. Each case contains sum of last two digits of N (0 ≤ N ≤ 18).
+
+Output
+For each test case, output one line containing "Case x: M", where x is the test case number, M is the first digit of N.
+
+
+
+
+For each test, we can iterate through all possible candidates of \( P \) to find one valid \( P \) such that the sum of the last two digits of \( (P - \text{sum}(P)) \) equals \( N \). (Here, \(\text{sum}(P)\) is the sum of the three digits of \( P \).)
+The possible candidates for \( P \) are: 100, 101, 102, ..., 999.
+Therefore, for all \( T \) (where \( T \leq 1000000 \)) test cases, we need to check the candidates and identify the case where the sum of the last two digits of \( (P - \text{sum}(P)) \) equals \( N \).
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    for (int i = 0; i < t; i++) {
+        int n;
+        cin >> n;
+        int p = 100;
+        while (p <= 999) {
+            int sumP = (p / 100) + ((p % 100) / 10) + (p % 10);
+            int sumLastTwo = ((p - sumP) % 100) / 10 + ((p - sumP) % 10);
+            if (sumLastTwo == n) {
+                cout << "Case " << (i + 1) << ": " << (p - sumP) / 100 << endl;
+                break;
+            }
+            p++;
+        }
+    }
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case, where N is its minimum value: N = 0.
+<code>
+1
+0
+</code>
+According my algorithm, I just checked all 100, 101, 102, ... 999 to find out valid P using for loop.
+So with my algorithm, it's a bit difficult to guess the output with manually.
+The output of this problem is just prints the first digit of N, so let's print the calculated P with my algorithm to guess the output of my solution.
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    for (int i = 0; i < t; i++) {
+        int n;
+        cin >> n;
+        int p = 100;
+        while (p <= 999) {
+            int sumP = (p / 100) + ((p % 100) / 10) + (p % 10);
+            int sumLastTwo = ((p - sumP) % 100) / 10 + ((p - sumP) % 10);
+            if (sumLastTwo == n) {
+                cout<<"The valid P = "<<p<<endl;
+                return 0;
+                cout << "Case " << (i + 1) << ": " << (p - sumP) / 100 << endl;
+                break;
+            }
+            p++;
+        }
+    }
+    return 0;
+}
+
+
+
+
+1
+0
+
+
+
+
+My solution found out the valid P as 910.
+<code>
+1
+0
+</code>
+The above is my custom sample test case where the sum of the last two digits of N equals 0.
+Let's check if P = 910 is a valid value. After validating 910 as a valid P, we can then manually guess the first digit of N based on the value of P.
+\(P = 910 \rightarrow X = 9 + 1 + 0 = 10 \rightarrow N = P - X = 910 - 10 = 900 \rightarrow \text{the sum of the last two digits of N is 0 + 0 = 0.}\)
+So P = 910 is valid value, and in this case, N = 900. So the first digit of N will be 9.
+
+
+
+
+Let's delete the \(\text{printf}\) function that we wrote in block 5 for calculating the valid P.
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    for (int i = 0; i < t; i++) {
+        int n;
+        cin >> n;
+        int p = 100;
+        while (p <= 999) {
+            int sumP = (p / 100) + ((p % 100) / 10) + (p % 10);
+            int sumLastTwo = ((p - sumP) % 100) / 10 + ((p - sumP) % 10);
+            if (sumLastTwo == n) {
+                cout << "Case " << (i + 1) << ": " << (p - sumP) / 100 << endl;
+                break;
+            }
+            p++;
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+According the explanation about custom sample test case that explained in block 4 and 7, I will test the following custom test case:
+<code>
+1
+0
+</code>
+And I already calculate the expected output as 9 in block 7.
+So in this test case, the answer will be "Case 1: 9".
+
+
+
+
+1
+0

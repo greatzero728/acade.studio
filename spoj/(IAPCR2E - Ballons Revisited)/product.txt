@@ -1,0 +1,113 @@
+<b>Time limit</b>: 1s
+<b>Source limit</b>: 50000B
+<b>Memory limit</b>: 1536MB
+
+You have \(w\) white, \(r\) red, \(g\) green and \(b\) blue balloons. To make a single student happy you need exactly four balloons. All four balloons given to a student shouldn't have the same color. What is the maximum number \(S\) of happy students if we know number of balloons of each color?
+
+Your task is to write a program that for given values \(w, r, g\) and \(b\) will find the \(S\).
+
+<b>Input</b>
+Input starts with an integer \(T\) \((≤ 20000)\), denoting the number of test cases.
+
+Each test case contains four integers \(w, r, g\) and \(b\) \((0 ≤ w, r, g, b ≤ 10^9)\) — the number of white, red, green and blue balloons respectively. The numbers are separated by exactly one space.
+
+<b>Output</b>
+For each test case print a single integer \(S\) — maximum number of happy students.
+
+
+
+
+The problem requires distributing balloons to students such that each student receives exactly four balloons, with the condition that no student receives four balloons of the same color. We are provided with a certain number of balloons of four different colors — white \((w)\), red \((r)\), green \((g)\), and blue \((b)\). The objective is to determine the maximum number of students that can be made happy, given these constraints, across multiple test cases.
+
+The naive solution is as follows: We first calculate the total number of balloons available by summing the balloons of all four colors: \(\text{sum} = w + r + g + b\). Since each student requires exactly four balloons, an obvious approach would be to calculate how many full groups of four can be made from the total number of balloons, which is given by \(sum // 4\).
+
+However, there is an additional constraint that no student should receive all four balloons of the same color. So, we must ensure that the distribution allows for a mix of colors. To address this, we calculate the minimum number of balloons remaining when all balloons of one particular color are removed. This is done by calculating:
+\(\text{mn} = \min(\text{sum} - w, \text{sum} - r, \text{sum} - g, \text{sum} - b)\). This value represents the largest number of students that can be made happy without relying on a single color to dominate the distribution. By taking the smallest remaining total after removing all of one color, we ensure that there are enough balloons from other colors to maintain a valid distribution. Let us take the input and implement this part.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+int main()
+{
+    int t, Case = 1; cin >> t;
+    ll sum = 0, ans = 0, mn  =0;
+    while(t--) {
+        ll a, b, c, d; cin >> a >> b >> c >> d;
+        
+    }
+    return 0;
+}
+
+
+
+
+
+Then, we calculate \(sum\) and \(mn\) as we explained.
+
+
+
+
+Finally, the answer for each test case is determined by finding the minimum of two values: the number of groups of four balloons that can be made \(sum // 4\), and the minimum remaining balloons, \(mn\). This ensures that we don’t exceed the total number of possible students based on the available balloons, while also respecting the condition that no student gets four balloons of the same color.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+int main()
+{
+    int t, Case = 1; cin >> t;
+    ll sum = 0, ans = 0, mn  =0;
+    while(t--) {
+        ll a, b, c, d; cin >> a >> b >> c >> d;
+        sum = (a + b + c + d);
+        mn = min({sum - a, sum - b, sum  - c, sum - d});
+        ans = min(mn, sum / 4);
+    }
+    return 0;
+}
+
+
+
+
+Then, we print our answer in the format given in the problem.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define ll long long
+
+int main()
+{
+    int t, Case = 1; cin >> t;
+    ll sum = 0, ans = 0, mn  =0;
+    while(t--) {
+        ll a, b, c, d; cin >> a >> b >> c >> d;
+        sum = (a + b + c + d);
+        mn = min({sum - a, sum - b, sum  - c, sum - d});
+        ans = min(mn, sum / 4);
+        cout << "Case " << Case << ": " << ans << endl;
+        Case++;
+    }
+    return 0;
+}
+
+
+
+
+
+For the custom test case, let us test the minimum constraints possible. Let us have zero balloons of each color. The answer is obviously 0 because each student must have 4 balloons.
+
+
+
+
+1
+0 0 0 0

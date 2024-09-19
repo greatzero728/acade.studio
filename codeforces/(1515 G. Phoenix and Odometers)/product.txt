@@ -1,0 +1,584 @@
+Phoenix and Odometers
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+In Fire City, there are \(n\) intersections and \(m\) one-way roads. The \(i\)-th road goes from intersection \(a_i\) to \(b_i\) and has length \(l_i\) miles.
+
+There are \(q\) cars that may only drive along those roads. The \(i\)-th car starts at intersection \(v_i\) and has an odometer that begins at \(s_i\), increments for each mile driven, and resets to 0 whenever it reaches \(t_i\). Phoenix has been tasked to drive cars along some roads (possibly none) and return them to their initial intersection with the odometer showing 0.
+
+For each car, please find if this is possible.
+
+A car may visit the same road or intersection an arbitrary number of times. The odometers don't stop counting the distance after resetting, so odometers may also be reset an arbitrary number of times.
+
+<b>Input</b>
+The first line of the input contains two integers \(n\) and \(m (2≤n≤2⋅10^5; 1≤m≤2⋅10^5)\) — the number of intersections and the number of roads, respectively.
+
+Each of the next \(m\) lines contain three integers \(a_i, b_i\), and \(l_i(1≤a_i,b_i≤n; a_i≠b_i; 1≤l_i≤10^9)\) — the information about the \(i\)-th road. The graph is not necessarily connected. It is guaranteed that between any two intersections, there is at most one road for each direction.
+
+The next line contains an integer \(q (1≤q≤2⋅10^5)\) — the number of cars.
+
+Each of the next \(q\) lines contains three integers \(v_i\), \(s_i\), and \(t_i (1≤v_i≤n; 0≤s_i<t_i≤10^9)\) — the initial intersection of the \(i\)-th car, the initial number on the \(i\)-th odometer, and the number at which the \(i\)-th odometer resets, respectively.
+
+<b>Output</b>
+Print \(q\) answers. If the \(i\)-th car's odometer may be reset to 0 by driving through some roads (possibly none) and returning to its starting intersection \(v_i\), print YES. Otherwise, print NO.
+
+<b>Note</b>
+The illustration for the first example is below:
+
+<img i>
+
+In the first query, Phoenix can drive through the following cities: 1 → 2 → 3 → 1 → 2 → 3 → 1. The odometer will have reset 3 times, but it displays 0 at the end.
+
+In the second query, we can show that there is no way to reset the odometer to 0 and return to intersection 1.
+
+In the third query, the odometer already displays 0, so there is no need to drive through any roads.
+
+Below is the illustration for the second example:
+
+<img j>
+
+
+
+
+Let's Try to approach the problem naively. We can for each car, simulate the movement of the car and check if the odometer resets to 0 at the end. This approach can never work, because even if we did find a way to reset the odometer to 0, it will be hard to check if it is impossible to reset the it to 0, and we will stuck in an infinite loop, so we need to think about a better approach.
+
+When we see resting to 0, and cycles it is a good idea to think about an approach where we use GCD, between some numbers. Now, we will try to think about this problem in terms of gcd and graphs.
+
+We see that, the edges are directed, so, there might be some cycles in the graph, and if a car is starts at some city u, it can only move in the cycle that contains u, so if we have a car at some cycle, let's say the sum of the edges in this cycle is g, and the initial number on the odometer is s, and the number at which the odometer resets is t, then the odometer will reset to 0 if and only if s % gcd(g, t) = 0, because there will be such an integer x that s + x * g = t, and the odometer will reset to 0.
+
+We know that, in general graphs, sometimes it is the case that there are smaller cycles inside bigger cycles, like the second sample case, where there is a cycle 1 to 4, 4 to 3, and 3 to 1,and also, there is a cycle 1 to 2 , 2 to 3 and 3 to 1, also, we notice that the given graph is itself the biggest cycle, that we can cycle from 2 to 3 ,3 to 1, 1 to 4, 4 to 3, 3 to 1 ,and 1 to 2.
+
+So, the given car, may be a part of mutiple cycles, so we need to find a way we can relay on such that we can get the gcd of the weights of the cycle that will produce the answer, or it no such cycle exists, we can see that the answer is no, but of course, we do not want to get an answer that is no, and there is still a cycle that will reset the odometer to 0, so we need to find a way to get the answer in a way that we can be sure that the answer is correct.
+
+
+
+
+Let's think about an approach that will include the gcd of edges instead of the whole cycle sum. Why? because considering the gcd of the weights of edges in a cycle, will make sure that we are considering every possible cycle that will reset the odometer to 0, and we will not miss any cycle that will reset the odometer to 0.
+
+Now, we need to find a way that will allow us to mark the cycles in the graph, and determine which edge in what cycles.
+We can do a topological sorting on the graph, if the graph is not cyclic, then the topological sorting will be the order of the nodes that we may visit in such a way that we start from a node with 0 in degree, and end at a node with 0 out degree, in such a graph, maybe multiple valid topological sorting, but the order of the nodes will be the same. But, here we said, the graph may contain cycles, then what does this have to do with the topological sorting?
+If there is a cycle in the graph, then we can implement some way of topological sorting, that will allow us to visit the nodes in the cycle in such a way that bigger cycles will be visited first, and then come smaller cycles that are inside it, basically, we get some order we can visit the nodes such that, if the order if some node is x , and the other node is y, and y comes later than x in the cycle (depending on the starting node) then we visit x before y while we build the answer.
+
+
+Now, we have an order we can visit the nodes by, we can start marking the cycles, and we can get the gcd of the weights that from that cycle, and we can get the answer for each car.
+
+We will explain more before we implement each part of the solution.
+
+Now, we can start by reading the input, and build the adjacency list for the graph.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const string dl = "\n";
+typedef long long ll;
+#define all(v) v.begin(), v.end()
+
+
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    vector<vector<pair<ll, ll>>> adj(n + 10);
+    for (int i = 0; i < m; i++)
+    {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    ll q;
+    cin >> q;
+    while (q--)
+    {
+        ll u, s, t;
+        cin >> u >> s >> t;
+
+    }
+}
+
+int main()
+{
+
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+
+    solve();
+    return 0;
+}
+
+
+
+
+Now, we have the graph, let's find the topological sort of the graph,
+Let's see how topological sorting actually works and how it will help us with the cycles in the graph.
+
+Topological sorting for Directed Acyclic Graph (DAG) is a linear ordering of vertices such that for every directed edge u v, vertex u comes before v in the ordering. Topological Sorting for a graph is not possible if the graph is not a DAG.
+
+We say that a graph is a DAG if it has no cycles, but the graph we have will have cycles how will the topological sort help us with that?
+As we said before, with the topological sorting, will only give us a valid ordering that we can use to traverse the graph, and it will help us mark the beginning of the cycles in the graph, one might say, there is no begging of a cycle, but here we consider every node that is in the cycle, might be the begin and the end of the cycle, so the top sort will return us any valid ordering to traverse that cycle and build the answer from it.
+
+How we will implement the topological sort?
+One of the ways we can impelemnt it to work the a cyclic graph, is to use the DFS algorithm, and we will use the visited array to mark the nodes that we have visited, and we will use the top_sort vector to store the topological sort of the graph (that nodes that we have visited in the reverse order), and we will reverse the top_sort vector to get the correct order of the nodes in the graph. Order from the outer nodes of some cycle to the inner nodes of the cycle.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const string dl = "\n";
+typedef long long ll;
+#define all(v) v.begin(), v.end()
+
+vector<int> get_top_sort(vector<vector<pair<ll, ll>>> adj)
+{
+    int n = adj.size();
+    n--;
+    vector<bool> visited(n + 10, 0);
+    vector<int> top_sort;
+    function<void(int)> dfs = [&](int v)
+    {
+        visited[v] = true;
+        for (auto [u, w] : adj[v])
+        {
+            if (!visited[u])
+                dfs(u);
+        }
+        top_sort.push_back(v);
+    };
+    for (int i = 1; i <= n; ++i)
+    {
+        if (!visited[i])
+            dfs(i);
+    }
+    reverse(top_sort.begin(), top_sort.end());
+    return top_sort;
+}
+
+
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    vector<vector<pair<ll, ll>>> adj(n + 10);
+    for (int i = 0; i < m; i++)
+    {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    auto top_sort = get_top_sort(adj);
+    
+    ll q;
+    cin >> q;
+    while (q--)
+    {
+        ll u, s, t;
+        cin >> u >> s >> t;
+
+    }
+}
+
+int main()
+{
+
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+
+    solve();
+    return 0;
+}
+
+
+
+
+With that, we can now delve into the logic of the solution, which is as follows:
+1. We will iterate over the nodes in the topological order, and for each node, we will run a DFS from it.
+2. Let's first define dist[v] as the distance from the beginning of the component that v is a part of, comp[v] as the number of the component that v is a part of, and gcd[comp[v]] as the greatest common divisor of the weights of the edges in the cycle that v is a part of.
+3. Let's compute dist[v] as dist[v] = dist[u] + w, where u is the parent of v in the DFS tree, and w is the weight of the edge between u and v. Also, let's compute comp[v] as comp[v] = comp[u], where we are assigning the component number of the parent to the child.
+4. If we find a back edge to a node u that is in the same component as v, then we can compute the gcd of the weights of the edges in the cycle that v is a part of as gcd[comp[v]] = gcd(gcd[comp[v]], abs(dist[u] + w - dist[v])), where w is the weight of the edge that closes the cycle.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const string dl = "\n";
+typedef long long ll;
+#define all(v) v.begin(), v.end()
+
+vector<int> get_top_sort(vector<vector<pair<ll, ll>>> adj)
+{
+    int n = adj.size();
+    n--;
+    vector<bool> visited(n + 10, 0);
+    vector<int> top_sort;
+    function<void(int)> dfs = [&](int v)
+    {
+        visited[v] = true;
+        for (auto [u, w] : adj[v])
+        {
+            if (!visited[u])
+                dfs(u);
+        }
+        top_sort.push_back(v);
+    };
+    for (int i = 1; i <= n; ++i)
+    {
+        if (!visited[i])
+            dfs(i);
+    }
+    reverse(top_sort.begin(), top_sort.end());
+    return top_sort;
+}
+
+
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    vector<vector<pair<ll, ll>>> adj(n + 10);
+    for (int i = 0; i < m; i++)
+    {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    auto top_sort = get_top_sort(adj);
+    
+    
+    vector<bool> vis(n + 10, false);
+    vector<ll> dist(n + 10, 0), gcd(n + 10, 0), comp(n + 10, 0);
+    int cur_comp = 1;
+
+
+    function<void(int)> dfs = [&](int u)
+    {
+        vis[u] = true;
+        for (auto [v, w] : adj[u])
+        {
+            if (!vis[v])
+            {
+                dist[v] = dist[u] + w;
+                comp[v] = comp[u];
+                dfs(v);
+            }
+            else if (comp[u] == comp[v])
+                gcd[comp[u]] = __gcd(gcd[comp[u]], abs(dist[u] + w - dist[v]));
+        }
+    };
+
+    for (auto &u : top_sort)
+    {
+        if (!vis[u])
+        {
+            comp[u] = cur_comp, dist[u] = 0;
+            dfs(u);
+            cur_comp++;
+        }
+    }
+
+    
+    
+    ll q;
+    cin >> q;
+    while (q--)
+    {
+        ll u, s, t;
+        cin >> u >> s >> t;
+
+    }
+}
+
+int main()
+{
+
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+
+    solve();
+    return 0;
+}
+
+
+
+
+Now, for each query (u,s,t), the answer will be yes if the gcd of the weights of the edges in the cycle that u is a part of with t, divides s, and no otherwise.
+Let's prove that:
+1. Let's assume that the gcd of the weights of the edges in the cycle that u is a part of is g, and the distance from the beginning of the cycle to u is d.
+2- We know that each t, the odometer will become 0, so, if we start with s = 0, then there must be some integer x such that x * g = 0 MOD t, which means that g divides t.
+3- Since we start with the odometer at s, then the problem will be to find such an integer x that x * g + s = 0 MOD t, for such x to exist, x * g must be divisible by t and s must be divisible by t,
+or we can re-assigne g to be g = gcd(g,t), and check if s % g = 0, if so, then the answer is yes, and no otherwise, why is that?
+4- Let's assume that g = gcd(g,t), and s % g = 0, then we can write s = k * g, and t = m * g, then the equation x * g + s = 0 MOD t can be written as x * g + k * g = 0 MOD m * g, which means that x + k = 0 MOD m, which means that x = -k MOD m, which means that x = m - k, which means that x * g + s = m * g - k * g = t - s = 0 MOD t, which means that there is an integer x that satisfies the equation, and the answer is yes.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const string dl = "\n";
+typedef long long ll;
+#define all(v) v.begin(), v.end()
+
+vector<int> get_top_sort(vector<vector<pair<ll, ll>>> adj)
+{
+    int n = adj.size();
+    n--;
+    vector<bool> visited(n + 10, 0);
+    vector<int> top_sort;
+    function<void(int)> dfs = [&](int v)
+    {
+        visited[v] = true;
+        for (auto [u, w] : adj[v])
+        {
+            if (!visited[u])
+                dfs(u);
+        }
+        top_sort.push_back(v);
+    };
+    for (int i = 1; i <= n; ++i)
+    {
+        if (!visited[i])
+            dfs(i);
+    }
+    reverse(top_sort.begin(), top_sort.end());
+    return top_sort;
+}
+
+
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    vector<vector<pair<ll, ll>>> adj(n + 10);
+    for (int i = 0; i < m; i++)
+    {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    auto top_sort = get_top_sort(adj);
+    
+    
+    vector<bool> vis(n + 10, false);
+    vector<ll> dist(n + 10, 0), gcd(n + 10, 0), comp(n + 10, 0);
+    int cur_comp = 1;
+
+
+    function<void(int)> dfs = [&](int u)
+    {
+        vis[u] = true;
+        for (auto [v, w] : adj[u])
+        {
+            if (!vis[v])
+            {
+                dist[v] = dist[u] + w;
+                comp[v] = comp[u];
+                dfs(v);
+            }
+            else if (comp[u] == comp[v])
+                gcd[comp[u]] = __gcd(gcd[comp[u]], abs(dist[u] + w - dist[v]));
+        }
+    };
+
+    for (auto &u : top_sort)
+    {
+        if (!vis[u])
+        {
+            comp[u] = cur_comp, dist[u] = 0;
+            dfs(u);
+            cur_comp++;
+        }
+    }
+
+    
+    
+    ll q;
+    cin >> q;
+    while (q--)
+    {
+        ll u, s, t;
+        cin >> u >> s >> t;
+        
+        ll g = __gcd(gcd[comp[u]], t);
+        if (g and s % g)
+            cout << "NO" << dl;
+        else
+            cout << "YES" << dl;
+    }
+}
+
+int main()
+{
+
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+
+    solve();
+    return 0;
+}
+
+
+
+
+Let's come up with a custom test; let's test a boundary test where we check the minimum value of all the inputs, this will help us make sure this edge case is handled correctly.
+Let's see where the graph has only 2 nodes, that is, n = 2, and the only edge is between 1 and 2 with a weight that is m = 1, and there is only 1 car, starting at u = 1, and s = 0, and its t is 1,
+
+that is,
+2 1
+1 2 1
+1
+1 0 1
+
+The answer to this only query should be YES, because it is initially 0, and also, we can go from 1 to 2, then it will come back to 0.
+
+
+
+
+2 1
+1 2 1
+1 
+1 0 1
+
+
+
+
+Hm, Let's reconsider the way we do calculate the answer for each cycle, the problem is that, when we build from the order that we got, that we go from the beginning of the cycle to the end, and we need to go from the end to the beginning, so we need to reverse the graph, and then we can go from the beginning of the cycle to the end, and then we can calculate the gcd of the weights of the edges in the cycle that v is a part of.
+
+Let's say we have a tree, and we want to calculate the gcd of the weights of the edges from the root to the leaf such that the root has all the gcd of the weights of the edges in the path from the root to the leaf, and we can do that by reversing the graph, and then we can go from the leaf to the root, and then we can calculate the gcd of the weights of the edges in the path from the root to the leaf.
+This way, we can consider the reverse graph, so that we would be able to calculate the gcd of the weights of the edges in the cycle that v is a part of, and then we can calculate the answer for each query.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const string dl = "\n";
+typedef long long ll;
+#define all(v) v.begin(), v.end()
+
+vector<int> get_top_sort(vector<vector<pair<ll, ll>>> adj)
+{
+    int n = adj.size();
+    n--;
+    vector<bool> visited(n + 10, 0);
+    vector<int> top_sort;
+    function<void(int)> dfs = [&](int v)
+    {
+        visited[v] = true;
+        for (auto [u, w] : adj[v])
+        {
+            if (!visited[u])
+                dfs(u);
+        }
+        top_sort.push_back(v);
+    };
+    for (int i = 1; i <= n; ++i)
+    {
+        if (!visited[i])
+            dfs(i);
+    }
+    reverse(top_sort.begin(), top_sort.end());
+    return top_sort;
+}
+
+
+vector<vector<pair<ll, ll>>> get_reverse_graph(vector<vector<pair<ll, ll>>> adj)
+{
+    int n = adj.size();
+    n--;
+    vector<vector<pair<ll, ll>>> rev(n + 1);
+    for (int i = 1; i <= n; i++)
+    {
+        for (auto [u, w] : adj[i])
+        {
+            rev[u].push_back({i, w});
+        }
+    }
+    return rev;
+}
+
+
+void solve()
+{
+    ll n, m;
+    cin >> n >> m;
+    vector<vector<pair<ll, ll>>> adj(n + 10);
+    for (int i = 0; i < m; i++)
+    {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    auto top_sort = get_top_sort(adj);
+    
+    
+    vector<bool> vis(n + 10, false);
+    vector<ll> dist(n + 10, 0), gcd(n + 10, 0), comp(n + 10, 0);
+    int cur_comp = 1;
+
+
+    adj = get_reverse_graph(adj);
+
+    
+    function<void(int)> dfs = [&](int u)
+    {
+        vis[u] = true;
+        for (auto [v, w] : adj[u])
+        {
+            if (!vis[v])
+            {
+                dist[v] = dist[u] + w;
+                comp[v] = comp[u];
+                dfs(v);
+            }
+            else if (comp[u] == comp[v])
+                gcd[comp[u]] = __gcd(gcd[comp[u]], abs(dist[u] + w - dist[v]));
+        }
+    };
+
+    for (auto &u : top_sort)
+    {
+        if (!vis[u])
+        {
+            comp[u] = cur_comp, dist[u] = 0;
+            dfs(u);
+            cur_comp++;
+        }
+    }
+
+    
+    
+    ll q;
+    cin >> q;
+    while (q--)
+    {
+        ll u, s, t;
+        cin >> u >> s >> t;
+        
+        ll g = __gcd(gcd[comp[u]], t);
+        if (g and s % g)
+            cout << "NO" << dl;
+        else
+            cout << "YES" << dl;
+    }
+}
+
+int main()
+{
+
+    ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+
+    solve();
+    return 0;
+}
+
+
+
+
+2 1
+1 2 1
+1 
+1 0 1

@@ -1,0 +1,150 @@
+<b>A. Grandma Laura and Apples</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Grandma Laura came to the market to sell some apples. During the day she sold all the apples she had. But grandma is old, so she forgot how many apples she had brought to the market.
+
+She precisely remembers she had \(n\) buyers and each of them bought exactly half of the apples she had at the moment of the purchase and also she gave a half of an apple to some of them as a gift (if the number of apples at the moment of purchase was odd), until she sold all the apples she had.
+
+So each buyer took some integral positive number of apples, but maybe he didn't pay for a half of an apple (if the number of apples at the moment of the purchase was odd).
+
+For each buyer grandma remembers if she gave a half of an apple as a gift or not. The cost of an apple is \(p\) (the number \(p\) is even).
+
+Print the total money grandma should have at the end of the day to check if some buyers cheated her.
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(p (1 ≤ n ≤ 40, 2 ≤ p ≤ 1000)\) — the number of the buyers and the cost of one apple. It is guaranteed that the number \(p\) is even.
+
+The next \(n\) lines contains the description of buyers. Each buyer is described with the string half if he simply bought \(half\) of the apples and with the string \(halfplus\) if grandma also gave him a half of an apple as a gift.
+
+It is guaranteed that grandma has at least one apple at the start of the day and she has no apples at the end of the day.
+
+<b>Output</b>
+Print the only integer \(a\) — the total money grandma should have at the end of the day.
+
+Note that the answer can be too large, so you should use 64-bit integer type to store it. In \(C++\) you can use the \(long\ long\) integer type and in \(Java\) you can use \(long\) integer type.
+
+<b>Note</b>
+In the first sample at the start of the day the grandma had two apples. First she sold one apple and then she sold a half of the second apple and gave a half of the second apple as a present to the second buyer.
+
+
+
+
+We can iterate all possible number of apples in order of 1, 2, 3, ...
+In case, where the number of apple is \(p\), we simulate the grandma's activity and check this original number \(p\) is a valid number.
+If \(p\) is valid, then for each buyer we can calculate the number of apples that he bought, so we can easily calculate the total earning of grandma.
+But every time, grandma sold her apples about half amount, and the number of buyers are \(1 \leq n \leq 40\), so the number of original apples can be up to about \(2 ^ {40}\). So we can't iterate all possible number of apples.
+So this naive approach is a time limit exceed algorithm.
+
+
+
+
+We must simulate the grandma's activity in reverse. So we start with 0 apple, and for each buyer, we calculate the number of apples before this buyer bought apples. If the description of this buyer is "halfplus", then we must add 1 to the number of apples before this buyer bought apples, because grandma gave a half of an apple to this buyer as a gift.
+For example, if the last buyer is "halfplus", then before this buyer bought apples, the number of apples must be 1, because grandma gave a half of an apple to this buyer as a gift and this buyer bought a half of an apple, so 1 - 1/2 = 1/2 and grandma gave 1/2 apple to this buyer as a gift. 
+In case, the description of the last buyer is "half", then before this buyer bought apples, the number of apples must be 2, because this buyer bought a half of an apple, so 2 - 1/2 = 1 and 1 - 1/2 = 1/2, so grandma has no apple left.
+Let's create an array to store the number of apples before each buyer bought apples and the description of each buyer. Then we can calculate the total earning of grandma by iterating all buyers and sum up the number of apples each buyer bought.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+int main() {
+    ll n, p;
+    cin >> n >> p;
+    vector<string> s(n);
+    vector<ll> a(n + 1, 0);
+    for (int i = 0; i < n; i++) {
+        cin >> s[i];
+    }
+}
+
+
+
+
+First we have to calculate "the number of original apples": \(num\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+int main() {
+    ll n, p;
+    cin >> n >> p;
+    vector<string> s(n);
+    vector<ll> a(n + 1, 0);
+    for (int i = 0; i < n; i++) {
+        cin >> s[i];
+    }
+    for (int i = n; i--; ) {
+        if (s[i] == "halfplus") {
+            a[i] = a[i + 1] * 2 + 1;
+        } else {
+            a[i] = a[i + 1] * 2;
+        }
+    }
+    ll num = a[0];
+}
+
+
+
+
+We already calculated the original number of apple, so with these apples, we can simulate the grandma's activity.
+\(num\) reduces \(\lfloor \frac{num}{2} \rfloor\) every time she sell apples, because if \(num\) is odd, she gives half of apple to the buyer.
+So if the grandma had \(num\) apples before selling, for this sell, the buyer should pay \(\frac{num \times p}{2}\). (Here, \(p\) is the price of one apple.)
+We only need to add this amount to the earning amount of grandma.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+int main() {
+    ll n, p;
+    cin >> n >> p;
+    vector<string> s(n);
+    vector<ll> a(n + 1, 0);
+    for (int i = 0; i < n; i++) {
+        cin >> s[i];
+    }
+    for (int i = n; i--; ) {
+        if (s[i] == "halfplus") {
+            a[i] = a[i + 1] * 2 + 1;
+        } else {
+            a[i] = a[i + 1] * 2;
+        }
+    }
+    ll num = a[0];
+    ll ans = 0;
+    for (int i = 0; i < n; i++) {
+        ans += num * p / 2;
+        num = num / 2;
+    }
+    cout << ans << endl;
+}
+
+
+
+
+Let's check a custom corner case, where \(n, p\) are their minimum values: \(n = 1, p = 2\).
+<b>Input</b>
+<code>
+1 2
+halfplus
+</code>
+The grandma gives half apple in one buy, so the number of original apple is odd.
+And after one selling, the number of apples changed to 0, so the original number of apple is 1.
+In this case, the buy should pay \(\frac{1}{2} \cdot 2 = 1\).
+
+
+
+
+1 2
+halfplus

@@ -1,0 +1,78 @@
+CPRMT - Common Permutation
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Given two strings of lowercase letters, a and b, print the longest string x of lowercase letters such that there is a permutation of x that is a subsequence of a and there is a permutation of x that is a subsequence of b.
+
+Input
+Input file contains several lines of input. Consecutive two lines make a set of input. That means in the input file line 1 and 2 is a set of input, line 3 and 4 is a set of input and so on. The first line of a pair contains a and the second contains b. Each string is on a separate line and consists of at most 1000 lowercase letters.
+
+Output
+For each set of input, output a line containing x. If several x satisfy the criteria above, choose the first one in alphabetical order.
+
+
+
+
+\(\bull\) naive algorithm
+We can iterate all possible candidates of string x, and among all valid x, find out the maximum length of x.
+Is this possible within the given time limit constraint?
+No
+The reason is:
+The length of x can be up to 1000 as the given strings have at most 1000 lowercase letters. So, |x| can be 1000 different candidates.
+After determine |x|, there are \(26^{|x|}\) possible candidates for string x. In the worst case, we have to iterate \(26 ^ {1000}\) candidates.
+After determine x, we have to check x meets the given requirements. So we have to check if there is a permutation of x that is a subsequence of a. Similarly, about b, we have to check if there is a permutation of x that is a subsequence of b. This uses \(O(|x|! \cdot max(|a|, |b|)\) time complexity.
+Overall, it's obvious that we can't solve this problem with this naive approach: we will get time limit exceed error.
+
+
+
+
+We are given two strings of lowercase letters, a and b, and we need to find the longest string x of lowercase letters such that there is a permutation of x that is a subsequence of a and there is a permutation of x that is a subsequence of b.
+
+To solve this problem, we can use a greedy approach. We can count the frequency of each character in both strings a and b. Then, for each character, we take the minimum frequency between the two strings. This will give us the maximum number of times we can include each character in the result string.
+
+We should also consider the order of characters in the result string. Since we want to find the first permutation in alphabetical order, we can sort the characters by their ASCII values.
+
+Next, I will write a boilerplate code to read the input and iterate over test cases.
+
+Please wait for the next step.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    string a, b;
+    while (cin >> a >> b) {
+        unordered_map<char, int> freq_a, freq_b;
+        for (char c : a) freq_a[c]++;
+        for (char c : b) freq_b[c]++;
+        string result;
+        for (char c = 'a'; c <= 'z'; c++) {
+            for (int i = 0; i < min(freq_a[c], freq_b[c]); i++) {
+                result += c;
+            }
+        }
+        cout << result << endl;
+    }
+    return 0;
+}
+
+
+
+
+Let's examine a custom test case where strings a and b are the same, and their lengths are at the minimum possible value: |a| = |b| = 1.  
+<code>
+a  
+a
+</code>  
+In this case, the common part of strings a and b is "a". Therefore, x will be "a", as there are no other options as the length of x is 1.
+Thus, the answer will be "a".
+
+
+
+
+a
+a

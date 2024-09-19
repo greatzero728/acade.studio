@@ -1,0 +1,370 @@
+HAN01 - Ha-noi!
+Time limit:	2s
+Source limit:	8082B
+Memory limit:	1536MB
+
+Little Sabrina loves solving puzzles. Last week she got a new puzzle: The "Tower of Hanoi" puzzle. This puzzle is based on an old legend: "The temple priests of Hanoi have to transfer a tower consisting of 64 fragile disks of gold from one part of the temple to another, one disk at a time. The disks are arranged in order, no two of them the same size, with the largest on the bottom and the smallest on top. Because of their fragility, a larger disk may never be placed on a smaller one, and there is only one intermediate location where disks can be temporarily placed. It is said that before the priests complete their task the temple will crumble into dust and the world will vanish in a clap of thunder." Sabrina reconstructed the problem with some coins of different size. She solved the puzzle for three coins in 7 steps, for four coins in 15 steps,... after solving the problem with 7 coins she had the hang of it. Yesterday she started to solve the puzzle with 31 coins and her optimal strategy. After hours of moving coins from one pile to the other she was very tired and went to bed. This was a bad idea! Her little brother Robin discovered the towers of coins and - whoops! - threw it on the floor. Then he noticed a sheet of paper: "Don't touch this towers! Steps: 16543". "Oh no!" Robin has to reconstruct the tower because his sister can get very, very angry... Your task is to help Robin to reconstruct the towers. Sabrina started the game with all disks on peg number one and her goal was to move the disks to peg number two. She used her optimal strategy and noted the number of steps she had done.
+
+Input
+The first line of input contains one integer t: The number of testcases. t lines follow. Each line contains two integers n (2< n< 61) and \(k (0< k< 2^n)\). n is the number of disks of the Hanoi puzzle and k the number of steps Sabrina had done. Please be careful, the number k can be very large, it may not fit in a 32 bit integer.
+
+Output
+Output the reconstructed configuration of the towers after k steps. For each testcase output three lines. One for each tower. Each line consists of the tower identifier (1,2,3) a colon, one space and the disk numbers (n,n-1,...,2,1) which are separated by a '|'-character.
+
+
+
+
+\(\bull\) Naive algorithm.
+Let's simulate and record every optimal move of the disks from one peg to another, following the rules of the puzzle recursively.
+This method necessitates generating all the moves for \(n\) disks, which is exponential in nature, specifically \(2^n - 1\) moves for \(n\) disks.
+Given that the maximum \(n\) can be 60, this results in an astonishing number of moves (over a quintillion), rendering it infeasible to compute within the given time limits.
+
+\(\bull\) Real algorithm
+We can efficiently reconstruct the configuration of disks after a specified number of moves by utilizing a recursive approach without simulating every individual move.
+
+The optimal strategy is as follows: For \(n\) disks, the solution can be broken down into three parts: moving \(n-1\) disks to an auxiliary peg, moving the largest disk to the target peg, and then moving the \(n-1\) disks from the auxiliary peg to the target peg. This strategy is proven by the principle of induction: moving \(n-1\) disks to an auxiliary peg allows the largest disk to be moved directly to the target peg without violating the rules, after which the \(n-1\) disks can be moved to the target peg using the same recursive strategy. This ensures that all disks are moved to their final position while adhering to the constraints of the puzzle.
+
+For every possible \(n\), we can calculate the number of optimal moves using the formula: \(f[n] = 2 \times f[n - 1] + 1\). This formula works because it reflects the recursive nature of the Tower of Hanoi problem. To solve for \(n\) disks, you first need to move the top \(n-1\) disks to an auxiliary peg, which requires \(f[n-1]\) moves. Then, you make one additional move to transfer the largest disk directly to the target peg. Finally, you move the \(n-1\) disks from the auxiliary peg to the target peg, which again requires \(f[n-1]\) moves. Thus, the total number of moves is the sum of these components, resulting in the formula.
+
+Instead of executing all moves, we can calculate which peg each disk should be on after \(k\) moves. The position of each disk can be determined based on the number of moves completed.
+
+As mentioned above, the optimal move consists of three parts:
+1) Move the top \(n-1\) disks from the source peg to an auxiliary peg.
+2) Move the largest disk from the source peg to the target peg.
+3) Move the \(n-1\) disks from the auxiliary peg to the target peg.
+
+Let's use this recursive function: move(n, st, ed, k). The function move(n, st, ed, k) recursively determines the configuration of \(n\) disks after \(k\) moves, moving disks from the starting peg \(st\) to the ending peg \(ed\). To simulate the state of the pegs after the \(k\)-th movement, we can call move(n, 1, 2, k). This is because, in this problem, we need to move \(n\) disks from peg 1 (the source peg) to peg 2 (the target peg) while respecting the rules of the Tower of Hanoi, and we must determine the configuration of disks after \(k\) moves.
+
+If \(k \leq f[n - 1]\): This means the \(n\)-th disk is still on the source peg. We will move the top \(n-1\) disks to the auxiliary peg, as the largest disk has not been moved yet.  
+If \(k = f[n - 1] + 1\): This indicates that the largest disk is being moved from the source peg to the target peg. At this point, we push the largest disk onto the destination peg.  
+If \(k > f[n - 1] + 1\): This means the largest disk has already been moved to the target peg.
+
+By recursively determining the state of the disks based on the count of moves, we construct the final configuration of all three pegs without needing to simulate each move. For every state, we move to the next state where \(n\) is decreased by 1, so the time complexity is \(O(n)\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        int n; INT k; scanf("%d %lld", &n, &k);
+    }
+}
+
+
+
+
+For every possible \(n\), let's calculate the number of optimal moves using the formula: \(f[n] = 2 \times f[n - 1] + 1\). The initial state is \(f[1] = 1\) because if there is only one disk on the source peg, we can simply move it to the target peg in one move.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 77;
+
+INT f[NN] = {0, 1};
+
+int main() {
+    for(int i = 2; i <= NN; i++) {
+        f[i] = f[i - 1] * 2 + 1;
+    }
+    
+    int t; scanf("%d", &t);
+    while(t--) {
+        int n; INT k; scanf("%d %lld", &n, &k);
+    }
+}
+
+
+
+
+Let's write the move(n, st, ed, k) function:  
+If \(k \leq f[n - 1]\): This means the \(n\)-th disk is still on the source peg. Therefore, after \(k\) movements, the \(n\)-th disk will remain in its position on the source peg (st). We will move the top \(n-1\) disks to the auxiliary peg (id), as the largest disk has not been moved yet.
+
+Here, there are only three pegs: source peg (st), target peg (ed), and auxiliary peg (id). The pegs are represented by the numbers {1, 2, 3}, so their sum is 6. Given st and ed, we can calculate id using the formula \(6 - st - ed\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 77;
+
+INT f[NN] = {0, 1};
+vector<int> ans[4];
+
+void move(int n, int st, int ed, INT k) {
+    int id = 6 - st - ed;
+    if(k <= f[n - 1]) {
+        ans[st].push_back(n);
+        move(n - 1, st, id, k);
+    }
+}
+
+int main() {
+    for(int i = 2; i <= NN; i++) {
+        f[i] = f[i - 1] * 2 + 1;
+    }
+    
+    int t; scanf("%d", &t);
+    while(t--) {
+        for(int i = 1; i <= 3; i++) ans[i].clear();
+        int n; INT k; scanf("%d %lld", &n, &k);
+    }
+}
+
+
+
+
+If \(k = f[n - 1] + 1\): This indicates that the largest disk is being moved from the source peg to the target peg. At this point, we push the largest disk onto the destination peg.
+This is the final state, so we need to save the remaining disks numbered 1, 2, ..., \(n - 1\). Before moving the \(n\)-th disk from the source peg (st) to the target peg (ed), all of these disks will have been moved to the auxiliary peg (id), so their positions will all be on id.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 77;
+
+INT f[NN] = {0, 1};
+vector<int> ans[4];
+
+void move(int n, int st, int ed, INT k) {
+    int id = 6 - st - ed;
+    if(k <= f[n - 1]) {
+        ans[st].push_back(n);
+        move(n - 1, st, id, k);
+    }
+    else {
+        k -= f[n - 1];
+        
+        ans[ed].push_back(n);
+        if(k == 1) {
+            for(int i = n - 1; i >= 1; i--) {
+                ans[id].push_back(i);
+            }
+            return;
+        }
+    }
+}
+
+int main() {
+    for(int i = 2; i <= NN; i++) {
+        f[i] = f[i - 1] * 2 + 1;
+    }
+    
+    int t; scanf("%d", &t);
+    while(t--) {
+        for(int i = 1; i <= 3; i++) ans[i].clear();
+        int n; INT k; scanf("%d %lld", &n, &k);
+    }
+}
+
+
+
+
+If \(k > f[n - 1] + 1\): This means the largest disk has already been moved to the target peg, and we proceed to move the remaining \(n-1\) disks from the auxiliary peg to the target peg.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 77;
+
+INT f[NN] = {0, 1};
+vector<int> ans[4];
+
+void move(int n, int st, int ed, INT k) {
+    int id = 6 - st - ed;
+    if(k <= f[n - 1]) {
+        ans[st].push_back(n);
+        move(n - 1, st, id, k);
+    }
+    else {
+        k -= f[n - 1];
+        
+        ans[ed].push_back(n);
+        if(k == 1) {
+            for(int i = n - 1; i >= 1; i--) {
+                ans[id].push_back(i);
+            }
+            return;
+        }
+        k--;
+        move(n - 1, id, ed, k);
+    }
+}
+
+int main() {
+    for(int i = 2; i <= NN; i++) {
+        f[i] = f[i - 1] * 2 + 1;
+    }
+    
+    int t; scanf("%d", &t);
+    while(t--) {
+        for(int i = 1; i <= 3; i++) ans[i].clear();
+        int n; INT k; scanf("%d %lld", &n, &k);
+    }
+}
+
+
+
+
+As we've already implemented move function, so we can find out the state of the pegs after the \(k\)-th movement, we can call move(n, 1, 2, k).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 77;
+
+INT f[NN] = {0, 1};
+vector<int> ans[4];
+
+void move(int n, int st, int ed, INT k) {
+    int id = 6 - st - ed;
+    if(k <= f[n - 1]) {
+        ans[st].push_back(n);
+        move(n - 1, st, id, k);
+    }
+    else {
+        k -= f[n - 1];
+        
+        ans[ed].push_back(n);
+        if(k == 1) {
+            for(int i = n - 1; i >= 1; i--) {
+                ans[id].push_back(i);
+            }
+            return;
+        }
+        k--;
+        move(n - 1, id, ed, k);
+    }
+}
+
+int main() {
+    for(int i = 2; i <= NN; i++) {
+        f[i] = f[i - 1] * 2 + 1;
+    }
+    
+    int t; scanf("%d", &t);
+    while(t--) {
+        for(int i = 1; i <= 3; i++) ans[i].clear();
+        int n; INT k; scanf("%d %lld", &n, &k);
+        move(n, 1, 2, k);
+    }
+}
+
+
+
+
+We've saved the final state into the \(ans\) vector, so we can simply print the answer.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 77;
+
+INT f[NN] = {0, 1};
+vector<int> ans[4];
+
+void move(int n, int st, int ed, INT k) {
+    int id = 6 - st - ed;
+    if(k <= f[n - 1]) {
+        ans[st].push_back(n);
+        move(n - 1, st, id, k);
+    }
+    else {
+        k -= f[n - 1];
+        
+        ans[ed].push_back(n);
+        if(k == 1) {
+            for(int i = n - 1; i >= 1; i--) {
+                ans[id].push_back(i);
+            }
+            return;
+        }
+        k--;
+        move(n - 1, id, ed, k);
+    }
+}
+
+int main() {
+    for(int i = 2; i <= NN; i++) {
+        f[i] = f[i - 1] * 2 + 1;
+    }
+    
+    int t; scanf("%d", &t);
+    while(t--) {
+        for(int i = 1; i <= 3; i++) ans[i].clear();
+        int n; INT k; scanf("%d %lld", &n, &k);
+        move(n, 1, 2, k);
+        for(int i = 1; i <= 3; i++) {
+            printf("%d: ", i);
+            for(int j = 0; j < ans[i].size(); j++) {
+                if(j) printf("|");
+                printf("%d", ans[i][j]);
+            }
+            puts("");
+        }
+    }
+}
+
+
+
+
+3
+3 6
+32 889397450
+31 16543
+
+
+
+
+Let's examine a custom corner case where \(t\) and \(n\) are at their minimum values, and \(k\) is at its maximum value: \(t = 1\), \(n = 3\), \(k = 7\). (Here, \(k < 2^n = 8\).) The motivation is to verify that the final state(the maximum possible k) can be correctly calculated.
+<code>
+1
+3 7
+</code>
+As we examine the case where \(k = 2^n - 1\), this implies that after the last movement, we should print the final state.
+In this problem, we are moving \(n\) disks from the first peg to the second peg, so the final state will be when all disks are in the second tower.
+Therefore, the answer will be as follows:
+<code>
+1: 
+2: 3|2|1
+3: 
+</code>
+
+
+
+
+1
+3 7

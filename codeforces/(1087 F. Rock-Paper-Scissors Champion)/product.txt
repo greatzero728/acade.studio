@@ -1,0 +1,452 @@
+<b>Rock-Paper-Scissors Champion</b>
+Time limit per test: 2 seconds
+Memory limit per test: 256 megabytes
+
+\(n\) players are going to play a rock-paper-scissors tournament. As you probably know, in a one-on-one match of rock-paper-scissors, two players choose their shapes independently. The outcome is then determined depending on the chosen shapes: "paper" beats "rock", "rock" beats "scissors", "scissors" beat "paper", and two equal shapes result in a draw.
+
+At the start of the tournament all players will stand in a row, with their numbers increasing from \(1\) for the leftmost player, to \(n\) for the rightmost player. Each player has a pre-chosen shape that they will use in every game throughout the tournament. Here's how the tournament is conducted:
+
+\(\bullet\) If there is only one player left, he is declared the champion.
+\(\bullet\) Otherwise, two adjacent players in the row are chosen arbitrarily, and they play the next match. The losing player is eliminated from the tournament and leaves his place in the row (with his former neighbours becoming adjacent). If the game is a draw, the losing player is determined by a coin toss.
+
+The organizers are informed about all players' favoured shapes. They wish to find out the total number of players who have a chance of becoming the tournament champion (that is, there is a suitable way to choose the order of the games and manipulate the coin tosses). However, some players are still optimizing their strategy, and can inform the organizers about their new shapes. Can you find the number of possible champions after each such request?
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(q\) \(-\) the number of players and requests respectively (\(1 \leq n \leq 2 \cdot 10^5\), \(0 \leq q \leq 2 \cdot 10^5\)).
+
+The second line contains a string of \(n\) characters. The \(i\)-th of these characters is "<tt>R</tt>", "<tt>P</tt>", or "<tt>S</tt>" if the player \(i\) was going to play "rock", "paper", or "scissors" before all requests respectively.
+
+The following \(q\) lines describe the requests. The \(j\)-th of these lines contain an integer \(p_j\) and a character \(c_j\) meaning that the player \(p_j\) is going to use the shape described by the character \(c_j\) from this moment (\(1 \leq p_j \leq n\)).
+
+<b>Output</b>
+Print \(q + 1\) integers \(r_0, \ldots, r_q\), where \(r_k\) is the number of possible champions after processing \(k\) requests.
+
+
+
+
+
+A naive solution would be to try the \(n!\) possible scenarios and check if every player can win, however this is too slow to pass here.
+
+Let's first assign numerical values to shapes instead of characters to make it easier to deal with. Rock (<tt>'R'</tt>) will be \(0\), scissors (<tt>'S'</tt>) will be \(1\) and paper (<tt>'P'</tt>) will be \(2\). Let's also define \(win(x)\) to be the shape which shape \(x\) wins against, \(win(x)=(x + 1)\ \text{mod}\ 3 \) and similarly \(lose(x)\) to be the shape which shape \(x\) loses against, \(lose(x)=(x + 2)\ \text{mod}\ 3 \).
+
+It's complicated to check whether a player can win or not. Instead, we can try to calculate whether a player will lose or not.
+
+A player will lose if it's not possible to eliminate all players to his left or all players to his right.
+
+It can be noticed that \(win(win(x))=lose(x)\) (i.e. \(win(x)\) wins against \(lose(x)\)). Thus, for a player with shape \(x\) to not be able to eliminate all players on his right, there has to be no \(win(x)\) on his right (because otherwise it will win against all \(lose(x)\) and then \(x\) will win against it) and also there has to exist at least one \(lose(x)\) on his right for it to win against \(x\). Thus, for a player \(i\) with shape \(x\) to lose due to not being able to eliminate players on his right the condition \(last(win(x)) < i < last(lose(x))\) has to be true where \(last(y)\) denotes the position of the last occurrence of shape \(y\). Similarly, for a player \(i\) with shape \(x\) to lose due to not being able to eliminate players on his left the condition \(first(lose(x)) < i < first(win(x))\) where \(first(y)\) denotes the position of the first occurrence of shape \(y\).
+
+So, for every \(x\) from \(0\) to \(2\) we need to count the number of players \(i\) with shape equal to \(x\) satisfying \(last(win(x)) < i < last(lose(x))\) <b>or</b> \(first(lose(x)) < i < first(win(x))\). To make them easier to count we can handle the cases where there are less than three shapes in the array separately, this way only one of the conditions will be true so we need to count the positions satisfying each condition separately and add them up and we won't overcount. This will give us the number of players that <b>can't</b> be the champion, we can subtract it from \(n\) and obtain the number of players that <b>can</b> be the champion.
+
+To handle updates we can use \(3\) Fenwick trees to query the count of players with certain shape in a range and sets to be able to calculate \(first(y)\) and \(last(y)\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200'005;
+int n, q, a[N];
+int main() {
+    cin >> n >> q;
+    for (int i = 0; i < n; i++) {
+        char c;
+        cin >> c;
+        a[i] = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+    }
+}
+
+
+
+
+
+Now let's implement our Fenwick trees which will help us answer queries for the number of players of a particular type in a range and declare the sets we will be using.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200'005;
+int n, q, a[N];
+struct BIT {
+    int bit[N];
+    void upd(int x, int v) {
+        for (int i = x; i < N; i |= i + 1) {
+            bit[i] += v;
+        }
+    }
+    int get(int r) {
+        int ans = 0;
+        for (int i = r; i >= 0; i = (i & (i + 1)) - 1) {
+            ans += bit[i];
+        }
+        return ans;
+    }
+    int get(int l, int r) {
+        return get(r) - get(l - 1);
+    }
+} t[3];
+set<int> s[3];
+int main() {
+    cin >> n >> q;
+    for (int i = 0; i < n; i++) {
+        char c;
+        cin >> c;
+        a[i] = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+    }
+}
+
+
+
+
+Now we will make two helper functions to help us add and remove a player and add all the initial players.
+
+The add function should add the player to the set corresponding to its shape and increment its position in the Fenwick tree.
+
+The remove function should remove the player from the set corresponding to its shape and decrement its position in the Fenwick tree.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200'005;
+int n, q, a[N];
+struct BIT {
+    int bit[N];
+    void upd(int x, int v) {
+        for (int i = x; i < N; i |= i + 1) {
+            bit[i] += v;
+        }
+    }
+    int get(int r) {
+        int ans = 0;
+        for (int i = r; i >= 0; i = (i & (i + 1)) - 1) {
+            ans += bit[i];
+        }
+        return ans;
+    }
+    int get(int l, int r) {
+        return get(r) - get(l - 1);
+    }
+} t[3];
+set<int> s[3];
+void add(int i) {
+    s[a[i]].insert(i);
+    t[a[i]].upd(i, 1);
+}
+void rem(int i) {
+    s[a[i]].erase(i);
+    t[a[i]].upd(i, -1);
+}
+int main() {
+    cin >> n >> q;
+    for (int i = 0; i < n; i++) {
+        char c;
+        cin >> c;
+        a[i] = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+        add(i);
+    }
+}
+
+
+
+
+Now let's implement the query function, we first need to handle the cases where there is less than 3 shapes.
+
+- If there is only one shape, all the players can be the champion.
+
+- If there are two shapes, get the number of players with the shape which can beat the other one.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200'005;
+int n, q, a[N];
+struct BIT {
+    int bit[N];
+    void upd(int x, int v) {
+        for (int i = x; i < N; i |= i + 1) {
+            bit[i] += v;
+        }
+    }
+    int get(int r) {
+        int ans = 0;
+        for (int i = r; i >= 0; i = (i & (i + 1)) - 1) {
+            ans += bit[i];
+        }
+        return ans;
+    }
+    int get(int l, int r) {
+        return get(r) - get(l - 1);
+    }
+} t[3];
+set<int> s[3];
+void add(int i) {
+    s[a[i]].insert(i);
+    t[a[i]].upd(i, 1);
+}
+void rem(int i) {
+    s[a[i]].erase(i);
+    t[a[i]].upd(i, -1);
+}
+int query() {
+    if (s[0].empty() + s[1].empty() + s[2].empty() == 2) { //one shape
+        return n;
+    }
+    if (s[0].empty() + s[1].empty() + s[2].empty() == 1) { //two shapes
+        for (int x = 0; x < 3; x++) {
+            if (s[x].empty()) {
+                return s[(x + 1) % 3].size();
+            }
+        }
+    }
+}
+int main() {
+    cin >> n >> q;
+    for (int i = 0; i < n; i++) {
+        char c;
+        cin >> c;
+        a[i] = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+        add(i);
+    }
+}
+
+
+
+
+Now we need to count the number of players which can be the champion while having 3 shapes as explained above.
+
+For every \(x\), we will use the Fenwick trees to count the number of players \(i\) with shape equal to \(x\) satisfying \(last(win(x)) < i < last(lose(x))\) <b>or</b> \(first(lose(x)) < i < first(win(x))\) and subtract it from \(n\).
+
+The value of \(last(y)\) will be the largest element in the set corresponding to shape \(y\) and \(first(y)\) will be the smallest element in the set corresponding to shape \(y\).
+
+Now we can print the number of champions before all requests are made.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200'005;
+int n, q, a[N];
+struct BIT {
+    int bit[N];
+    void upd(int x, int v) {
+        for (int i = x; i < N; i |= i + 1) {
+            bit[i] += v;
+        }
+    }
+    int get(int r) {
+        int ans = 0;
+        for (int i = r; i >= 0; i = (i & (i + 1)) - 1) {
+            ans += bit[i];
+        }
+        return ans;
+    }
+    int get(int l, int r) {
+        return get(r) - get(l - 1);
+    }
+} t[3];
+set<int> s[3];
+void add(int i) {
+    s[a[i]].insert(i);
+    t[a[i]].upd(i, 1);
+}
+void rem(int i) {
+    s[a[i]].erase(i);
+    t[a[i]].upd(i, -1);
+}
+int first(int x) {
+    return *s[x].begin();
+}
+int last(int x) {
+    return *s[x].rbegin();
+}
+int win(int x) {
+    return (x + 1) % 3;
+}
+int lose(int x) {
+    return (x + 2) % 3;
+}
+int query() {
+    if (s[0].empty() + s[1].empty() + s[2].empty() == 2) { //one shape
+        return n;
+    }
+    if (s[0].empty() + s[1].empty() + s[2].empty() == 1) { //two shapes
+        for (int x = 0; x < 3; x++) {
+            if (s[x].empty()) {
+                return s[(x + 1) % 3].size();
+            }
+        }
+    }
+    int ans = n;
+    for (int x = 0; x < 3; x++) {
+        int l = first(lose(x)), r = first(win(x));
+        if (l < r) {
+            ans -= t[x].get(l + 1, r - 1);
+        }
+        l = last(win(x)), r = last(lose(x));
+        if (l < r) {
+            ans -= t[x].get(l + 1, r - 1);
+        }
+    }
+    return ans;
+}
+int main() {
+    cin >> n >> q;
+    for (int i = 0; i < n; i++) {
+        char c;
+        cin >> c;
+        a[i] = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+        add(i);
+    }
+    cout << query() << '\n';
+}
+
+
+
+
+Now to handle the modifications, we will first remove player \(p\), update his shape, then add it back and query the answer.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200'005;
+int n, q, a[N];
+struct BIT {
+    int bit[N];
+    void upd(int x, int v) {
+        for (int i = x; i < N; i |= i + 1) {
+            bit[i] += v;
+        }
+    }
+    int get(int r) {
+        int ans = 0;
+        for (int i = r; i >= 0; i = (i & (i + 1)) - 1) {
+            ans += bit[i];
+        }
+        return ans;
+    }
+    int get(int l, int r) {
+        return get(r) - get(l - 1);
+    }
+} t[3];
+set<int> s[3];
+void add(int i) {
+    s[a[i]].insert(i);
+    t[a[i]].upd(i, 1);
+}
+void rem(int i) {
+    s[a[i]].erase(i);
+    t[a[i]].upd(i, -1);
+}
+int first(int x) {
+    return *s[x].begin();
+}
+int last(int x) {
+    return *s[x].rbegin();
+}
+int win(int x) {
+    return (x + 1) % 3;
+}
+int lose(int x) {
+    return (x + 2) % 3;
+}
+int query() {
+    if (s[0].empty() + s[1].empty() + s[2].empty() == 2) { //one shape
+        return n;
+    }
+    if (s[0].empty() + s[1].empty() + s[2].empty() == 1) { //two shapes
+        for (int x = 0; x < 3; x++) {
+            if (s[x].empty()) {
+                return s[(x + 1) % 3].size();
+            }
+        }
+    }
+    int ans = n;
+    for (int x = 0; x < 3; x++) {
+        int l = first(lose(x)), r = first(win(x));
+        if (l < r) {
+            ans -= t[x].get(l + 1, r - 1);
+        }
+        l = last(win(x)), r = last(lose(x));
+        if (l < r) {
+            ans -= t[x].get(l + 1, r - 1);
+        }
+    }
+    return ans;
+}
+int main() {
+    cin >> n >> q;
+    for (int i = 0; i < n; i++) {
+        char c;
+        cin >> c;
+        a[i] = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+        add(i);
+    }
+    cout << query() << '\n';
+    while (q--) {
+        int p;
+        char c;
+        cin >> p >> c;
+        p--;
+        int x = (c == 'R'? 0 : (c == 'S'? 1 : 2));
+        rem(p);
+        a[p] = x;
+        add(p);
+        cout << query() << '\n';
+    }
+}
+
+
+
+
+3 5
+RPS
+1 S
+2 R
+3 P
+1 P
+2 P
+
+
+
+
+
+Now let's try a test with minimal \(n\) and make it all three shapes to make sure no undefined behavior occurs.
+
+<b>Input</b>
+<code>
+2 1
+R
+1 S
+1 P
+</code>
+<b>Expected Output</b>
+<code>
+1
+1
+1
+</code>
+
+Since there is only one player, he can always win.
+
+
+
+
+
+1 2
+R
+1 S
+1 P

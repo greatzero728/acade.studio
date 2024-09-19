@@ -1,0 +1,325 @@
+<b>Putting Bricks in the Wall</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Pink Floyd are pulling a prank on Roger Waters. They know he doesn't like walls, he wants to be able to walk freely, so they are blocking him from exiting his room which can be seen as a grid.
+
+Roger Waters has a square grid of size \(n\times n\) and he wants to traverse his grid from the upper left (\(1,1\)) corner to the lower right corner (\(n,n\)). Waters can move from a square to any other square adjacent by a side, as long as he is still in the grid. Also except for the cells (\(1,1\)) and (\(n,n\)) every cell has a value \(0\) or \(1\) in it.
+
+Before starting his traversal he will pick either a \(0\) or a \(1\) and will be able to only go to cells values in which are equal to the digit he chose. The starting and finishing cells (\(1,1\)) and (\(n,n\)) are exempt from this rule, he may go through them regardless of picked digit. Because of this the cell (\(1,1\)) takes value the letter '\(S\)' and the cell (\(n,n\)) takes value the letter '\(F\)'.
+
+For example, in the first example test case, he can go from (\(1, 1\)) to (\(n, n\)) by using the zeroes on this path: (\(1, 1\)), (\(2, 1\)), (\(2, 2\)), (\(2, 3\)), (\(3, 3\)), (\(3, 4\)), (\(4, 4\))
+
+The rest of the band (Pink Floyd) wants Waters to not be able to do his traversal, so while he is not looking they will \(\textbf{invert at most two cells}\) in the grid (from \(0\) to \(1\) or vice versa). They are afraid they will not be quick enough and asked for your help in choosing the cells. \(\textbf{ Note that you cannot invert cells (1, 1) and (n, n)}\).
+
+We can show that there always exists a solution for the given constraints.
+
+Also note that Waters will pick his digit of the traversal after the band has changed his grid, so he must not be able to reach (\(n,n\)) no matter what digit he picks.
+
+<b>Input</b>
+Each test contains multiple test cases. The first line contains the number of test cases \(t\) (\(1 \le t \le 50\)). Description of the test cases follows.
+
+The first line of each test case contains one integers \(n\) (\(3 \le n \le 200\)).
+
+The following \(n\) lines of each test case contain the binary grid, square (\(1, 1\)) being colored in '\(S\)' and square (\(n, n\)) being colored in '\(F\)'.
+
+The sum of values of \(n\) doesn't exceed \(200\).
+
+<b>Output</b>
+For each test case output on the first line an integer \(c\) (\(0 \le c \le 2\)) --- the number of inverted cells.
+
+In \(i\)-th of the following \(c\) lines, print the coordinates of the \(i\)-th cell you inverted. You may not invert the same cell twice. \(\textbf{ Note that you cannot invert cells (1, 1) and (n, n)}\).
+
+<b>Note</b>
+For the first test case, after inverting the cell, we get the following grid:
+
+S010
+0001
+1001
+111F
+
+
+
+
+
+when i read this problem i started to think about a brute force solution in which I will generate all the possible grids with at most \(2\) cells flipped, and then I will check each grid and see which one achieves the conditions of the problem but this solution is not efficient and won't fit, as for each cell I will flip it and then go to check the grid is valid or not, so after a while of thinking, I found out a solution that will fit with the problem and I will explain it now.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int t;
+   cin >> t;
+   while(t--){
+       int n;
+       cin>>n;
+       char v[n][n];
+       for(int i=0;i<n;i++){
+           for(int j=0;j<n;j++)
+               cin>>v[i][j];
+       }
+   }
+}
+
+
+
+
+Now the idea of the solution is to check for only \(4\) cells which in \(0\)-indexed, they are \((0,1)\), \((1,0)\), \((n-1,n-2)\) and \((n-2,n-1)\), so I will store the value of these cells on some variables \(a1\), \(a2\), \(b1\) and \(b2\)
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int t;
+   cin >> t;
+   while(t--){
+       int n;
+       cin>>n;
+       char v[n][n];
+       for(int i=0;i<n;i++){
+           for(int j=0;j<n;j++)
+               cin>>v[i][j];
+       }
+       char a1=v[0][1],a2=v[1][0],b1=v[n - 1][n - 2],b2=v[n - 2][n - 1];
+
+   }
+   }
+   
+   
+   
+   
+   so now, i will work on forcing Roger to choose a certain number of \(1\) or \(0\) and then based on that we will make the grid invalid for this choice, so first I will check if that value on \(a1\) and \(a2\) is \(0\) so I will increase the a counter I will make and I will call it \(c1\) and I will increase it by \(1\), and if the value of them is not a \(0\) so I will increase another counter called \(c2\)
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int t;
+   cin >> t;
+   while(t--){
+       int n;
+       cin>>n;
+       char v[n][n];
+       for(int i=0;i<n;i++){
+           for(int j=0;j<n;j++)
+               cin>>v[i][j];
+       }
+       char a1=v[0][1],a2=v[1][0],b1=v[n - 1][n - 2],b2=v[n - 2][n - 1];
+       int c1 = 0 , c2 = 0;
+        if(a1 == '0')
+            c1++;
+        else
+            c2++;
+        if(a2 == '0')
+            c1++;
+        else
+            c2++;
+        
+   }
+   }
+   
+   
+   
+   
+   Now i will do the same with \(b1\) and \(b2\), but i will check if they are \(1\) or not, if they are i will increase \(c1\) if not i will increase \(c2\)
+   
+   
+   
+   
+   #include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int t;
+   cin >> t;
+   while(t--){
+       int n;
+       cin>>n;
+       char v[n][n];
+       for(int i=0;i<n;i++){
+           for(int j=0;j<n;j++)
+               cin>>v[i][j];
+       }
+       char a1=v[0][1],a2=v[1][0],b1=v[n - 1][n - 2],b2=v[n - 2][n - 1];
+       int c1 = 0 , c2 = 0;
+        if(a1 == '0')
+            c1++;
+        else
+            c2++;
+        if(a2 == '0')
+            c1++;
+        else
+            c2++;
+       if(b1 == '1')
+           c1++;
+       else
+           c2++;
+       if(b2 == '1')
+           c1++;
+       else
+           c2++;
+
+   }
+   }
+   
+   
+   
+   
+   so now i will check on \(c1\) if it is less than or equal two \((c1<=2)\) if this condition is true, then i need to flip the cells that make the \(c1\) increases , so I will write the conditions again and the one which is true will be printed, and we are sure the answer is impossible to be greater than \(2\) as the we checked from \(c1\) if is less than or equal \(2\) and the answer will be the size of \(c1\) in this case.
+   
+   
+   
+   
+   #include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int t;
+   cin >> t;
+   while(t--){
+       int n;
+       cin>>n;
+       char v[n][n];
+       for(int i=0;i<n;i++){
+           for(int j=0;j<n;j++)
+               cin>>v[i][j];
+       }
+       char a1=v[0][1],a2=v[1][0],b1=v[n - 1][n - 2],b2=v[n - 2][n - 1];
+       int c1 = 0 , c2 = 0;
+        if(a1 == '0')
+            c1++;
+        else
+            c2++;
+        if(a2 == '0')
+            c1++;
+        else
+            c2++;
+       if(b1 == '1')
+           c1++;
+       else
+           c2++;
+       if(b2 == '1')
+           c1++;
+       else
+           c2++;
+       if(c1<=2){
+           cout<<c1<<'\n';
+           if(a1=='0')
+               cout<<"1 2\n";
+           if(a2=='0')
+               cout<<"2 1\n";
+           if(b1=='1')
+               cout<<n<<' '<<n-1<<'\n';
+           if(b2=='1')
+               cout<<n-1<<' '<<n<<'\n';
+       }
+   }
+}
+
+
+
+
+Now what if the \(c1\) is greater than \(2\) ?, so here we can use \(c2\) with the condition made it increase, as overall \(c1 + c2\) can't be greater than \(4\) so if \(c1\) is greater than \(2\) so \(c2\) is less than \(2\), so we will write the conditions and print the condition which is true, because this is the reason of increasing \(c2\), and the answer will be of size \(c2\)
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int t;
+   cin >> t;
+   while(t--){
+       int n;
+       cin>>n;
+       char v[n][n];
+       for(int i=0;i<n;i++){
+           for(int j=0;j<n;j++)
+               cin>>v[i][j];
+       }
+       char a1=v[0][1],a2=v[1][0],b1=v[n - 1][n - 2],b2=v[n - 2][n - 1];
+       int c1 = 0 , c2 = 0;
+        if(a1 == '0')
+            c1++;
+        else
+            c2++;
+        if(a2 == '0')
+            c1++;
+        else
+            c2++;
+       if(b1 == '1')
+           c1++;
+       else
+           c2++;
+       if(b2 == '1')
+           c1++;
+       else
+           c2++;
+       if(c1<=2){
+           cout<<c1<<'\n';
+           if(a1=='0')
+               cout<<"1 2\n";
+           if(a2=='0')
+               cout<<"2 1\n";
+           if(b1=='1')
+               cout<<n<<' '<<n-1<<'\n';
+           if(b2=='1')
+               cout<<n-1<<' '<<n<<'\n';
+       }else{
+           cout<<c2<<'\n';
+           if(a1=='1')
+               cout<<"1 2\n";
+           if(a2=='1')
+               cout<<"2 1\n";
+           if(b1=='0')
+               cout<<n<<' '<<n-1<<'\n';
+           if(b2=='0')
+               cout<<n-1<<' '<<n<<'\n';
+       }
+   }
+}
+
+
+
+
+the code outputs different answers of the sample answers on the second test but it is still a valid answer as on the second test Roger can't choose \(0\) so he will choose \(1\), and if I fliped the \(2\) cells that the code outputs them, from \(1\) to \(0\), so he will never be able to reach the \(F\) mark \((n,n\)) cell
+
+
+
+
+
+now i will add a test to test if the code will work under the minimum constrains with a grid full of \(1\)
+test:
+1
+3
+111
+111
+111
+expected answer:
+2
+3 2
+2 3
+as the \(c1\) variable will be \(2\) and the conditions which increased it to \(2\) is \(b1=1\) and \(b2=1\) so the code will print the position of the cells of these values which is known.
+
+
+
+
+
+1
+3
+111
+111
+111

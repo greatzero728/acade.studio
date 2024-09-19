@@ -1,0 +1,143 @@
+<b>C. The Child and Toy</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+On Children's Day, the child got a toy from Delayyy as a present. However, the child is so naughty that he can't wait to destroy the toy.
+
+The toy consists of \(n\) parts and \(m\) ropes. Each rope links two parts, but every pair of parts is linked by at most one rope. To split the toy, the child must remove all its parts. The child can remove a single part at a time, and each remove consume an energy. Let's define an energy value of part \(i\) as \(v_i\). The child spend \(v_{f_1} + v_{f_2} + ... + v_{f_k}\) energy for removing part \(i\) where \(f_1, f_2, ..., f_k\) are the parts that are directly connected to the \(i\)-th and haven't been removed.
+
+Help the child to find out, what is the minimum total energy he should spend to remove all \(n\) parts.
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(m (1 ≤ n ≤ 1000; 0 ≤ m ≤ 2000)\). The second line contains \(n\) integers: \(v_1, v_2, ..., v_n (0 ≤ v_i ≤ 10^5)\). Then followed m lines, each line contains two integers \(x_i\) and \(y_i\), representing a rope from part \(x_i\) to part \(y_i (1 ≤ x_i, y_i ≤ n; x_i ≠ y_i)\).
+
+Consider all the parts are numbered from 1 to \(n\).
+
+<b>Output</b>
+Output the minimum total energy the child should spend to remove all \(n\) parts of the toy.
+
+<b>Note</b>
+One of the optimal sequence of actions in the first sample is:
+
+First, remove part 3, cost of the action is 20.
+Then, remove part 2, cost of the action is 10.
+Next, remove part 4, cost of the action is 10.
+At last, remove part 1, cost of the action is 0.
+So the total energy the child paid is 20 + 10 + 10 + 0 = 40, which is the minimum.
+
+In the second sample, the child will spend 400 no matter in what order he will remove the parts.
+
+
+
+
+
+If we establish the order for deleting \(n\) parts, we can solve this problem effortlessly. After determine the order, we can implement the given logic step by step without any challenge. To determine the order for deleting \(n\) parts, there are \(n!\) possible candidates. Therefore, we cannot solve this problem using this naive approach, as establishing the order alone requires \(O(n!)\) time complexity.
+
+We can reformulate the problem as follows: Each time we select one of the remaining parts, we then add the value of the opposite part to the sum for every edge. Our goal is to minimize this sum. It is clear that for every edge \((a, b)\), we must add one of \(v_a\) or \(v_b\) to the sum. Without loss of generality, let’s assume \(v_a \leq v_b\). If we choose part \(b\), then \(v_a\) will be included in the sum. Therefore, for every edge \((a, b)\), if we first remove the part with higher energy, the final result will be \(\sum_{(a, b) \in \text{edges}} \min(v_a, v_b)\).
+We now need to establish the order for deleting \(n\) parts, ensuring that for every edge \((a, b)\), the part with higher energy is removed first. If we delete the picks by selecting the highest pick in the connected part, then for all deleted edges, the energy of the lower energy parts will be added to the total sum.
+So we can find the order of deleting so that the answer can be minimum possible value: \(\sum_{(a, b) \in \text{edges}} \min(v_a, v_b)\).
+Finally the answer of this problem is \(\sum_{(a, b) \in \text{edges}} \min(v_a, v_b)\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+    
+    vector<int> l(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> l[i];
+    }
+    
+    return 0;
+}
+
+
+
+
+
+
+The answer of this problem is \(\sum_{(a, b) \in \text{edges}} \min(v_a, v_b)\), so for every edges, let's add the minimum energy value to the answer.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+    
+    vector<int> l(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> l[i];
+    }
+    
+    int ans = 0;
+    for (int i = 0; i < m; ++i) {
+        int x, y;
+        cin >> x >> y;
+        ans += min(l[x - 1], l[y - 1]);
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+Finally, let's print the answer.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+    
+    vector<int> l(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> l[i];
+    }
+    
+    int ans = 0;
+    for (int i = 0; i < m; ++i) {
+        int x, y;
+        cin >> x >> y;
+        ans += min(l[x - 1], l[y - 1]);
+    }
+    
+    cout << ans << endl;
+
+    return 0;
+}
+
+
+
+
+
+
+Let's consider the custom corner case where the values of \(n\) and \(m\) are at their minimum: \(n = 1\) and \(m = 0\). In this case, there are no edges, so the cost of deleting parts is 0, resulting in an answer of 0.
+
+
+
+
+
+1 0
+0

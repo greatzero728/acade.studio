@@ -1,0 +1,294 @@
+<b>C. Bulls and Cows</b>
+<b>time limit per test: 2 seconds</b>
+<b>memory limit per test: 256 megabytes</b>
+
+The "Bulls and Cows" game needs two people to play. The thinker thinks of a number and the guesser tries to guess it.
+
+The thinker thinks of a four-digit number in the decimal system. All the digits in the number are different and the number may have a leading zero. It can't have more than one leading zero, because all it's digits should be different. The guesser tries to guess the number. He makes a series of guesses, trying experimental numbers and receives answers from the first person in the format "\(x\) bulls \(y\) cows". \(x\) represents the number of digits in the experimental number that occupy the same positions as in the sought number. \(y\) represents the number of digits of the experimental number that present in the sought number, but occupy different positions. Naturally, the experimental numbers, as well as the sought number, are represented by four-digit numbers where all digits are different and a leading zero can be present.
+
+For example, let's suppose that the thinker thought of the number 0123. Then the guessers' experimental number 1263 will receive a reply "1 bull 2 cows" (3 occupies the same positions in both numbers and 1 and 2 are present in both numbers but they occupy different positions). Also, the answer to number 8103 will be "2 bulls 1 cow" (analogically, 1 and 3 occupy the same positions and 0 occupies a different one).
+
+When the guesser is answered "4 bulls 0 cows", the game is over.
+
+Now the guesser has already made several guesses and wants to know whether his next guess can possibly be the last one.
+
+<b>Input</b>
+The first input line contains an integer n (\(1\) ≤ \(n\) ≤ \(10\)) which represents the number of already made guesses. Then follow \(n\) lines in the form of "\(a_i\) \(b_i\) \(c_i\)", where \(a_i\) is the \(i\)-th experimental number, \(b_i\) is the number of bulls, \(c_i\) is the number of cows (\(1\) ≤ \(i\) ≤ \(n\), \(0\) ≤ \(b_i\), \(c_i\), \(b_i\) + \(c_i\) ≤ \(4\)). The experimental numbers are correct, i.e., each of them contains exactly four digits, in each of them all the four digits are different, and there can be a leading zero. All the experimental numbers are different. As the guesser hasn't guessed the number yet, the answer "4 bulls 0 cows" is not present.
+
+<b>Output</b>
+If the input data is enough to determine the sought number, print the number with four digits on a single line. If it has less than four digits, add leading zero. If the data is not enough, print "Need more data" without the quotes. If the thinker happens to have made a mistake in his replies, print "Incorrect data" without the quotes.
+
+
+
+
+The <b>naive</b> approach to solving the problem is based on a straightforward brute-force method. The main idea is to generate all possible 4-digit numbers and compare each one with the provided guesses to check if it satisfies the conditions for bulls (correct digits in the correct positions) and cows (correct digits in the wrong positions).
+
+The first step is to systematically generate every possible 4-digit number from 0000 to 9999. Since the digits in the number must all be different, any number with repeated digits is filtered out and ignored.
+
+For each candidate number, we compare it with each guess. During this comparison, we count the number of bulls (matching digits in the correct positions) and cows (matching digits in the wrong positions).
+
+If a candidate fails to match even one guess, it is discarded.
+
+If the number of bulls and cows for a candidate matches the corresponding bulls and cows from every guess, the candidate is considered valid.
+
+After comparing all candidate numbers, the algorithm checks how many valid candidates remain:
+
+\(1\)- If exactly one valid candidate is found, that number is the solution.
+\(2\)- If more than one candidate matches the guesses, we output "Need more data" because there is ambiguity.
+\(3\)- If no valid candidates remain, it means the provided guesses are inconsistent, so the output is "Incorrect data."
+
+The naive approach involves:
+
+<b>1-</b> Generating all possible 4-digit numbers (0000 to 9999).
+<b>2- </b>Checking each number against all given guesses to see if it satisfies the conditions for bulls and cows.
+
+<b>Why</b> the naive approach can be fine?
+There are 10,000 possible 4-digit numbers to consider.
+And you have \(n\) guesses that you need to check and apply (for all 4-digit numbers). So, as max value of \(n\) = 10.
+The time complexity is equal to (\(n\) * all possible 4-digits).
+So, the time complexity be \(O\)(\(10^5\)).
+
+Now, let's start code and take the inputs.
+
+Variables, <b>guss</b>: stores gusses as strings, <b>ans</b> will store valid candidate numbers, <b>bulls</b> stores the number of bulls for each guess, <b>cows</b> stores the number of cows.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() 
+{
+    int n;
+    cin >> n;
+    
+    vector<string> guss(n), ans;
+    vector<int> bulls(n), cows(n);
+
+    for (int i = 0 ; i < n ; i++) 
+    {
+        cin >> guss[i] >> bulls[i] >> cows[i];
+    }
+    
+    return 0;
+}
+
+
+
+
+Now, we loop through all possible 4-digit numbers from <b>0000</b> to <b>9999</b>.
+And convert each number \(x\) to a string \(s\) using <b>to_string(x)</b>.
+And, ensure that the string \(s\) is always \(4\) digits long by leading zeros if necessary.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() 
+{
+    int n;
+    cin >> n;
+    
+    vector<string> guss(n), ans;
+    vector<int> bulls(n), cows(n);
+
+    for (int i = 0 ; i < n ; i++) 
+    {
+        cin >> guss[i] >> bulls[i] >> cows[i];
+    }
+    
+    for (int x = 0 ; x < 1e4 ; x++)
+    {
+        string s = to_string(x);
+        while (s.size() < 4) {
+            s = "0" + s;
+    	}
+    }
+    
+    return 0;
+}
+
+
+
+
+Now use a \(set\) to ensure all digits in \(s\) are unique, and if we find out that the \(set\) has less than \(4\) \(characters\) (which mean that, all digits not different, string has duplicate digits).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() 
+{
+    int n;
+    cin >> n;
+    
+    vector<string> guss(n), ans;
+    vector<int> bulls(n), cows(n);
+
+    for (int i = 0 ; i < n ; i++) 
+    {
+        cin >> guss[i] >> bulls[i] >> cows[i];
+    }
+    
+    for (int x = 0 ; x < 1e4 ; x++)
+    {
+        string s = to_string(x);
+        while (s.size() < 4) {
+            s = "0" + s;
+    	}
+        
+        set<char> S;
+        for (auto &ch:s){
+            S.insert(ch);
+        }
+        if (S.size() != 4) continue;
+    }
+    
+    return 0;
+}
+
+
+
+
+bool flag = true;: Assume the candidate s is valid initially.
+
+Now, we will check if \(s\) is valid.
+We loop through all guesses and compare each guess with the candidate s, count (number of bulls) \(b\) (matching digits in the same positions) and, (number of cows) \(c\) (matching digits but in different positions).
+
+If the counts of bulls and cows do not match the provided numbers, set flag to false.
+If flag remains true, it means the candidate \(s\) is valid and satisfies all guesses. Add it to ans.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() 
+{
+    int n;
+    cin >> n;
+    
+    vector<string> guss(n), ans;
+    vector<int> bulls(n), cows(n);
+
+    for (int i = 0 ; i < n ; i++) 
+    {
+        cin >> guss[i] >> bulls[i] >> cows[i];
+    }
+    
+    for (int x = 0 ; x < 1e4 ; x++)
+    {
+        string s = to_string(x);
+        while (s.size() < 4) {
+            s = "0" + s;
+    	}
+        
+        set<char> S;
+        for (auto &ch:s){
+            S.insert(ch);
+        }
+        if (S.size() != 4) continue;
+        
+        bool flag = true;
+        for (int i = 0 ; i < n ; i++) 
+        {
+            int b = 0, c = 0;
+            for (int j = 0 ; j < 4 ; j++) 
+            {
+                if (guss[i][j] == s[j]){
+                    b++;
+                } else if (S.count(guss[i][j])){
+                    c++;
+                }
+            }
+
+            if (b != bulls[i]) flag = false;
+            if (c != cows[i]) flag = false;
+        }
+        if (flag) ans.push_back(s);
+    }
+    
+    return 0;
+}
+
+
+
+
+Now, we can check the size of \(ans\). Logically if there is one valid candidate (size of \(ans\) = 1) this mean, that this candidate is the number we want to know, so we print this number.
+
+If there are multiple valid candidates (size of \(ans\) > 1) this mean, that we need more information to exactly know the (\(thinker\) \(number\)), so we print "Need more data".
+
+If no valid candidates are found, this mean, that the gusses not give true information (as if one only information will give candidates), so we print "Incorrect data"
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() 
+{
+    int n;
+    cin >> n;
+    
+    vector<string> guss(n), ans;
+    vector<int> bulls(n), cows(n);
+
+    for (int i = 0 ; i < n ; i++) 
+    {
+        cin >> guss[i] >> bulls[i] >> cows[i];
+    }
+    
+    for (int x = 0 ; x < 1e4 ; x++)
+    {
+        string s = to_string(x);
+        while (s.size() < 4) {
+            s = "0" + s;
+    	}
+        
+        set<char> S;
+        for (auto &ch:s){
+            S.insert(ch);
+        }
+        if (S.size() != 4) continue;
+        
+        bool flag = true;
+        for (int i = 0 ; i < n ; i++) 
+        {
+            int b = 0, c = 0;
+            for (int j = 0 ; j < 4 ; j++) 
+            {
+                if (guss[i][j] == s[j]){
+                    b++;
+                } else if (S.count(guss[i][j])){
+                    c++;
+                }
+            }
+
+            if (b != bulls[i]) flag = false;
+            if (c != cows[i]) flag = false;
+        }
+        if (flag) ans.push_back(s);
+    }
+    
+    if (ans.size() > 1) {
+        cout << "Need more data" << endl;
+    } else if (ans.size() == 1) {
+        cout << ans[0] << endl;
+    } else {
+        cout << "Incorrect data" << endl;
+    }
+    
+    return 0;
+}

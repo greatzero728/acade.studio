@@ -1,0 +1,213 @@
+BYU15W_1 - Decrypt the Message
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+You have been tasked to create a program to decrypt a simple encrypted message. The steps to encrypt messages in this format are to:
+
+1. Reverse the message content
+2. Move every third (3rd, 6th, 9th...) character to the end of the message (sequentially)
+3. Change each letter to the next letter of the alphabet (a → b, b → c ... z → a)
+
+For example, by following the steps above the message "abbcdd" is encrypted as follows:
+
+1. ddcbba
+2. ddbbca
+3. eeccdb
+
+Your program must decrypt the given encrypted messages.
+
+Input
+The first line contains a single positive integer N. The next N lines each contain a single message composed of lowercase alphabetic characters (a-z).
+
+Output
+For each of the N lines, output the decrypted message as a string of lowercase alphabetic characters.
+
+
+
+
+To decrypt the message, we need to reverse the steps of the encryption process. The encryption process involved three steps: reversing the message content, moving every third character to the end, and changing each letter to the next letter of the alphabet. Therefore, to decrypt the message, we need to reverse these steps in the opposite order.
+
+First, we need to change each letter to the previous letter of the alphabet (the inverse of step 3). This can be achieved by subtracting 1 from the ASCII value of each character, taking care to wrap around from 'a' to 'z'.
+
+Next, we need to move the characters that were moved to the end back to their original positions (the inverse of step 2). We can do this by iterating through the characters and inserting them at the correct positions.
+
+Finally, we need to reverse the message content (the inverse of step 1). This can be achieved by using a reverse function or iterating through the characters in reverse order.
+
+We can implement this step-by-step decryption process in a programming language to decrypt the given encrypted messages.
+
+Let's start with writing the boilerplate code for reading the input and iterating over the test cases. 
+
+(This will be followed by a CODE step)
+
+
+
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string message;
+        cin >> message;
+        // decryption steps will be implemented here
+        cout << message << endl;
+    }
+    return 0;
+}
+
+
+
+
+To decrypt the message, we need to change each letter to the previous letter of the alphabet. This can be achieved by subtracting 1 from the ASCII value of each character, taking care to wrap around from 'a' to 'z'. We can use the modulo operator to handle the wrap-around.
+
+Let's implement this step in the code. We will iterate through each character in the message and subtract 1 from its ASCII value, taking care to wrap around if necessary.
+
+We will use the ASCII values of 'a' and 'z' to determine if a character needs to wrap around. If the character is 'a', subtracting 1 would result in a character outside the range of lowercase letters, so we need to wrap around to 'z'.
+
+The formula to calculate the new character can be expressed as:
+
+new_char = (old_char - 'a' - 1 + 26) % 26 + 'a'
+
+This formula subtracts 1 from the ASCII value of the character, adds 26 to handle the wrap-around, takes the result modulo 26 to get the new character's position in the alphabet, and finally adds the ASCII value of 'a' to get the new character's ASCII value.
+
+Let's implement this formula in the code. 
+
+(This will be followed by a CODE step)
+
+
+
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string message;
+        cin >> message;
+        for (int j = 0; j < message.length(); j++) {
+            message[j] = (message[j] - 'a' - 1 + 26) % 26 + 'a';
+        }
+        cout << message << endl;
+    }
+    return 0;
+}
+
+
+
+
+Next, we need to move the characters that were moved to the end back to their original positions. To do this, we can create a new string and iterate through the characters in the original message. We will add each character to the new string, but we will also keep track of the characters that were moved to the end and insert them at the correct positions.
+
+Let's use two pointers, one for the current position in the new string and one for the current position in the original message. We will iterate through the original message and add each character to the new string. We will also check if the character was moved to the end and insert it at the correct position if necessary.
+
+We can use a counter to keep track of the number of characters that were moved to the end. We will increment the counter each time we encounter a character that was moved to the end, and we will use the counter to determine the correct position for the character.
+
+Once we have inserted all the characters at their correct positions, we will have the decrypted message.
+
+Let's implement this step in the code. 
+
+(This will be followed by a CODE step)
+
+
+
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string message;
+        cin >> message;
+        for (int j = 0; j < message.length(); j++) {
+            message[j] = (message[j] - 'a' - 1 + 26) % 26 + 'a';
+        }
+        int thirdCharCount = message.length() / 3;
+        string decryptedMessage;
+        int thirdCharIndex = message.length() - thirdCharCount;
+        for (int j = 0, k = 0; j < thirdCharIndex; j++) {
+            decryptedMessage += message[j];
+            if(j & 1 && thirdCharIndex + k < message.length()) {
+                decryptedMessage += message[thirdCharIndex + k++];
+            }
+        }
+        cout << decryptedMessage << endl;
+    }
+    return 0;
+}
+
+
+
+
+Now that we have implemented the steps to decrypt the message, we need to reverse the message content. This can be achieved by using a reverse function or iterating through the characters in reverse order.
+
+Let's use the `rbegin()` and `rend()` functions to reverse the message content. We will assign the result of the decryption process to a new string and then use the `rbegin()` and `rend()` functions to reverse the order of the characters in the string.
+
+Once we have reversed the message content, we will have the fully decrypted message.
+
+Let's implement this step in the code. 
+
+(This will be followed by a CODE step)
+
+
+
+
+#include <iostream>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        string message;
+        cin >> message;
+        for (int j = 0; j < message.length(); j++) {
+            message[j] = (message[j] - 'a' - 1 + 26) % 26 + 'a';
+        }
+        int thirdCharCount = message.length() / 3;
+        string decryptedMessage;
+        int thirdCharIndex = message.length() - thirdCharCount;
+        for (int j = 0, k = 0; j < thirdCharIndex; j++) {
+            decryptedMessage += message[j];
+            if(j & 1 && thirdCharIndex + k < message.length()) {
+                decryptedMessage += message[thirdCharIndex + k++];
+            }
+        }
+        reverse(decryptedMessage.begin(), decryptedMessage.end());
+        cout << decryptedMessage << endl;
+    }
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case where \( N \) is at its minimum value, \( N = 1 \), and the decrypted message is the lexicographically smallest: "a."
+In this case the encrypted message will be calculated as follows:
+1. Reverse the message content
+a \(\rightarrow\) a
+2. Move every third (3rd, 6th, 9th...) character to the end of the message (sequentially)
+a \(\rightarrow\) a
+3. Change each letter to the next letter of the alphabet (a → b, b → c ... z → a)
+a \(\rightarrow\) b
+So in this case the encrypted message will be "b".
+<b>Input</b>
+1
+b
+In this case, the encrypted message is "b", so regarding above mentioned steps, the decrypted message is "a". So in this case, the answer should be "a".
+
+
+
+
+1
+b

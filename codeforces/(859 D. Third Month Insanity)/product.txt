@@ -1,0 +1,248 @@
+Third Month Insanity
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+The annual college sports-ball tournament is approaching, which for trademark reasons we'll refer to as Third Month Insanity. There are a total of \(2^N\) teams participating in the tournament, numbered from \(1\) to \(2^N\). The tournament lasts \(N\) rounds, with each round eliminating half the teams. The first round consists of \(2^{N - 1}\) games, numbered starting from \(1\). In game \(i\), team \(2\cdot i - 1\) will play against team \(2\cdot i\). The loser is eliminated and the winner advances to the next round (there are no ties). Each subsequent round has half as many games as the previous round, and in game \(i\) the winner of the previous round's game \(2\cdot i - 1\) will play against the winner of the previous round's game \(2\cdot i\).
+
+Every year the office has a pool to see who can create the best bracket. A bracket is a set of winner predictions for every game. For games in the first round you may predict either team to win, but for games in later rounds the winner you predict must also be predicted as a winner in the previous round. Note that the bracket is fully constructed before any games are actually played. Correct predictions in the first round are worth \(1\) point, and correct predictions in each subsequent round are worth twice as many points as the previous, so correct predictions in the final game are worth \(2^{N - 1}\) points.
+
+For every pair of teams in the league, you have estimated the probability of each team winning if they play against each other. Now you want to construct a bracket with the maximum possible expected score.
+
+<b>Input</b>
+
+Input will begin with a line containing \(N (2\leq N\leq 6)\).
+
+\(2^N\) lines follow, each with \(2^N\) integers. The \(j\)-th column of the \(i\)-th row indicates the percentage chance that team \(i\) will defeat team \(j\), unless \(i\) = \(j\), in which case the value will be \(0\). It is guaranteed that the \(i\)-th column of the \(j\)-th row plus the \(j\)-th column of the \(i\)-th row will add to exactly \(100\).
+
+<b>Output</b>
+
+Print the maximum possible expected score over all possible brackets. Your answer must be correct to within an absolute or relative error of \(10^{-9}\).
+
+Formally, let your answer be \(a\), and the jury's answer be \(b\). Your answer will be considered correct, if \(\frac{|a-b|}{\max(1,|b|)}\leq 10^{-9}\).
+
+
+
+
+The naive solution is to calculate the values of all possible brackets and find the maximum, however since there are \(2^N\) games then there are \(2^{2^N}\) possible brackets, which will exceed time limit. So, we must find a faster way.
+
+We observe that each team will play a maximum of \(N\) rounds, so we can start by assuming that if we know the probability that the \(i\)-th team wins the \(r\)-th round for each \(i\) and \(r\), we can somehow calculate the answer. Let's denote this value as \(p_{r,i}\). How to calculate all of \(p\)? If we know \(p_{r,i}\) and \(p_{r,j}\) for all teams \(j\) that team \(i\) can face in the \(r+1\)-th round, then we can calculate \(p_{r+1, i}\) as \(p_{r,i}\cdot\sum p_{r,j}\cdot a_{i, j}\) where \(a_{i, j}\) is the probability of team \(i\) beating team \(j\). In other words, the probability of team \(i\) winning round \(r+1\) is equal to the probability of them winning round \(r\) multiplied by the sum, for all opponents \(j\), of the probability of team \(j\) also winning round \(r\), multiplied by the probability that team \(i\) will beat team \(j\) in round \(r+1\).
+
+So if we know all of \(p\), can we calculate the answer? We can try to build the answer by supposing that if we know the maximum expected score after \(r\) rounds where we pick team \(i\) to win round \(r\) for all \(i\) at present, then we can also calculate this value for all \(i\) at \(r+1\). Let's denote this expected score as \(e_{r,i}\). If we know \(e_{r,i}\) and \(e_{r,j}\) for all \(j\) that team \(i\) can face in round \(r+1\), we can calculate \(e_{r+1,i}\) as \(\max(e_{r,i}+e_{r,j}+p_{r+1,i}\cdot 2^{r})\). In other words, it is the expected score of picking \(i\) and \(j\) to win round \(r\) (because they must advance to round \(r+1\)), plus the expected score of team \(i\) beating team \(j\) in round \(r+1\), which is equal to the probability of team \(i\) winning round \(r+1\) that we calculated earlier multiplied by the value of them winning \(2^r\). If we calculate this until \(r = n\), we can simply find the team \(i\) which has the highest score at round \(n\).
+
+
+
+
+
+We start our code by taking the input and defining \(a, p, e\), and dividing each \(a_{i, j}\) by 100 to convert percentages into real numbers.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<vector<double>> a(1 << n, vector<double>(1 << n));
+    vector<vector<double>> p(n + 1, vector<double>(1 << n));
+    vector<vector<double>> e(n + 1, vector<double>(1 << n));
+    for (auto &i: a)
+        for (auto &j: i) cin >> j, j /= 100.0;
+    
+}
+
+
+
+
+Let's assume that there was a \(0\)-th round which each team won and was worth 0 points for convenience, and start iterating over the rounds starting from 0 to calculate \(p\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<vector<double>> a(1 << n, vector<double>(1 << n));
+    vector<vector<double>> p(n + 1, vector<double>(1 << n));
+    vector<vector<double>> e(n + 1, vector<double>(1 << n));
+    for (auto &i: a)
+        for (auto &j: i) cin >> j, j /= 100.0;
+    p[0] = vector<double>(1 << n, 1);
+    
+    for (int r = 0; r < n; ++r) {
+        for (int i = 0; i < (1 << n); ++i) {
+            
+        }
+    }
+}
+
+
+
+
+How do we know which teams \(j\) team \(i\) can face at round \(r+1\)? We know that at round 1, the first team faces the second team, the third team faces the fourth, and so on. In round 2, one of the first 2 teams faces one of the second 2 teams, one of the third 2 teams faces one of the fourth 2 teams, and so on. Then in round \(r+1\), one of the first \(2^r\) teams faces one of the second \(2^r\) teams and so on, one team in each evenly-indexed group of \(2^r\) teams faces one team in the next oddly-indexed group of \(2^r\) teams. So we learn which group the current team \(i\) belongs to, and find which group team \(j\) would belong to, and any \(j\) in that group can face team \(i\) at round \(r+1\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<vector<double>> a(1 << n, vector<double>(1 << n));
+    vector<vector<double>> p(n + 1, vector<double>(1 << n));
+    vector<vector<double>> e(n + 1, vector<double>(1 << n));
+    for (auto &i: a)
+        for (auto &j: i) cin >> j, j /= 100.0;
+    p[0] = vector<double>(1 << n, 1);
+    
+    for (int r = 0; r < n; ++r) {
+        for (int i = 0; i < (1 << n); ++i) {
+            int groupi = i / (1 << r), groupj = groupi;
+            if (groupi & 1) groupj--;
+            else groupj++;
+        }
+    }
+}
+
+
+
+
+As described previously, we calculate \(p_{r+1,i}\) as \(p_{r,i}\cdot\sum p_{r,j}\cdot a_{i, j}\), starting from the first element in group \(j\) until the last.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<vector<double>> a(1 << n, vector<double>(1 << n));
+    vector<vector<double>> p(n + 1, vector<double>(1 << n));
+    vector<vector<double>> e(n + 1, vector<double>(1 << n));
+    for (auto &i: a)
+        for (auto &j: i) cin >> j, j /= 100.0;
+    p[0] = vector<double>(1 << n, 1);
+    
+    for (int r = 0; r < n; ++r) {
+        for (int i = 0; i < (1 << n); ++i) {
+            int groupi = i / (1 << r), groupj = groupi;
+            if (groupi & 1) groupj--;
+            else groupj++;
+            for (int j = groupj * (1 << r); j < (groupj + 1) * (1 << r); ++j)
+                p[r + 1][i] += p[r][j] * a[i][j];
+            p[r + 1][i] *= p[r][i];
+        }
+    }
+}
+
+
+
+
+Then after calculating \(p_{r+1, i}\), we can calculate \(e_{r+1,i}\) in the same loop, since we already have all the values we need.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<vector<double>> a(1 << n, vector<double>(1 << n));
+    vector<vector<double>> p(n + 1, vector<double>(1 << n));
+    vector<vector<double>> e(n + 1, vector<double>(1 << n));
+    for (auto &i: a)
+        for (auto &j: i) cin >> j, j /= 100.0;
+    p[0] = vector<double>(1 << n, 1);
+    
+    for (int r = 0; r < n; ++r) {
+        for (int i = 0; i < (1 << n); ++i) {
+            int groupi = i / (1 << r), groupj = groupi;
+            if (groupi & 1) groupj--;
+            else groupj++;
+            for (int j = groupj * (1 << r); j < (groupj + 1) * (1 << r); ++j)
+                p[r + 1][i] += p[r][j] * a[i][j];
+            p[r + 1][i] *= p[r][i];
+            for (int j = groupj * (1 << r); j < (groupj + 1) * (1 << r); ++j)
+                e[r + 1][i] = max(e[r + 1][i], e[r][i] + e[r][j] + p[r + 1][i] * (1 << r));
+        }
+    }
+}
+
+
+
+
+Finally since we now know all of \(e_{r, i}\) where \(r = n\), we can iterate over all \(i\) and find the one with the highest value, and that is our answer. We use setprecision to print 10 digits as the problem requires at least 9 digits of accuracy.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<vector<double>> a(1 << n, vector<double>(1 << n));
+    vector<vector<double>> p(n + 1, vector<double>(1 << n));
+    vector<vector<double>> e(n + 1, vector<double>(1 << n));
+    for (auto &i: a)
+        for (auto &j: i) cin >> j, j /= 100.0;
+    p[0] = vector<double>(1 << n, 1);
+    
+    for (int r = 0; r < n; ++r) {
+        for (int i = 0; i < (1 << n); ++i) {
+            int groupi = i / (1 << r), groupj = groupi;
+            if (groupi & 1) groupj--;
+            else groupj++;
+            for (int j = groupj * (1 << r); j < (groupj + 1) * (1 << r); ++j)
+                p[r + 1][i] += p[r][j] * a[i][j];
+            p[r + 1][i] *= p[r][i];
+            for (int j = groupj * (1 << r); j < (groupj + 1) * (1 << r); ++j)
+                e[r + 1][i] = max(e[r + 1][i], e[r][i] + e[r][j] + p[r + 1][i] * (1 << r));
+        }
+    }
+    double ans{};
+    for (int i = 0; i < (1 << n); ++i)
+        ans = max(ans, e[n][i]);
+    cout << setprecision(10) << ans << '\n';
+}
+
+
+
+
+Let's try an edge case where the outcomes are already predetermined and see if our code gets the right answer:
+
+Input:
+2
+0 100 100 0
+0 0 0 100
+0 100 0 100
+100 0 0 0
+
+We can clearly see that 1 will beat 2, 3 will beat 4 and 1 will beat 3, so the correct answer is to bet on teams 1 and 3 for round 1 and team 1 for round 2 and get a perfect score of 4.
+
+
+
+
+2
+0 100 100 0
+0 0 0 100
+0 100 0 100
+100 0 0 0

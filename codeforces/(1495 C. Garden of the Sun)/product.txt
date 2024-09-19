@@ -1,0 +1,189 @@
+<b>Title:</b> Garden of the Sun
+<b>Time limit per test:</b> 1 second
+<b>Memory limit per test:</b> 256 megabytes
+
+There are many sunflowers in the Garden of the Sun.
+
+Garden of the Sun is a rectangular table with \( n \) rows and \( m \) columns, where the cells of the table are farmlands. All of the cells grow a sunflower on it. Unfortunately, one night, the lightning stroke some (possibly zero) cells, and sunflowers on those cells were burned into ashes. In other words, those cells struck by the lightning became empty. Magically, any two empty cells have no common points (neither edges nor corners).
+
+Now the owner wants to remove some (possibly zero) sunflowers to reach the following two goals:
+
+• When you are on an empty cell, you can walk to any other empty cell. In other words, those empty cells are connected.
+• There is exactly one simple path between any two empty cells. In other words, there is no cycle among the empty cells.
+
+You can walk from an empty cell to another if they share a common edge.
+
+Could you please give the owner a solution that meets all her requirements?
+
+Note that you are not allowed to plant sunflowers. You don't need to minimize the number of sunflowers you remove. It can be shown that the answer always exists.
+
+<b>Input</b>
+The input consists of multiple test cases. The first line contains a single integer \( t \) \((1 \leq t \leq 10^4)\) — the number of test cases. The description of the test cases follows.
+
+The first line contains two integers \( n \), \( m \) \((1 \leq n, m \leq 500)\) — the number of rows and columns.
+
+Each of the next \( n \) lines contains \( m \) characters. Each character is either 'X' or '.', representing an empty cell and a cell that grows a sunflower, respectively.
+
+It is guaranteed that the sum of \( n \cdot m \) for all test cases does not exceed \( 250000 \).
+
+<b>Output</b>
+For each test case, print \( n \) lines. Each should contain \( m \) characters, representing one row of the table. Each character should be either 'X' or '.', representing an empty cell and a cell with a sunflower, respectively.
+
+If there are multiple answers, you can print any. It can be shown that the answer always exists.
+
+<b>Note</b>
+Let's use \((x,y)\) to describe the cell on \( x \)-th row and \( y \)-th column.
+
+In the following pictures white, yellow, and blue cells stand for the cells that grow a sunflower, the cells lightning stroke, and the cells sunflower on which are removed, respectively.
+
+<img s1>
+
+In the first test case, one possible solution is to remove sunflowers on \((1,2)\), \((2,3)\) and \((3,2)\).
+
+<img s2>
+
+Another acceptable solution is to remove sunflowers on \((1,2)\), \((2,2)\) and \((3,2)\).
+
+<img s3>
+
+This output is considered wrong because there are 2 simple paths between any pair of cells (there is a cycle). For example, there are 2 simple paths between \((1,1)\) and \((3,3)\).
+
+\((1,1) \to (1,2) \to (1,3) \to (2,3) \to (3,3)\)
+\((1,1) \to (2,1) \to (3,1) \to (3,2) \to (3,3)\)
+
+<img s4>
+
+This output is considered wrong because you can't walk from \((1,1)\) to \((3,3)\)
+
+
+
+
+The naive solution for this problem would involve iterating over each test case and attempting to make all the empty cells (X) connected and cycle free by brute force which is not optimal as we check for each test case with a grid of \(n \times m\) If repeated several times to make corrections, the overall complexity becomes very large. So, the idea is to fills every third column of the grid completely with \(X\) because filling every third column, we ensure vertical connectivity. Any two cells in a column are connected via shared edges which are directly above or below each other for vertical paths, and for intermediate columns we connect the intermediate columns with the next fully filled column, we place two adjacent X cells in one of the rows of the intermediate columns which guarantees horizontal connectivity.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int t;
+    cin >> t;
+    while (t--) {
+        int n, m;
+        cin >> n >> m;
+        vector<string> grid(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> grid[i];
+        }
+    }
+}
+
+
+
+
+So to ensue the connectivity, we fill every third column entirely with X ensures vertical connectivity. All cells in the same column are connected, forming a vertical path of X cells. And for the intermediate columns horizontal connectivity is achieved by placing X cells in adjacent rows. This creates a bridge between the filled columns, allowing cells in the intermediate columns to connect to the next filled column. And, the combination of vertical paths and horizontal bridges ensures global connectivity. Every X in the grid is part of a single connected component, and there is a continuous path between any two X cells, also we need to make sure about the acyclicity where, the vertical columns filled with X do not create cycles. Each column is independent, and cycles are avoided because there are no multiple paths between two cells within the same column. There are no cycles because a cycle requires multiple paths between two cells. We have picked every third column as filling every second column could create cycles by over connecting the intermediate columns to both neighboring columns and balances connectivity and acyclicity. The grid remains connected without over connectivity that could form cycles.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int t;
+    cin >> t;
+    while (t--) {
+        int n, m;
+        cin >> n >> m;
+        vector<string> grid(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> grid[i];
+        }
+        for (int col = (m % 3 == 0) ? 1 : 0; col < m; col += 3) {
+            for (int row = 0; row < n; ++row) {
+                grid[row][col] = 'X';
+            }
+            if (col >= m - 3) {
+                break;
+            }
+            int con = (n == 1 || (grid[1][col + 1] != 'X' && grid[1][col + 2] != 'X')) ? 0 : 1;
+            grid[con][col + 1] = 'X';
+            grid[con][col + 2] = 'X';
+        }
+    }
+}
+
+
+
+
+Finally, after processing the entire grid, we output the result by printing each row.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int t;
+    cin >> t;
+    while (t--) {
+        int n, m;
+        cin >> n >> m;
+        vector<string> grid(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> grid[i];
+        }
+        for (int col = (m % 3 == 0) ? 1 : 0; col < m; col += 3) {
+            for (int row = 0; row < n; ++row) {
+                grid[row][col] = 'X';
+            }
+            if (col >= m - 3) {
+                break;
+            }
+            int con = (n == 1 || (grid[1][col + 1] != 'X' && grid[1][col + 2] != 'X')) ? 0 : 1;
+            grid[con][col + 1] = 'X';
+            grid[con][col + 2] = 'X';
+        }
+        for (auto &row: grid) {
+            cout << row << "\n";
+        }
+    }
+    return 0;
+}
+
+
+
+
+Note that there can be many different correct outputs, we can print any of them because, The problem allows for some freedom in determining where the empty cells (X) should be placed to ensure connectivity and Acyclicity where there can be different choices for connecting cells. For example in sample test, for all test cases we make sure that all X cells orm a single connected component. Every empty cell can be reached from any other empty cell using only X cells and make sure that there are no cycles among the X cells. There is only one unique path between any two X cells alse prevents the loops.
+
+
+
+
+Now let's test the smallest possible case to make sure no corner cases are not handled, : Since there is only one cell, marking it as X which is empty makes sure that it's trivially connected.
+<b>Input</b>
+<code>1
+1 1
+.
+</code>
+
+<b>Output</b>
+<code>X</code>
+
+
+
+
+1
+1 1
+.

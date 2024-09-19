@@ -1,0 +1,375 @@
+<b>Problem name : Berland.Taxi
+time limit per test : 3 seconds
+memory limit per test : 256 megabytes</b>
+
+Berland.Taxi is a new taxi company with \(k\) cars which started operating in the capital of Berland just recently. The capital has \(n\) houses on a straight line numbered from \(1\) (leftmost) to \(n\) (rightmost), and the distance between any two neighboring houses is the same.
+
+You have to help the company schedule all the taxi rides which come throughout the day according to the following rules:
+
+• All cars are available for picking up passengers. Initially the \(j\)-th car is located next to the house with the number \(x_j\) at time \(0\).
+• All cars have the same speed. It takes exactly \(1\) minute for any car to travel between neighboring houses \(i\) and \(i + 1\).
+• The \(i\)-th request for taxi ride comes at the time \(t_i\), asking for a passenger to be picked up at the house \(a_i\) and dropped off at the house \(b_i\). All requests for taxi rides are given in the increasing order of \(t_i\). All \(t_i\) are distinct.
+
+When a request for taxi ride is received at time \(t_i\), Berland.Taxi operator assigns a car to it as follows:
+
+• Out of cars which are currently available, operator assigns the car which is the closest to the pick up spot \(a_i\). Needless to say, if a car is already on a ride with a passenger, it won't be available for any rides until that passenger is dropped off at the corresponding destination.
+• If there are several such cars, operator will pick one of them which has been waiting the most since it became available.
+• If there are several such cars, operator will pick one of them which has the lowest number.
+
+After a car gets assigned to the taxi ride request:
+
+• The driver immediately starts driving from current position to the house \(a_i\).
+• Once the car reaches house \(a_i\), the passenger is immediately picked up and the driver starts driving to house \(b_i\).
+• Once house \(b_i\) is reached, the passenger gets dropped off and the car becomes available for new rides staying next to the house \(b_i\).
+• It is allowed for multiple cars to be located next to the same house at the same point in time, while waiting for ride requests or just passing by.
+
+If there are no available cars at time \(t_i\) when a request for taxi ride comes, then:
+
+• The \(i\)-th passenger will have to wait for a car to become available.
+• When a car becomes available, operator will immediately assign it to this taxi ride request.
+• If multiple cars become available at once while the passenger is waiting, operator will pick a car out of them according to the rules described above.
+
+Operator processes taxi ride requests one by one. So if multiple passengers are waiting for the cars to become available, operator will not move on to processing the \((i + 1)\)-th ride request until the car gets assigned to the \(i\)-th ride request.
+
+Your task is to write a program that will process the given list of \(m\) taxi ride requests. For each request you have to find out which car will get assigned to it, and how long the passenger will have to wait for a car to arrive. Note, if there is already car located at the house \(a_i\), then the corresponding wait time will be \(0\).
+
+<b>Input</b>
+The first line of input contains integers \(n, k\) and \(m (2 ≤ n ≤ 2·10^5, 1 ≤ k, m ≤ 2·10^5)\) — number of houses, number of cars, and number of taxi ride requests. The second line contains integers \(x_1, x_2, ..., x_k (1 ≤ x_i ≤ n)\) — initial positions of cars. \(x_i\) is a house number at which the \(i\)-th car is located initially. It's allowed for more than one car to be located next to the same house.
+
+The following \(m\) lines contain information about ride requests. Each ride request is represented by integers \(t_j, a_j\) and \(b_j (1 ≤ t_j ≤ 10^{12}, 1 ≤ a_j, b_j ≤ n, a_j ≠ b_j)\), where \(t_j\) is time in minutes when a request is made, \(a_j\) is a house where passenger needs to be picked up, and \(b_j\) is a house where passenger needs to be dropped off. All taxi ride requests are given in the increasing order of \(t_j\). All \(t_j\) are distinct.
+
+<b>Output</b>
+Print \(m\) lines: the \(j\)-th line should contain two integer numbers, the answer for the \(j\)-th ride request — car number assigned by the operator and passenger wait time.
+
+<b>Note</b>
+In the first sample test, a request comes in at time \(5\) and the car needs to get from house \(3\) to house \(2\) to pick up the passenger. Therefore wait time will be \(1\) and the ride will be completed at time \(5 + 1 + 6 = 12\). The second request comes in at time \(9\), so the passenger will have to wait for the car to become available at time \(12\), and then the car needs another \(2\) minutes to get from house \(8\) to house \(10\). So the total wait time is \(3 + 2 = 5\).
+
+In the second sample test, cars \(1\) and \(2\) are located at the same distance from the first passenger and have the same "wait time since it became available". Car \(1\) wins a tiebreaker according to the rules because it has the lowest number. It will come to house \(3\) at time \(3\), so the wait time will be \(2\).
+
+
+
+
+The naive solution of these problem is for each ride request, we iterate over all cars to find the closest one to the pickup location \(a_i\) . We compute the time it takes for each car to travel to \(a_i\) , then assign the car based on the following criteria: (1) nearest to the pickup, (2) longest available, and (3) smallest car number for ties. After assigning a car, update its position and time based on the ride. Repeat this process for each request, recalculating everything from scratch The time complexity of these solution is \(O(k*m)\) Which will not fit on time complexity constrains
+
+
+
+
+We can solve these problem by initially, all taxis are positioned at their starting houses, and each taxi is marked as available. The taxis are stored in a set \(st\), where they are sorted by position and additional tiebreaker rules (waiting time and taxi number) and for each ride request (which includes a start time \(t\), a pick-up house \(a\), and a drop-off house \(b\)), you first check for available taxis. If no taxis are available, you wait until one becomes free and we check when each taxi finishes its current ride and becomes available. It updates the set of available taxis when the current time matches the taxi's finish time. Then we try to find the best taxi for each request we can do these by using lower_bound in the set of available taxis and if there are multiple taxis at the same distance we pick the one that has been idle for the longest time or has the smallest taxi number. Then we assigning these taxi to that request and it will available again after completing this request and after it finish that request we add it to our available taxi set. So lets try to get our input.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+#define lli long long int
+const lli INF = 1e15;
+#define pll pair<lli, pair<lli, lli> >
+lli x[200005];
+int main()
+{
+    int n, k, m;
+    cin>>n>>k>>m;
+    set<pair<lli, pair<lli, lli> > > st;
+    for(int i=0;i<k;i++)
+    {
+        cin>>x[i];
+        st.insert({x[i], {0, -i}});
+    }
+}
+
+
+
+
+Then we need to track the current time and map each taxi in a request to its finish time and after it ends the time of the request we delete it from the map and add it to our available taxi set. So lets try to get our requests.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+#define lli long long int
+const lli INF = 1e15;
+#define pll pair<lli, pair<lli, lli> >
+lli x[200005];
+int main()
+{
+    int n, k, m;
+    cin>>n>>k>>m;
+    set<pair<lli, pair<lli, lli> > > st;
+    for(int i=0;i<k;i++)
+    {
+        cin>>x[i];
+        st.insert({x[i], {0, -i}});
+    }
+        lli tc=0;
+    set<lli> ts;
+    map<lli, vector<lli> > mp;
+    for(int i=0;i<m;i++)
+    {
+        lli t,a,b;
+        cin>>t>>a>>b;
+    }
+}
+
+
+
+
+Then we try to release taxis before handling the current request we can do checking if there are no available taxis or if the current time \(t\) is greater than the time when a taxi finishes a previous ride it release any taxi that have completed their rides by updating their available status then taxi is reinserted into the set of available taxis \(st\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+#define lli long long int
+const lli INF = 1e15;
+#define pll pair<lli, pair<lli, lli> >
+lli x[200005];
+int main()
+{
+    int n, k, m;
+    cin>>n>>k>>m;
+    set<pair<lli, pair<lli, lli> > > st;
+    for(int i=0;i<k;i++)
+    {
+        cin>>x[i];
+        st.insert({x[i], {0, -i}});
+    }
+        lli tc=0;
+    set<lli> ts;
+    map<lli, vector<lli> > mp;
+    for(int i=0;i<m;i++)
+    {
+        lli t,a,b;
+        cin>>t>>a>>b;
+        while(st.empty() || (!ts.empty() && *ts.begin() <= t))
+        {
+            auto xd = *ts.begin();
+            tc = xd;
+            ts.erase(xd);
+            for(auto j: mp[xd])
+            {
+                st.insert({x[j], {-xd, -j}});
+            }
+        }
+    }
+}
+
+
+
+
+Then we try to find the nearest taxi we can do these by using lower_bound function to find the nearest available taxi to house \(a\) and if there are more than one taxi available we compare their availability time and taxi number using the defined tiebreaker rules
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+#define lli long long int
+const lli INF = 1e15;
+#define pll pair<lli, pair<lli, lli> >
+lli x[200005];
+int main()
+{
+    int n, k, m;
+    cin>>n>>k>>m;
+    set<pair<lli, pair<lli, lli> > > st;
+    for(int i=0;i<k;i++)
+    {
+        cin>>x[i];
+        st.insert({x[i], {0, -i}});
+    }
+        lli tc=0;
+    set<lli> ts;
+    map<lli, vector<lli> > mp;
+    for(int i=0;i<m;i++)
+    {
+        lli t,a,b;
+        cin>>t>>a>>b;
+        while(st.empty() || (!ts.empty() && *ts.begin() <= t))
+        {
+            auto xd = *ts.begin();
+            tc = xd;
+            ts.erase(xd);
+            for(auto j: mp[xd])
+            {
+                st.insert({x[j], {-xd, -j}});
+            }
+        }
+        pll ans = {-INF, {0, 0}};
+        pll se = {a, {-INF, -INF}};
+        auto xd = st.lower_bound(se);
+        if(xd != st.end())
+        {
+            pll sd = {xd->first + 1, {-INF, -INF}};
+            auto now = st.lower_bound(sd);
+            now--;
+            pll ch = {-abs(now->first - a), now->second};
+            ans = max(ans, ch);
+        }
+        if(xd != st.begin())
+        {
+            xd--;
+            pll ch = {-abs(xd->first - a), xd->second};
+            ans = max(ans, ch);
+        }
+    }
+}
+
+
+
+
+Then we update our current time \(tc\) and calculate the waiting time we can do these by calculating the distance between the assigned taxi and the position \(a\) and then we print the result including the taxi number and the wait time .
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+#define lli long long int
+const lli INF = 1e15;
+#define pll pair<lli, pair<lli, lli> >
+lli x[200005];
+int main()
+{
+    int n, k, m;
+    cin>>n>>k>>m;
+    set<pair<lli, pair<lli, lli> > > st;
+    for(int i=0;i<k;i++)
+    {
+        cin>>x[i];
+        st.insert({x[i], {0, -i}});
+    }
+        lli tc=0;
+    set<lli> ts;
+    map<lli, vector<lli> > mp;
+    for(int i=0;i<m;i++)
+    {
+        lli t,a,b;
+        cin>>t>>a>>b;
+        while(st.empty() || (!ts.empty() && *ts.begin() <= t))
+        {
+            auto xd = *ts.begin();
+            tc = xd;
+            ts.erase(xd);
+            for(auto j: mp[xd])
+            {
+                st.insert({x[j], {-xd, -j}});
+            }
+        }
+        pll ans = {-INF, {0, 0}};
+        pll se = {a, {-INF, -INF}};
+        auto xd = st.lower_bound(se);
+        if(xd != st.end())
+        {
+            pll sd = {xd->first + 1, {-INF, -INF}};
+            auto now = st.lower_bound(sd);
+            now--;
+            pll ch = {-abs(now->first - a), now->second};
+            ans = max(ans, ch);
+        }
+        if(xd != st.begin())
+        {
+            xd--;
+            pll ch = {-abs(xd->first - a), xd->second};
+            ans = max(ans, ch);
+        }
+        tc = max(tc, t);
+        lli cr = -ans.second.second;
+        lli wt = tc - t + abs(x[cr] - a);
+        cout << cr + 1 << " " << wt << "\n";
+
+    }
+}
+
+
+
+
+At the end we can update the taxi position and availability by removing the assigned taxi from the available taxi set \(st\) as it is no longer available during the current ride and store the time the taxi will be available again in \(tr\) set and the availability time is added to the map \(mp\) and the set \(ts\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+#define lli long long int
+const lli INF = 1e15;
+#define pll pair<lli, pair<lli, lli> >
+lli x[200005];
+int main()
+{
+    int n, k, m;
+    cin>>n>>k>>m;
+    set<pair<lli, pair<lli, lli> > > st;
+    for(int i=0;i<k;i++)
+    {
+        cin>>x[i];
+        st.insert({x[i], {0, -i}});
+    }
+        lli tc=0;
+    set<lli> ts;
+    map<lli, vector<lli> > mp;
+    for(int i=0;i<m;i++)
+    {
+        lli t,a,b;
+        cin>>t>>a>>b;
+        while(st.empty() || (!ts.empty() && *ts.begin() <= t))
+        {
+            auto xd = *ts.begin();
+            tc = xd;
+            ts.erase(xd);
+            for(auto j: mp[xd])
+            {
+                st.insert({x[j], {-xd, -j}});
+            }
+        }
+        pll ans = {-INF, {0, 0}};
+        pll se = {a, {-INF, -INF}};
+        auto xd = st.lower_bound(se);
+        if(xd != st.end())
+        {
+            pll sd = {xd->first + 1, {-INF, -INF}};
+            auto now = st.lower_bound(sd);
+            now--;
+            pll ch = {-abs(now->first - a), now->second};
+            ans = max(ans, ch);
+        }
+        if(xd != st.begin())
+        {
+            xd--;
+            pll ch = {-abs(xd->first - a), xd->second};
+            ans = max(ans, ch);
+        }
+        tc = max(tc, t);
+        lli cr = -ans.second.second;
+        lli wt = tc - t + abs(x[cr] - a);
+        cout << cr + 1 << " " << wt << "\n";
+        st.erase({x[cr], ans.second});
+        lli tr = tc + abs(x[cr] - a) + abs(a - b);
+        ts.insert(tr);
+        mp[tr].push_back(cr);
+        x[cr] = b;
+    }
+
+}
+
+
+
+
+Lets try to add a custom test to test our code and test the smallest constrains for example :
+<b>2 1 1
+1
+1 2 1</b>
+We expect the output will be :
+\(1\ 1 \)
+<b>Explanation</b>
+Taxi \(1\) is at house \(1\) and needs \(1\) minute to travel to house \(2\) for pick-up. So the waiting time is \(1\) minute. So the answer is:
+\(1 \ 1\).
+
+
+
+
+2 1 1
+1
+1 2 1

@@ -1,0 +1,70 @@
+FUCT_FOR_TRINUM - Number triangular
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Enter any positive integer that describes the height of number triangular. Print out the number triangular.
+
+Example
+The number triangular that has 5 rows is:
+1
+2 1 
+3 2 1
+4 3 2 1
+5 4 3 2 1
+
+Input
+Contain the height of number triangular.
+
+Constraints
+0 < n ≤ 100
+
+Output
+Print out the number triangular.
+
+
+
+
+To solve this problem, we need to create a program that can print a number triangular with a given height. The number triangular is a pattern where each row contains numbers from the current row number down to 1.
+
+We can start by getting the height of the number triangular from the input. Then, we can use a loop to iterate over each row of the triangular. In each row, we can use another loop to print the numbers from the current row number down to 1.
+
+To print the numbers in the correct order, we can use a nested loop structure. The outer loop will iterate over each row, and the inner loop will iterate over each number in the row.
+
+Let's start by writing the code to read the input and iterate over each row of the triangular.
+
+Next step will be CODE to implement the solution.
+
+
+
+
+#include <iostream>
+
+int main() {
+    int n;
+    std::cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = i; j >= 1; j--) {
+            std::cout << j << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case, where n is its minimum value: n = 1.
+1
+In this case, the height of triangle is 1, so the shape of triangle will be as follows:
+1
+So, the answer for this test case will be "1".
+
+
+
+
+
+1

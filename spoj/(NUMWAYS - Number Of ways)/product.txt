@@ -1,0 +1,317 @@
+NUMWAYS - Number Of ways
+Time limit:	0.200s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Tuktuk loves candies and Chotu loves to keep Tuktuk happy. Now in the candy shop there are N candies (1 to N). Now the shop owner has a list of pairs of candies that have same color. If a particular candy is not in the list, it means that it has different color from all the other candies. Now Tuktuk wants to eat three candies, all of different color. Chotu is wondering that in how many ways he can pick the candies from the shop to keep her happy. Can you help Chotu?
+
+Input
+First line of the input will contain N - Total number of candies. Each candy is assigned a number from 1 to N (2 <= N <= 1000000).
+
+Second line of the input will contain C - Number of pairs of candies that the shop owner has.(1 <= C <= 100000).This is followed by C pairs. Each pair has two numbers C1 and C2 each where 1 <= C1 <= N and 1 <= C2 <= N and C1 != C2 .Total number of different candy colors will not exceed 1000.
+
+Output
+Number of ways in which Chotu can pick the candies.
+
+Note
+Chotu can pick - {1,3,5} {1,3,6} {1,4,5} {1,4,6} {2,3,5} {2,3,6} {2,4,5} {2,4,6}
+
+
+
+
+\(\bullet\) Naive algorithm.  
+We can consider all possible ways \(\binom{N}{3}\) to choose three candies.  
+For each plan to eat three candies, let's assume Tuktuk chooses candies \(a\), \(b\), and \(c\).  
+If the colors of candies \(a\), \(b\), and \(c\) are different from each other, then we have found one valid plan, so we can add 1 to the answer.  
+To check if the colors of candies \(u\) and \(v\) are different (here, we need to check all pairs \((u, v)\): \((a, b)\), \((b, c)\), \((a, c)\)), we can add \(C\) edges that represent both nodes connected by the current edge having the same color. (All information regarding \(C\) edges is provided in the problem statement.)  
+By connecting all nodes that share the same color, we can check if candies \(u\) and \(v\) have the same color using a depth-first search algorithm with a time complexity of \(O(N)\).  
+Thus, the time complexity of this naive algorithm is \(O(\binom{N}{3} \cdot N)\). However, since \(N\) can be as large as 1 000 000, this naive algorithm will exceed the time limit.
+
+
+
+
+\(\bull\) real algorithm
+We don't need to iterate through all possible \(\binom{N}{3}\) plans, as this would exceed the time limit.
+First, in our naive algorithm, we can reduce the time complexity of checking if two candies \(u\) and \(v\) have the same color.
+At the beginning, we can consider all \(N\) candies as \(N\) nodes and add all \(C\) edges that represent the relationship between candy \(C1\) and candy \(C2\) having the same color, connecting node \(C1\) to node \(C2\).
+After adding all edges, we can separate all nodes according to their colors by searching for all connected nodes that have not been visited yet using a depth-first search algorithm.
+
+After separating all candies according to their colors, we obtain the following array: \(cnt_1, cnt_2, \ldots, cnt_n\). (Here, \(cnt_1 + cnt_2 + \ldots + cnt_n = N\)).
+This indicates that there are \(cnt_i\) candies of the \(i\)-th color.
+
+Then, we can consider using a dynamic programming algorithm to calculate the answer.
+Let's suppose \(dp[i][j]\) represents the number of plans to pick \(j\) different color candies from the first \(i\) colors. (We have to pick \(j\) different color candies from \(cnt_1, cnt_2, \ldots, cnt_i\)).
+\(\bullet\) The final answer will be \(dp[n][3]\) since we have to pick 3 different color candies from all the candies: \(cnt_1, cnt_2, \ldots, cnt_n\).
+\(\bullet\) The initial answer is that \(dp[0][0] = 1\), \(dp[0][1] = dp[0][2] = dp[0][3] = 0\), since the number of plans to pick 0 colors from an empty candy set is 1, while the number of plans to pick \(j\) colors from an empty candy set is 0 (\(1 \leq j \leq 3\)).
+\(\bullet\) The transition \( dp[i][j] \) represents the number of ways to select \( j \) different color candies from the first \( i \) colors.
+It captures two cases: not selecting any candies from the \( i \)-th color, which is represented by \( dp[i-1][j] \), and selecting one candy from the \( i \)-th color, which is accounted for by adding combinations of selecting \( j-1 \) candies from the previous colors multiplied by the count of candies of the current color.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int N, C; scanf("%d %d", &N, &C);
+    while(C--) {
+        int u, v; scanf("%d %d", &u, &v);
+    }
+    return 0;
+}
+
+
+
+
+
+We can consider all \(N\) candies as \(N\) nodes and add all \(C\) edges that represent the relationship between candy \(C1\) and candy \(C2\) having the same color, connecting node \(C1\) to node \(C2\).
+Let's construct this graph.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 1010101;
+
+vector<int> adj[NN];
+
+int main() {
+    int N, C; scanf("%d %d", &N, &C);
+    while(C--) {
+        int u, v; scanf("%d %d", &u, &v);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    return 0;
+}
+
+
+
+
+
+We can separate all nodes according to their colors by searching for all connected nodes that have not been visited yet using a depth-first search algorithm.
+After separating all candies according to their colors, we obtain the following array: \(cnt_1, cnt_2, \ldots, cnt_n\). (Here, \(cnt_1 + cnt_2 + \ldots + cnt_n = N\)).
+This indicates that there are \(cnt_i\) candies of the \(i\)-th color.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+vector<int> adj[NN];
+
+bool vst[NN];
+int cnt[NN], n, nn;
+
+void dfs(int u) {
+    vst[u] = 1, nn++;
+    for(int v: adj[u]) {
+        if(!vst[v]) dfs(v);
+    }
+}
+
+int main() {
+    int N, C; scanf("%d %d", &N, &C);
+    while(C--) {
+        int u, v; scanf("%d %d", &u, &v);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    for(int i = 1; i <= N; i++) if(!vst[i]) {
+        nn = 0, dfs(i);
+        cnt[++n] = nn;
+    }
+    return 0;
+}
+
+
+
+
+
+\(\bullet\) The initial answer is that \(dp[0][0] = 1\), \(dp[0][1] = dp[0][2] = dp[0][3] = 0\), since the number of plans to pick 0 colors from an empty candy set is 1, while the number of plans to pick \(j\) colors from an empty candy set is 0 (\(1 \leq j \leq 3\)).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+vector<int> adj[NN];
+
+bool vst[NN];
+INT dp[NN][4];
+int cnt[NN], n, nn;
+
+void dfs(int u) {
+    vst[u] = 1, nn++;
+    for(int v: adj[u]) {
+        if(!vst[v]) dfs(v);
+    }
+}
+
+int main() {
+    int N, C; scanf("%d %d", &N, &C);
+    while(C--) {
+        int u, v; scanf("%d %d", &u, &v);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    for(int i = 1; i <= N; i++) if(!vst[i]) {
+        nn = 0, dfs(i);
+        cnt[++n] = nn;
+    }
+    
+    dp[0][0] = 1;
+    return 0;
+}
+
+
+
+
+
+\(\bullet\) The transition \( dp[i][j] \) represents the number of ways to select \( j \) different color candies from the first \( i \) colors.
+It captures two cases: not selecting any candies from the \( i \)-th color, which is represented by \( dp[i-1][j] \), and selecting one candy from the \( i \)-th color, which is accounted for by adding combinations of selecting \( j-1 \) candies from the previous colors multiplied by the count of candies of the current color.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+vector<int> adj[NN];
+
+bool vst[NN];
+INT dp[NN][4];
+int cnt[NN], n, nn;
+
+void dfs(int u) {
+    vst[u] = 1, nn++;
+    for(int v: adj[u]) {
+        if(!vst[v]) dfs(v);
+    }
+}
+
+int main() {
+    int N, C; scanf("%d %d", &N, &C);
+    while(C--) {
+        int u, v; scanf("%d %d", &u, &v);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    for(int i = 1; i <= N; i++) if(!vst[i]) {
+        nn = 0, dfs(i);
+        cnt[++n] = nn;
+    }
+    
+    dp[0][0] = 1;
+    for(int i = 1; i <= n; i++) {
+        for(int j = 4; j--; ) dp[i][j] = dp[i - 1][j];
+        for(int j = 1; j <= 3; j++) {
+            dp[i][j] += dp[i - 1][j - 1] * cnt[i];
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+\(\bullet\) The final answer will be \(dp[n][3]\) since we have to pick 3 different color candies from all the candies: \(cnt_1, cnt_2, \ldots, cnt_n\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+vector<int> adj[NN];
+
+bool vst[NN];
+INT dp[NN][4];
+int cnt[NN], n, nn;
+
+void dfs(int u) {
+    vst[u] = 1, nn++;
+    for(int v: adj[u]) {
+        if(!vst[v]) dfs(v);
+    }
+}
+
+int main() {
+    int N, C; scanf("%d %d", &N, &C);
+    while(C--) {
+        int u, v; scanf("%d %d", &u, &v);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    for(int i = 1; i <= N; i++) if(!vst[i]) {
+        nn = 0, dfs(i);
+        cnt[++n] = nn;
+    }
+    
+    dp[0][0] = 1;
+    for(int i = 1; i <= n; i++) {
+        for(int j = 4; j--; ) dp[i][j] = dp[i - 1][j];
+        for(int j = 1; j <= 3; j++) {
+            dp[i][j] += dp[i - 1][j - 1] * cnt[i];
+        }
+    }
+    
+    cout << dp[n][3] << endl;
+    return 0;
+}
+
+
+
+
+
+6
+3
+1 2
+3 4
+5 6
+
+
+
+
+Let's examine a custom corner case where \(N, C\) are at their minimum values: \(N = 2, C = 1\).
+
+<code>
+2
+1
+1 2
+</code>
+
+In this test case, all the candies are of the same color, making it impossible to select three candies of different colors. Therefore, the answer is "0."
+
+
+
+
+2
+1
+1 2

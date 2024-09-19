@@ -1,0 +1,354 @@
+<b>D. Parquet Re-laying</b>
+<b>time limit per test: 2 seconds</b>
+<b>memory limit per test: 512 megabytes</b>
+
+Peter decided to lay a parquet in the room of size \(n \times m\), the parquet consists of tiles of size \(1 \times 2\). When the workers laid the parquet, it became clear that the tiles pattern looks not like Peter likes, and workers will have to re-lay it.
+
+The workers decided that removing entire parquet and then laying it again is very difficult task, so they decided to make such an operation every hour: remove two tiles, which form a \(2 \times 2\) square, rotate them 90 degrees and put them back on the same place.
+
+<img st>
+
+They have no idea how to obtain the desired configuration using these operations, and whether it is possible at all.
+
+Help Peter to make a plan for the workers or tell that it is impossible. The plan should contain at most \(100\,000\) commands.
+
+<b>Input</b>
+The first line contains integer \(n\) and \(m\), size of the room (\(1 \le n, m \le 50\)). At least one of them is even number.
+
+The following \(n\) lines contain \(m\) characters each, the description of the current configuration of the parquet tiles. Each character represents the position of the half-tile. Characters `L', `R', `U' and `D' correspond to the left, right, upper and lower halves, respectively.
+
+The following \(n\) lines contain \(m\) characters each, describing the desired configuration in the same format.
+
+<b>Output</b>
+In the first line output integer \(k\), the number of operations. In the next \(k\) lines output description of operations. The operation is specified by coordinates (row and column) of the left upper half-tile on which the operation is performed.
+
+If there is no solution, output -1 in the first line.
+
+
+<b>Note</b>
+In the first sample test first operation is to rotate two rightmost tiles, after this all tiles lie vertically.
+Second operation is to rotate two leftmost tiles, after this we will get desired configuration.
+
+<img ex1>
+
+
+
+
+
+after reading the problem we can see that the native solution is for every \(1*2\) block we will try to rotate it with other one beside it until we get our desired configuration and we can see that this will work for a time more than \(O(2^n*m)\) and this will lead to TLE as \(n\) can be 50
+
+
+
+
+
+So, we need a more optimized approach to align the parquet tile layout with the desired pattern. To achieve this efficiently, we will follow these steps:
+
+First, if the number of rows in the grid is odd, we will transpose the grid. This involves swapping rows with columns, making the number of rows even. This step simplifies the problem because handling \(2*2\) blocks becomes straightforward with an even number of rows.
+
+Next, we will focus on adjusting the \(2*2\) blocks of tiles within the grid. Each block can be rotated to correct its alignment. Our goal is to ensure that each \(2*2\) block matches a consistent orientation. Specifically, we'll rotate blocks to achieve either a vertical alignment (with tiles showing 'U' and 'D') or a horizontal alignment (with tiles showing 'L' and 'R'). We perform these rotations systematically, recording each operation to keep track of the changes.
+
+After normalizing the blocks to this consistent format, we will then make a second pass through the grid to further adjust the layout so that it matches the final desired pattern. This step involves fine-tuning the tile positions to achieve the exact configuration needed.
+
+If we initially transposed the grid, we must reverse this operation to restore the original orientation of the grid. This means adjusting the recorded operations accordingly to fit the original grid structure.
+
+Finally, we will output the total number of operations performed and provide a detailed list of these operations. Each operation specifies the coordinates of the \(2*2\) block that needs to be rotated, guiding the workers to re-lay the tiles correctly and achieve the desired layout efficiently.
+
+
+
+
+
+Now we need to ensure that for every grid in the input, n is even; if it isn't, we will rotate it to make it even and store that this grid is flipped.
+
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+char stuff[51][51];
+
+int main() {
+    cin >> n >> m;
+    int flip = 0;
+    for (int f = 0; f < 2; f++) {
+        for (int i = 0; i < n; i++) {
+            cin >> stuff[i];
+        }
+        if (n % 2 == 1) {
+            char stuff2[51][51];
+            flip = 1;
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (stuff[j][i] == 'L') stuff2[i][j] = 'U';
+                    if (stuff[j][i] == 'U') stuff2[i][j] = 'L';
+                    if (stuff[j][i] == 'R') stuff2[i][j] = 'D';
+                    if (stuff[j][i] == 'D') stuff2[i][j] = 'R';
+                }
+            }
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    stuff[i][j] = stuff2[i][j];
+                }
+            }
+            swap(m, n);
+        }
+    }
+}
+
+
+
+
+
+Now, after we ensure the grid is valid to start working with, we will need to adjust every \(2*2\) block of tiles to achieve a desired configuration. So, we will handle some cases that may occur for every \(2*2\) block. First, let's walk over all \(2*2\) blocks.
+
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+char stuff[51][51];
+
+int main() {
+    cin >> n >> m;
+    int flip = 0;
+    for (int f = 0; f < 2; f++) {
+        for (int i = 0; i < n; i++) {
+            cin >> stuff[i];
+        }
+        if (n % 2 == 1) {
+            char stuff2[51][51];
+            flip = 1;
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (stuff[j][i] == 'L') stuff2[i][j] = 'U';
+                    if (stuff[j][i] == 'U') stuff2[i][j] = 'L';
+                    if (stuff[j][i] == 'R') stuff2[i][j] = 'D';
+                    if (stuff[j][i] == 'D') stuff2[i][j] = 'R';
+                }
+            }
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    stuff[i][j] = stuff2[i][j];
+                }
+            }
+            swap(m, n);
+        }
+        for (int i = 0; i < n; i += 2) {
+            for (int j = 0; j < m; j++) {
+                
+            }
+        }
+    }
+}
+
+
+
+
+
+Now we need to handle some cases for every \(2*2\) block:
+
+\(\bullet\) First case: if it is already in our target configuration, so we will do nothing to it and leave it in the same state.
+
+\(\bullet\) Second case: if we need to rotate it vertically, so we will rotate it and store it
+
+\(\bullet\) Third case: if we need to rotate it horizontally, so we will rotate it and store it
+
+So, we will handle each case, so let's code it.
+
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+char stuff[51][51];
+vector<pair<int, int> > ans[2];
+
+void solve(int i, int j, int dir, int f) {
+    if (dir == 0 && stuff[i][j] == 'U') return;
+    if (dir == 1 && stuff[i][j] == 'L') return;
+    if (dir == 0 && stuff[i][j] == 'L') {
+        solve(i + 1, j, 1, f);
+        ans[f].push_back(make_pair(i, j));
+        stuff[i][j] = 'U';
+        stuff[i + 1][j] = 'D';
+        stuff[i][j + 1] = 'U';
+        stuff[i + 1][j + 1] = 'D';
+        return;
+    }
+    if (dir == 1 && stuff[i][j] == 'U') {
+        solve(i, j + 1, 0, f);
+        ans[f].push_back(make_pair(i, j));
+        stuff[i][j] = 'L';
+        stuff[i + 1][j] = 'L';
+        stuff[i][j + 1] = 'R';
+        stuff[i + 1][j + 1] = 'R';
+        return;
+    }
+}
+
+int main() {
+    cin >> n >> m;
+    int flip = 0;
+    for (int f = 0; f < 2; f++) {
+        for (int i = 0; i < n; i++) {
+            cin >> stuff[i];
+        }
+        if (n % 2 == 1) {
+            char stuff2[51][51];
+            flip = 1;
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (stuff[j][i] == 'L') stuff2[i][j] = 'U';
+                    if (stuff[j][i] == 'U') stuff2[i][j] = 'L';
+                    if (stuff[j][i] == 'R') stuff2[i][j] = 'D';
+                    if (stuff[j][i] == 'D') stuff2[i][j] = 'R';
+                }
+            }
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    stuff[i][j] = stuff2[i][j];
+                }
+            }
+            swap(m, n);
+        }
+        for (int i = 0; i < n; i += 2) {
+            for (int j = 0; j < m; j++) {
+                solve(i, j, 0, f);
+            }
+        }
+        if (flip) {
+            swap(n, m);
+        }
+    }
+}
+
+
+
+
+
+Now we need to print our final answer since we are certain that our operations are done and they have transformed our initial configuration into the desired one.
+
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+char stuff[51][51];
+vector<pair<int, int> > ans[2];
+
+void solve(int i, int j, int dir, int f) {
+    if (dir == 0 && stuff[i][j] == 'U') return;
+    if (dir == 1 && stuff[i][j] == 'L') return;
+    if (dir == 0 && stuff[i][j] == 'L') {
+        solve(i + 1, j, 1, f);
+        ans[f].push_back(make_pair(i, j));
+        stuff[i][j] = 'U';
+        stuff[i + 1][j] = 'D';
+        stuff[i][j + 1] = 'U';
+        stuff[i + 1][j + 1] = 'D';
+        return;
+    }
+    if (dir == 1 && stuff[i][j] == 'U') {
+        solve(i, j + 1, 0, f);
+        ans[f].push_back(make_pair(i, j));
+        stuff[i][j] = 'L';
+        stuff[i + 1][j] = 'L';
+        stuff[i][j + 1] = 'R';
+        stuff[i + 1][j + 1] = 'R';
+        return;
+    }
+}
+
+int main() {
+    cin >> n >> m;
+    int flip = 0;
+    for (int f = 0; f < 2; f++) {
+        for (int i = 0; i < n; i++) {
+            cin >> stuff[i];
+        }
+        if (n % 2 == 1) {
+            char stuff2[51][51];
+            flip = 1;
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (stuff[j][i] == 'L') stuff2[i][j] = 'U';
+                    if (stuff[j][i] == 'U') stuff2[i][j] = 'L';
+                    if (stuff[j][i] == 'R') stuff2[i][j] = 'D';
+                    if (stuff[j][i] == 'D') stuff2[i][j] = 'R';
+                }
+            }
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    stuff[i][j] = stuff2[i][j];
+                }
+            }
+            swap(m, n);
+        }
+        for (int i = 0; i < n; i += 2) {
+            for (int j = 0; j < m; j++) {
+                solve(i, j, 0, f);
+            }
+        }
+        if (flip) {
+            swap(n, m);
+        }
+    }
+    cout << ans[0].size() + ans[1].size() << endl;
+    reverse(ans[1].begin(), ans[1].end());
+    for (int f = 0; f < 2; f++) {
+        for (int i = 0; i < ans[f].size(); i++) {
+            if (flip) swap(ans[f][i].first, ans[f][i].second);
+            cout << ans[f][i].first + 1 << " " << ans[f][i].second + 1 << endl;
+        }
+    }
+}
+
+
+
+
+
+now all samples is done , we need to test against custom test
+
+<b>input</b>
+<code>
+1 20
+LRLRLRLRLRLRLRLRLRLR
+LRLRLRLRLRLRLRLRLRLR
+</code>
+
+the motivation for this test is check what if the initial configuration is the same as desired configuration as this can be a case which may need to check
+
+so we can see that while the two are the same we don't need any operation so the answer will be zero operation
+
+<b>Expected Output</b>
+<code>
+0
+</code>
+
+
+
+
+
+
+1 20
+LRLRLRLRLRLRLRLRLRLR
+LRLRLRLRLRLRLRLRLRLR

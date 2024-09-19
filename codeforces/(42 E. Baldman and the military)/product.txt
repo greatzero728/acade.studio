@@ -1,0 +1,1372 @@
+E. Baldman and the military
+time limit per test: 4 seconds
+memory limit per test: 256 megabytes
+
+Baldman is a warp master. He possesses a unique ability — creating wormholes! Given two positions in space, Baldman can make a wormhole which makes it possible to move between them in both directions. Unfortunately, such operation isn't free for Baldman: each created wormhole makes him lose plenty of hair from his head.
+
+Because of such extraordinary abilities, Baldman has caught the military's attention. He has been charged with a special task. But first things first.
+
+The military base consists of several underground objects, some of which are connected with bidirectional tunnels. There necessarily exists a path through the tunnel system between each pair of objects. Additionally, exactly two objects are connected with surface. For the purposes of security, a patrol inspects the tunnel system every day: he enters one of the objects which are connected with surface, walks the base passing each tunnel at least once and leaves through one of the objects connected with surface. He can enter and leave either through the same object, or through different objects. The military management noticed that the patrol visits some of the tunnels multiple times and decided to optimize the process. Now they are faced with a problem: a system of wormholes needs to be made to allow of a patrolling which passes each tunnel exactly once. At the same time a patrol is allowed to pass each wormhole any number of times.
+
+This is where Baldman comes to operation: he is the one to plan and build the system of the wormholes. Unfortunately for him, because of strict confidentiality the military can't tell him the arrangement of tunnels. Instead, they insist that his system of portals solves the problem for any arrangement of tunnels which satisfies the given condition. Nevertheless, Baldman has some information: he knows which pairs of objects he can potentially connect and how much it would cost him (in hair). Moreover, tomorrow he will be told which objects (exactly two) are connected with surface. Of course, our hero decided not to waste any time and calculate the minimal cost of getting the job done for some pairs of objects (which he finds likely to be the ones connected with surface). Help Baldman!
+
+Input
+First line of the input contains a single natural number \(n (2 ≤ n ≤ 100000)\) — the number of objects on the military base. The second line — one number \(m (1 ≤ m ≤ 200000)\) — the number of the wormholes Baldman can make. The following \(m\) lines describe the wormholes: each line contains three integer numbers \(a, b, c (1 ≤ a, b ≤ n, 1 ≤ c ≤ 100000)\) — the numbers of objects which can be connected and the number of hair Baldman has to spend to make this wormhole.
+
+The next line contains one natural number \(q (1 ≤ q ≤ 100000)\) — the number of queries. Finally, the last \(q\) lines contain a description of one query each — a pair of numbers of different objects \(a_i, b_i (1 ≤ a_i, b_i ≤ n, a_i ≠ b_i)\). There could be more than one wormhole between a pair of objects.
+
+Output
+Your program should output \(q\) lines, one for each query. The \(i\)-th line should contain a single integer number — the answer for \(i\)-th query: the minimum cost (in hair) of a system of wormholes allowing the optimal patrol for any system of tunnels (satisfying the given conditions) if \(a_i\) and \(b_i\) are the two objects connected with surface, or "-1" if such system of wormholes cannot be made.
+
+
+
+
+Let's reformulate the given problem.
+
+There are \(n\) nodes in our graph, which is a connected, bidirectional graph. We are provided with \(m\) plans for creating wormhole edges. Each plan is described by three integers \(a, b, c\), indicating that a wormhole edge can be added between nodes \(a\) and \(b\) at a cost of \(c\).
+
+We need to answer \(q\) queries. For each query, given in the format \(a_i, b_i\), we must calculate the minimum cost to build a system of wormhole edges that allows us to start from either node \(a_i\) or \(b_i\), traverse every edge of the original graph exactly once, and end at one of the nodes \(a_i\) or \(b_i\). We can traverse the wormhole edges multiple times.
+
+Our goal is to construct a system of wormhole edges such that for any possible configuration of the original edges, there exists a path that visits every original edge exactly once.
+
+Find the minimum cost to build the wormhole edge system for each query.
+
+
+
+
+
+\(\bull\) naive algorithm
+We can consider all possible wormhole edge systems, and for each system, we need to check if there exists a path that visits every original edge exactly once across all configurations of the original edges. (Visiting wormhole edges multiple times is allowed.)
+
+If the current wormhole edge system provides a path that traverses every original edge exactly once while permitting multiple (possibly zero) passes over the wormhole edges, we can minimize the answer by calculating the cost to construct the current wormhole edges (the sum of the costs for each built wormhole edge).
+
+This approach is very slow because the number of wormhole edges that can be created is \(m\), leading to \(2^m\) possible wormhole edge systems, where \(1 \leq m \leq 200000\). Additionally, for each wormhole edge system, we must verify its validity by evaluating all configurations of the original edges, which is also slow since there are \(n\) nodes in the original graph, with \(2 \leq n \leq 100000\).
+
+
+
+
+
+The graph can be visualized as a combination of two graphs: the original graph (which is connected and bidirectional but has an unknown configuration) and the graph of wormhole edges (where the possible wormhole edges and their costs are provided). For any given configuration of the original graph, the wormhole edge system should be designed to allow traversal of all original edges exactly once.
+
+Our objective is to find the minimum cost to build the wormhole edge system for each query, which is essentially a minimization problem over all possible configurations of the wormhole edge system.
+
+For each query \(a_i, b_i\), we have to calculate the above minimum cost.
+
+Let's consider the graph \(T\) where we inserted all \(m\) given wormhole edges that we can plan to create.
+
+
+<b>1) the case where node \(a_i\) is connected to node \(b_i\) in graph \(T\)</b>
+This means that nodes \(a_i\) and \(b_i\) are in the same component in graph \(T\). Let's denote this component as Component A.
+
+
+There are two possible cases:
+
+1.1) The case where all \(n\) nodes are in component A.
+
+In this case, all \(n\) nodes are already connected by wormhole edges, so for every configuration of the original edges, we can find a path that traverses all original edges exactly once. This works because we can move between any points using wormhole edges, allowing us to easily find a path that covers all original edges exactly once.
+
+For example, let's assume that the original edges are \((u_1, v_1), (u_2, v_2), \ldots, (u_k, v_k)\).  
+Then, our path will be as follows:  
+- Start our path from node \(a_i\).  
+- Traverse from node \(a_i\) to node \(u_1\) using wormhole edges.  
+- Pass edge \((u_1, v_1)\).  
+- Traverse from node \(v_1\) to node \(u_2\) using wormhole edges.  
+- Pass edge \((u_2, v_2)\).  
+- ...  
+- Traverse from node \(v_{k - 1}\) to node \(u_k\) using wormhole edges.  
+- Pass edge \((u_k, v_k)\).  
+- Traverse from node \(v_k\) to node \(b_i\) using wormhole edges.  
+- End our path at node \(b_i\).
+
+In this case, we only need to build a wormhole edge system to ensure that all nodes are connected by wormhole edges. Clearly, to create a minimum cost wormhole edge system, we should construct a minimum spanning tree using the \(m\) given wormhole edges that we can plan to create.
+
+However, we can reduce the cost further in this spanning tree.
+There will be one path connecting nodes \(a_i\) and \(b_i\), and we can remove one wormhole edge in this path. As we minimize the cost to build wormhole edge system, we should remove the maximum cost wormhole edge in this path.
+
+If we remove this edge, the current component A will be split into component A-a (which includes node \(a_i\)) and component A-b (which includes node \(b_i\)). We will then start from node \(a_i\) and traverse all original edges in component A-a as described in the previous example. 
+
+Since the original graph is connected, there will be several edges \((u_1, v_1), (u_2, v_2), ..., (u_k, v_k)\) that connects component A-a and component A-b (with \(u_i\) being a node in component A-a and \(v_i\) being a node in component A-b).
+
+there are two possible cases:
+1.1.1) The case where k is even.
+- Start at node \(a_i\).
+- Pass all original edges in component A-a in the same way mentioned above.
+- Traverse to node \(u_1\) using wormhole edges.  
+- Pass edge \((u_1, v_1)\).
+- Pass all original edges in component A-b in the same way mentioned above.
+- Traverse to node \(v_2\) using wormhole edges.  
+- Pass edge \((v_2, u_2)\).
+- Traverse from node \(u_2\) to node \(u_3\) using wormhole edges.  
+- Pass edge \((u_3, v_3)\).
+- Traverse from node \(v_3\) to node \(v_4\) using wormhole edges.  
+- Pass edge \((v_4, u_4)\).
+- Traverse from node \(u_4\) to node \(u_5\) using wormhole edges.  
+- Pass edge \((u_5, v_5)\).
+- Traverse from node \(v_5\) to node \(v_6\) using wormhole edges.  
+- Pass edge \((v_6, u_6)\).
+...
+- Pass edge \((u_{k - 1}, v_{k - 1})\).
+- Traverse from node \(v_{k - 1}\) to node \(v_k\) using wormhole edges.  
+- Pass edge \((v_k, u_k)\).
+- Traverse from node \(v_k\) to node \(a_i\) using wormhole edges.
+- End our path at node \(a_i\).
+
+1.1.2) k is odd.
+- Start at node \(a_i\).
+- Pass all original edges in component A-a in the same way mentioned above.
+- Traverse to node \(u_1\) using wormhole edges.  
+- Pass edge \((u_1, v_1)\).
+- Traverse to node \(v_2\) using wormhole edges.  
+- Pass edge \((v_2, u_2)\).
+- Traverse from node \(u_2\) to node \(u_3\) using wormhole edges.  
+- Pass edge \((u_3, v_3)\).
+- Traverse from node \(v_3\) to node \(v_4\) using wormhole edges.  
+- Pass edge \((v_4, u_4)\).
+- Traverse from node \(u_4\) to node \(u_5\) using wormhole edges.  
+- Pass edge \((u_5, v_5)\).
+...
+- Pass edge \((v_{k - 1}, u_{k - 1})\).
+- Traverse from node \(u_{k - 1}\) to node \(u_k\) using wormhole edges.  
+- Pass edge \((u_k, v_k)\).
+- Pass all original edges in component A-b in the same way mentioned above.
+- Traverse to node \(b_i\) using wormhole edges.
+- End our path at node \(b_i\).
+
+Using this method, we can create a valid path after deleting the maximum wormhole edge in the path \((a_i, b_i)\).
+
+So in this case, we only need to build the minimum spanning tree in graph \(T\), and erase the maximum edge in the path between node \(a_i\), to \(b_i\) in this minimum spanning tree.
+
+
+1.2) The case where all \(n\) nodes are not in component A.
+
+Let's suppose there is another component B.
+We need to find the answer for any configuration of original edges, so we will examine the case where there is only one edge \((u, v)\) between component A and component B. 
+
+Since \(a_i\) and \(b_i\) are both in component A, we should start our path from component A. We also have to traverse all original edges. Here, edge \((u, v)\) is also an original edge, so we must pass through \((u, v)\). However, we need to finish our path at either node \(a_i\) or \(b_i\), both of which are in component A. 
+
+If we pass through \((u, v)\) and enter component B, we then need to return to component A to complete our path. However, there is only one original edge \((u, v)\) between component A and component B, and we have already used that edge to enter component B. Therefore, in this case, we cannot return to component A to finish our path, so we cannot create a valid wormhole edge system.
+
+
+
+
+<b>2) The case where node \(a_i\) isn't connected to node \(b_i\) in graph \(T\)</b>
+This means that nodes \(a_i\) and \(b_i\) are in different components in graph \(T\). Let's assume that \(a_i\) is in component A, and \(b_i\) is in component B.
+
+
+There are two possible cases:
+
+2.1) The case where there isn't any other component except component A and component B in graph \(T\).
+Let's suppose all original edges connecting component A and B are \((u_1, v_1), (u_2, v_2), \ldots, (u_k, v_k)\). (Here, \(u_i\) is in component A, and \(v_i\) is in component B.)
+
+there are two possible cases:
+2.1.1) The case where k is even.
+- Start at node \(a_i\).
+- Pass all original edges in component A in the same way mentioned in 1.1).
+- Traverse to node \(u_1\) using wormhole edges.  
+- Pass edge \((u_1, v_1)\).
+- Pass all original edges in component B in the same way mentioned in 1.1).
+- Traverse to node \(v_2\) using wormhole edges.  
+- Pass edge \((v_2, u_2)\).
+- Traverse from node \(u_2\) to node \(u_3\) using wormhole edges.  
+- Pass edge \((u_3, v_3)\).
+- Traverse from node \(v_3\) to node \(v_4\) using wormhole edges.  
+- Pass edge \((v_4, u_4)\).
+- Traverse from node \(u_4\) to node \(u_5\) using wormhole edges.  
+- Pass edge \((u_5, v_5)\).
+- Traverse from node \(v_5\) to node \(v_6\) using wormhole edges.  
+- Pass edge \((v_6, u_6)\).
+...
+- Pass edge \((u_{k - 1}, v_{k - 1})\).
+- Traverse from node \(v_{k - 1}\) to node \(v_k\) using wormhole edges.  
+- Pass edge \((v_k, u_k)\).
+- Traverse from node \(v_k\) to node \(a_i\) using wormhole edges.
+- End our path at node \(a_i\).
+
+2.1.2) k is odd.
+- Start at node \(a_i\).
+- Pass all original edges in component A in the same way mentioned in 1.1).
+- Traverse to node \(u_1\) using wormhole edges.  
+- Pass edge \((u_1, v_1)\).
+- Traverse to node \(v_2\) using wormhole edges.  
+- Pass edge \((v_2, u_2)\).
+- Traverse from node \(u_2\) to node \(u_3\) using wormhole edges.  
+- Pass edge \((u_3, v_3)\).
+- Traverse from node \(v_3\) to node \(v_4\) using wormhole edges.  
+- Pass edge \((v_4, u_4)\).
+- Traverse from node \(u_4\) to node \(u_5\) using wormhole edges.  
+- Pass edge \((u_5, v_5)\).
+...
+- Pass edge \((v_{k - 1}, u_{k - 1})\).
+- Traverse from node \(u_{k - 1}\) to node \(u_k\) using wormhole edges.  
+- Pass edge \((u_k, v_k)\).
+- Pass all original edges in component B in the same way mentioned in 1.1).
+- Traverse to node \(b_i\) using wormhole edges.
+- End our path at node \(b_i\).
+
+In component A, we only need to build a wormhole edge system to ensure that all nodes in component A are connected by wormhole edges. To create a minimum cost wormhole edge system, we should construct a minimum spanning tree in component A, using edges from the \(m\) given wormhole edges that we plan to create. 
+
+In component B, we also need to build a wormhole edge system to ensure that all nodes in component B are connected by wormhole edges. Similarly, to create a minimum cost wormhole edge system, we should construct a minimum spanning tree in component B, using edges from the \(m\) given wormhole edges that we plan to create.
+
+
+2.2) The case where there is another component in addition to component A and component B in graph \(T\).
+
+Let's suppose there is another component C.
+
+We need to find the answer for any configuration of original edges, so we will examine the case where there is only one edge \((u, v)\) between component A and component C. 
+
+Since \(a_i\) is in component A, we should start our path from component A. We also have to traverse all original edges. Here, edge \((u, v)\) is also an original edge, so we must pass through \((u, v)\). However, we need to finish our path at either node \(a_i\) or \(b_i\), with \(a_i\) in component A and \(b_i\) in component B. 
+
+If we pass through \((u, v)\) and enter component C, then we need to return to either component A or component B to complete our path. However, there is only one original edge \((u, v)\) between component A and component C, and we have already used that edge to enter component C. Therefore, in this case, we cannot return to component A or component B to finish our path, so we cannot create a valid wormhole edge system.
+
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020;
+
+int n, m;
+int a[NN], b[NN];
+ppi edge[MM];
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+    }
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+    }
+}
+
+
+
+
+First, let's calculate the number of connected components in graph \(T\).
+We can iterate through all nodes \(1, 2, \ldots, n\), and if the current node isn't colored, we can find all nodes connected to the current node using the DFS method. Then, we can color all nodes in this component with a new index representing the component number.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+    }
+}
+
+
+
+
+Let's formulate the summary of our algorithm again.
+
+
+<b>1) the case where node \(a_i\) is connected to node \(b_i\) in graph \(T\)</b>
+This means that nodes \(a_i\) and \(b_i\) are in the same component A in graph \(T\).
+1.1) The case where all \(n\) nodes are in component A.
+So in this case, we only need to build the minimum spanning tree in graph \(T\), and erase the maximum edge in the path between node \(a_i\), to \(b_i\) in this minimum spanning tree.
+
+1.2) The case where all \(n\) nodes are not in component A.
+The answer is -1.
+
+
+<b>2) The case where node \(a_i\) isn't connected to node \(b_i\) in graph \(T\)</b>
+This means that node \(a_i\) is in component A and \(b_i\) is in component B.
+2.1) The case where there isn't any other component except component A and component B in graph \(T\).
+The answer is the sum of the costs to build the minimum spanning trees in components A and B.
+
+2.2) The case where there is another component in addition to component A and component B in graph \(T\).
+The answer is -1.
+
+
+
+
+First, let's handle the cases of 1.2) and 2.2).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+        }
+    }
+}
+
+
+
+
+The remaining cases are 1.1) and 2.1).
+In both cases, we need to use Kruskal's algorithm to build the minimum spanning tree (MST).
+Case 2.1) is a bit special because the final graph is not a tree but a set of two trees. However, it uses the same approach for calculating the MST.
+So, let's implement Kruskal's algorithm using the sorting edges method and the union-find method.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+        }
+    }
+}
+
+
+
+
+First, let's handle the cases of 2.1).
+In this case, as explained in blocks 1, the answer is the cost to build the minimum spanning tree in graph \(T\).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+First, let's handle the cases of 1.1).
+In this case, we first need to store the original edge information that is in graph \(T\).
+
+Let's use a head-next structure to store edge information. In this structure, to[E] represents the opposite node of the current edge, wei[E] denotes the weight of the current edge, nxt[E] indicates the index of the previously added edge to the current node, and head[u] is the index of the last added edge for node \(u\).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int head[NN], nxt[MM], to[MM], wei[MM], E;
+
+void add_edge(int u, int v, int w) {
+    to[E] = v, wei[E] = w, nxt[E] = head[u], head[u] = E++;
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+        head[i] = -1;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+            add_edge(edge[i].x.x, edge[i].x.y, edge[i].y);
+            add_edge(edge[i].x.y, edge[i].x.x, edge[i].y);
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+Now we've already build the minimum spanning tree, so our remain task is for given \(a_i\), \(b_i\) calculating the maximum weight edge in the path \((a_i, b_i)\).
+Let's assume the least common ancestor(LCA) of nodes \(a_i\) and \(b_i\) is \(w\).
+Then the maximum edge of the path \((a_i, b_i)\) is equal to the maximum value of the maximum edges of the paths \((a_i, w)\) and \((b_i, w)\).
+These two maximums are of the same type: calculate the maximum value of the edges in the path \((u, p)\), where \(p\) is the ancestor of node \(u\).
+This can be done by initializing the weigh of the maximum edge of the path from node \(u\) to the \(2^k\)-th ancestor of node \(u\) in \(O(n \cdot \log_2(n))\). (Here, we can assume the maximum value of \(k\) is 16 since \(2^{17} > 100000\).)
+
+I will explain the detailed steps later; for now, let's first write the function to calculate the LCA of two nodes, \(a\) and \(b\).
+First, we need to set the root node, and without loss of generality, we will set node 1 as the root node.
+After establishing node 1 as the root, we can calculate the depth of each node and initialize the \(2^0\)-th ancestor, along with the weight of the maximum edge of the path from node \(u\) to its \(2^0\)-th ancestor for all nodes \(u\) (\(1 \leq u \leq n\)).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020, CC = 17;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int head[NN], nxt[MM], to[MM], wei[MM], E;
+int pa[NN][CC], mx[NN][CC], dep[NN];
+
+void add_edge(int u, int v, int w) {
+    to[E] = v, wei[E] = w, nxt[E] = head[u], head[u] = E++;
+}
+
+void lca_dfs(int u, int f = 0) {
+    for(int e = head[u]; ~e; e = nxt[e]) {
+        int v = to[e], w = wei[e];
+        if(v != f) {
+            dep[v] = dep[u] + 1;
+            pa[v][0] = u, mx[v][0] = w;
+            lca_dfs(v, u);
+        }
+    }
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+        head[i] = -1;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+            add_edge(edge[i].x.x, edge[i].x.y, edge[i].y);
+            add_edge(edge[i].x.y, edge[i].x.x, edge[i].y);
+        }
+    }
+    lca_dfs(1);
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+
+Let's calculate the \(2^k\)-th ancestor of node \(u\) and the weight of the maximum edge of the path from node \(u\) to its \(2^k\)-th ancestor in time complexity \(O(n \cdot \log_2(n))\). (Here, we can assume the maximum value of \(k\) is 16 since \(2^{17} > 100000\).)
+One trick is that the \(2^k\)-th ancestor of node \(u\) is the \(2^{k-1}\)-th ancestor of node \(u\)'s \(2^{k-1}\)-th ancestor.
+Another trick is that the weight of the maximum edge of the path from node \(u\) to its \(2^k\)-th ancestor is maximum value of the maximum weight of the edge of the path from node \(u\) to its \(2^{k-1}\)-th ancestor and the maximum weight of the edge of the path from node \(u\)'s \(2^{k-1}\)-th ancestor to node \(u\)'s \(2^k\)-th ancestor.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020, CC = 17;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int head[NN], nxt[MM], to[MM], wei[MM], E;
+int pa[NN][CC], mx[NN][CC], dep[NN];
+
+void add_edge(int u, int v, int w) {
+    to[E] = v, wei[E] = w, nxt[E] = head[u], head[u] = E++;
+}
+
+void lca_dfs(int u, int f = 0) {
+    for(int e = head[u]; ~e; e = nxt[e]) {
+        int v = to[e], w = wei[e];
+        if(v != f) {
+            dep[v] = dep[u] + 1;
+            pa[v][0] = u, mx[v][0] = w;
+            lca_dfs(v, u);
+        }
+    }
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+        head[i] = -1;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+            add_edge(edge[i].x.x, edge[i].x.y, edge[i].y);
+            add_edge(edge[i].x.y, edge[i].x.x, edge[i].y);
+        }
+    }
+    lca_dfs(1);
+    for(int j = 1; j < CC; j++) {
+        for(int i = 1; i <= n; i++) {
+            int f = pa[i][j - 1];
+            pa[i][j] = pa[f][j - 1];
+            mx[i][j] = max(mx[i][j - 1], mx[f][j - 1]);
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+To calculate the LCA (Lowest Common Ancestor) of two nodes, \(a\) and \(b\), we utilize the precomputed ancestor information stored in the \(pa[u][k]\) table, where \(pa[u][k]\) represents the \(2^k\)-th ancestor of node \(u\). This allows us to compute the LCA in \(O(\log_2(n))\) time complexity.
+
+\(\bull\) The first step in our approach is to equalize the depth of the two nodes. We do this by moving the node with the lower depth upwards in the tree to its ancestor until both nodes are at the same depth. This ensures that we can effectively compare their paths.
+
+Once both nodes are at the same depth, we check if they are equal. If they are, we have found our LCA. If they are not equal, we proceed to the next step.
+
+\(\bull\) We utilize a binary lifting technique, iterating through the powers of two from the maximum \(k\) down to zero. For each \(k\), we check if the \(2^k\)-th ancestors of \(a\) and \(b\) are different. This allows us to efficiently move both nodes upwards in the tree while maintaining their distinctness.
+
+If the \(2^k\)-th ancestors are distinct, we update both \(a\) and \(b\) to their respective \(2^k\)-th ancestors. This process continues until we reach the highest \(k\) where both nodes can still be moved without becoming equal.
+
+Finally, when \(a\) and \(b\) can no longer be moved without converging, we identify the LCA at the \(2^0\)-th ancestor of either node. This ancestor represents the last common point in the paths leading to the original nodes \(a\) and \(b\), and it is returned as the result.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020, CC = 17;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int head[NN], nxt[MM], to[MM], wei[MM], E;
+int pa[NN][CC], mx[NN][CC], dep[NN];
+
+void add_edge(int u, int v, int w) {
+    to[E] = v, wei[E] = w, nxt[E] = head[u], head[u] = E++;
+}
+
+void lca_dfs(int u, int f = 0) {
+    for(int e = head[u]; ~e; e = nxt[e]) {
+        int v = to[e], w = wei[e];
+        if(v != f) {
+            dep[v] = dep[u] + 1;
+            pa[v][0] = u, mx[v][0] = w;
+            lca_dfs(v, u);
+        }
+    }
+}
+
+int get_lca(int a, int b) {
+    if(dep[a] < dep[b]) swap(a, b);
+    for(int i = CC; i--; ) {
+        if(dep[a] - (1 << i) >= dep[b]) a = pa[a][i];
+    }
+    if(a == b) return a;
+    for(int i = CC; i--; ) if(pa[a][i] != pa[b][i]) {
+        a = pa[a][i], b = pa[b][i];
+    }
+    return pa[a][0];
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+        head[i] = -1;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+            add_edge(edge[i].x.x, edge[i].x.y, edge[i].y);
+            add_edge(edge[i].x.y, edge[i].x.x, edge[i].y);
+        }
+    }
+    lca_dfs(1);
+    for(int j = 1; j < CC; j++) {
+        for(int i = 1; i <= n; i++) {
+            int f = pa[i][j - 1];
+            pa[i][j] = pa[f][j - 1];
+            mx[i][j] = max(mx[i][j - 1], mx[f][j - 1]);
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+To determine the weight of the maximum edge on the path from node \(u\) to its ancestor \(p\), start by moving \(u\) upwards in the tree until both nodes are at the same depth.
+As we traverse, keep track of the maximum edge weight encountered along the way. Of course we can move the similar approach of calculating the LCA with \(O(log_2(n))\).
+Once we reach \(p\), the highest weight recorded will represent the weight of the maximum edge on that path. 
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020, CC = 17;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int head[NN], nxt[MM], to[MM], wei[MM], E;
+int pa[NN][CC], mx[NN][CC], dep[NN];
+
+void add_edge(int u, int v, int w) {
+    to[E] = v, wei[E] = w, nxt[E] = head[u], head[u] = E++;
+}
+
+void lca_dfs(int u, int f = 0) {
+    for(int e = head[u]; ~e; e = nxt[e]) {
+        int v = to[e], w = wei[e];
+        if(v != f) {
+            dep[v] = dep[u] + 1;
+            pa[v][0] = u, mx[v][0] = w;
+            lca_dfs(v, u);
+        }
+    }
+}
+
+int get_lca(int a, int b) {
+    if(dep[a] < dep[b]) swap(a, b);
+    for(int i = CC; i--; ) {
+        if(dep[a] - (1 << i) >= dep[b]) a = pa[a][i];
+    }
+    if(a == b) return a;
+    for(int i = CC; i--; ) if(pa[a][i] != pa[b][i]) {
+        a = pa[a][i], b = pa[b][i];
+    }
+    return pa[a][0];
+}
+
+int get_max(int u, int p) {
+    int ans = 0;
+    for(int i = CC; i--; ) if(dep[u] - (1 << i) >= dep[p]) {
+        ans = max(ans, mx[u][i]), u = pa[u][i];
+    }
+    return ans;
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+        head[i] = -1;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+            add_edge(edge[i].x.x, edge[i].x.y, edge[i].y);
+            add_edge(edge[i].x.y, edge[i].x.x, edge[i].y);
+        }
+    }
+    lca_dfs(1);
+    for(int j = 1; j < CC; j++) {
+        for(int i = 1; i <= n; i++) {
+            int f = pa[i][j - 1];
+            pa[i][j] = pa[f][j - 1];
+            mx[i][j] = max(mx[i][j - 1], mx[f][j - 1]);
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+Finally, we can print the answer for case 1.1).
+As explained in blocks 1, we have already calculated the cost to build the minimum spanning tree, so we only need to subtract the weight of the maximum edge on the path from \(a_i\) to \(b_i\). This maximum weight is equivalent to the maximum value of get_max(a[i], w) and get_max(b[i], w), where \(w\) is the LCA of the two nodes \(a_i\) and \(b_i\).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+using ppi = pair<pii, int>;
+
+const int NN = 101010, MM = 202020, CC = 17;
+
+int n, m, cnt;
+int a[NN], b[NN];
+ppi edge[MM];
+int col[NN];
+vector<int> adj[NN];
+
+void dfs(int u) {
+    col[u] = cnt;
+    for(int v : adj[u]) {
+        if(!col[v]) dfs(v);
+    }
+}
+
+int rt[NN];
+
+int find_root(int u) {
+    return u == rt[u] ? u : rt[u] = find_root(rt[u]);
+}
+
+int head[NN], nxt[MM], to[MM], wei[MM], E;
+int pa[NN][CC], mx[NN][CC], dep[NN];
+
+void add_edge(int u, int v, int w) {
+    to[E] = v, wei[E] = w, nxt[E] = head[u], head[u] = E++;
+}
+
+void lca_dfs(int u, int f = 0) {
+    for(int e = head[u]; ~e; e = nxt[e]) {
+        int v = to[e], w = wei[e];
+        if(v != f) {
+            dep[v] = dep[u] + 1;
+            pa[v][0] = u, mx[v][0] = w;
+            lca_dfs(v, u);
+        }
+    }
+}
+
+int get_lca(int a, int b) {
+    if(dep[a] < dep[b]) swap(a, b);
+    for(int i = CC; i--; ) {
+        if(dep[a] - (1 << i) >= dep[b]) a = pa[a][i];
+    }
+    if(a == b) return a;
+    for(int i = CC; i--; ) if(pa[a][i] != pa[b][i]) {
+        a = pa[a][i], b = pa[b][i];
+    }
+    return pa[a][0];
+}
+
+int get_max(int u, int p) {
+    int ans = 0;
+    for(int i = CC; i--; ) if(dep[u] - (1 << i) >= dep[p]) {
+        ans = max(ans, mx[u][i]), u = pa[u][i];
+    }
+    return ans;
+}
+
+int main() {
+    scanf("%d %d", &n, &m);
+    for(int i = m; i--; ) {
+        scanf("%d %d %d", &edge[i].x.x, &edge[i].x.y, &edge[i].y);
+        adj[edge[i].x.x].push_back(edge[i].x.y);
+        adj[edge[i].x.y].push_back(edge[i].x.x);
+    }
+    
+    for(int i = 1; i <= n; i++) if(!col[i]) {
+        cnt++, dfs(i);
+    }
+    
+    sort(edge, edge + m, [&](ppi a, ppi b) {
+        return a.y < b.y;
+    });
+    
+    for(int i = 1; i <= n; i++) {
+        rt[i] = i;
+        head[i] = -1;
+    }
+    
+    INT ans = 0;
+    for(int i = 0; i < m; i++) {
+        int u = find_root(edge[i].x.x);
+        int v = find_root(edge[i].x.y);
+        int w = edge[i].y;
+        if(u != v) {
+            rt[u] = v, ans += w;
+            add_edge(edge[i].x.x, edge[i].x.y, edge[i].y);
+            add_edge(edge[i].x.y, edge[i].x.x, edge[i].y);
+        }
+    }
+    lca_dfs(1);
+    for(int j = 1; j < CC; j++) {
+        for(int i = 1; i <= n; i++) {
+            int f = pa[i][j - 1];
+            pa[i][j] = pa[f][j - 1];
+            mx[i][j] = max(mx[i][j - 1], mx[f][j - 1]);
+        }
+    }
+    
+    int q; scanf("%d", &q);
+    for(int i = q; i--; ) {
+        scanf("%d %d", a + i, b + i);
+        if(col[a[i]] == col[b[i]]) {
+            if(cnt != 1) { //case 1.2)
+                puts("-1"); continue;
+            }
+            else { // case 1.1)
+                int w = get_lca(a[i], b[i]);
+                cout<<ans - max(get_max(a[i], w), get_max(b[i], w))<<endl;
+            }
+        }
+        else {
+            if(cnt != 2) { //case 2.2)
+                puts("-1"); continue;
+            }
+            else { //case 2.1)
+                cout<<ans<<endl;
+            }
+        }
+    }
+}
+
+
+
+
+2
+1
+1 2 3
+1
+1 2
+
+
+
+
+3
+1
+1 2 3
+2
+1 2
+1 3
+
+
+
+
+Let's examine a custom corner case where \(n\) is at its maximum value: \(n = 100000\). It's challenging to write a test case when \(m\) and \(q\) are large, so let's consider the scenario where \(m\) and \(q\) are at their minimum values: \(m = q = 1\).
+
+<code>
+100000
+1
+1 100000 7
+1
+1 100000
+</code>
+
+In this test case, there are \(n = 100000\) nodes, and we can only add one wormhole edge \((1, 100000)\) with a cost of 7. There is one query \(a_1 = 1, b_1 = 100000\). Therefore, any edge configurations, we need to construct a wormhole system that form a valid path starting at node 1 or 100000 and ending at node 1 or 100000, while passing through every original edge exactly once.
+
+We can prepare any configuration, so we will establish the following setup: The original graph is a tree, and the edges are as follows:
+\((1, 100000)\)
+\((100000, 2)\)
+\((2, 3)\)
+\((3, 4)\)
+...
+\((99998, 99999)\)
+
+In this case, there are two possible wormhole systems.
+
+\(\bullet\) The first case is to not add any wormhole edges. If we start from node 1, we must pass through edge \((1, 100000)\), and then there is only one path forward: \((100000, 2), (2, 3), (3, 4)\), and so on. However, since edge \((100000, 2)\) has already been used, we cannot return to nodes 1 or 100000. Therefore, starting from node 1 does not yield a valid path.
+
+If we start from node 100000 and traverse edge \((100000, 1)\), we cannot move after reaching node 1 because edge \((1, 100000)\) has already been used. This prevents us from visiting the remaining edges \((2, 3), (3, 2), ..., (99998, 99999)\). If we start from node 100000 and traverse edge \((100000, 2)\), we must follow the order of \((2, 3), (3, 4)\), and so forth. However, in this scenario, edge \((2, 100000)\) has already been visited, making it impossible to return to either node 1 or node 100000. Thus, starting from node 1 results in no valid path.
+
+So, if we do not add any wormhole edges, we cannot find a valid path.
+
+\(\bullet\) The second case involves adding the wormhole edge \((1, 100000)\) (since there is only one wormhole edge as \(m = 1\)). If we start from node 1, we can reach node 100000 using edge \((1, 100000)\). After that, we must traverse edge \((100000, 2)\), but if we take this edge, we cannot return to nodes 1 or 100000. If we start from node 100000, we can choose to pass through edge \((1, 100000)\) or not; however, it is clear that we must traverse edge \((100000, 2)\). But again, if we take this edge, we cannot return to nodes 1 or 100000.
+
+Therefore, even with one wormhole edge, we cannot find a valid path.
+
+Overall, in this custom test case, we cannot construct a valid wormhole edge system, so the answer will be "-1".
+
+
+
+
+100000
+1
+1 100000 7
+1
+1 100000

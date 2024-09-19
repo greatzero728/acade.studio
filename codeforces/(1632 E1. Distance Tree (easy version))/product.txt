@@ -1,0 +1,444 @@
+E1. Distance Tree (easy version)
+time limit per test: 2 seconds
+memory limit per test: 512 megabytes
+
+A tree is a connected undirected graph without cycles. A weighted tree has a weight assigned to each edge. The distance between two vertices is the minimum sum of weights on the path connecting them.
+
+You are given a weighted tree with n vertices, each edge has a weight of 1. Denote d(v) as the distance between vertex 1 and vertex v.
+
+Let f(x) be the minimum possible value of \(\max\limits_{1 \leq v \leq n} \ {d(v)}\) if you can temporarily add an edge with weight x between any two vertices a and b (1≤a,b≤n). Note that after this operation, the graph is no longer a tree.
+
+For each integer x from 1 to n, find f(x).
+
+Input
+The first line contains a single integer t (1≤t≤\(10^4\)) — the number of test cases.
+
+The first line of each test case contains a single integer n (2≤n≤3000).
+
+Each of the next n−1 lines contains two integers u and v (1≤u,v≤n) indicating that there is an edge between vertices u and v. It is guaranteed that the given edges form a tree.
+
+It is guaranteed that the sum of n over all test cases doesn't exceed 3000.
+
+Output
+For each test case, print n integers in a single line, x-th of which is equal to f(x) for all x from 1 to n.
+
+Note
+In the first testcase:
+<img 1>
+For x=1, we can an edge between vertices 1 and 3, then d(1)=0 and d(2)=d(3)=d(4)=1, so f(1)=1.
+For x≥2, no matter which edge we add, d(1)=0, d(2)=d(4)=1 and d(3)=2, so f(x)=2.
+
+
+
+
+The problem requires finding the minimum possible value of the maximum distance from vertex 1 to any other vertex in a weighted tree, where the weight of each edge is 1.
+We are allowed to temporarily add an edge with weight x between any two vertices. The goal is to find the minimum possible value of this maximum distance for each integer x from 1 to n.
+
+\(\bull\) naive algorithm
+To solve this problem, we can use a brute force approach by iterating over all possible pairs of vertices and calculating the maximum distance from vertex 1 to any other vertex after adding an edge that has weight x between the current pair of vertices.
+However, this approach would have a time complexity of \(O(n^3)\), which is too high for the given constraints.
+We will get time limit exceed error result if we implement this naive algorithm.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 3030;
+
+vector<int> adj[NN];
+
+int n;
+
+int main() {
+	
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d", &n);
+        for(int i = 1; i <= n; i++) adj[i].clear();
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d %d", &u, &v);
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+    }
+}
+
+
+
+
+\(\bull\) real algorithm
+For each \(x\), we need to minimize the maximum distance from node 1 to all other nodes after adding the edge (a, b).
+Let's consider the type of edge that we have to add.
+Our goal is minimize the maximum distance from node 1 to all other nodes.
+Let's suppose the distance from node 1 to node u is maximum now.
+Then, after adding the edge (a, b), we need to decrease the maximum distance mentioned above. Therefore, nodes a and b should be positioned along the path from node 1 to node u.
+Without loss of generality, we can move the edge (a, b) in the direction of the root node. This is acceptable because we are merely sliding the edge (a, b).
+In other words, we can add the edge with one of the nodes being the root node in the optimal strategy.
+
+
+
+
+Let's calculate the answer for all \(x\) independently. \(O(n)\) 
+Here, the binary search strategy is effective.
+We can iterate through the answers for \(x\) using binary search, which has a complexity of \(O(\log(n))\).  
+The condition to validate is whether we can make the maximum distance from node 1 to all other nodes less than or equal to \(h\) after adding the edge with weight \(x\). 
+We can start with the range (st, ed] (where st = 0 and ed = n).
+In other words, using binary search, let's calculate the minimized value of the maximum distance from node 1 to all other nodes.
+
+Let's denote \(\left\lfloor \frac{st + ed}{2} \right\rfloor\) as \(md\).
+\(\bullet\) If we can make the maximum distance from node 1 to all other nodes less than or equal to \(md\), we can reduce the range to (st, md].
+This works because we can already minimize the answer into \(md\), so the range (md, ed] is no longer needed.
+\(\bullet\) If we cannot make the maximum distance from node 1 to all other nodes less than or equal to \(md\), we can reduce the range to (md, ed].
+This works because we cannot minimize the answer into \(md\), so the range (st, md] is no longer needed.
+
+After reducing the range with binary search, we will obtain the answer: ed.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 3030;
+
+vector<int> adj[NN];
+
+int n;
+
+bool can(int x, int h) {
+    
+}
+
+int main() {
+	
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d", &n);
+        for(int i = 1; i <= n; i++) adj[i].clear();
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d %d", &u, &v);
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        
+        for(int x = 1; x <= n; x++) {
+        	int st = 0, ed = n;
+        	while(ed - st > 1) {
+        		int md = st + ed >> 1;
+        		if(can(x, md)) ed = md;
+        		else st = md;
+        	}
+        	printf("%d ", ed);
+        }
+        puts("");
+    }
+}
+
+
+
+
+Let's implement the condition validation function \(can(x, h)\). Here, we need to determine if we can make the maximum distance from node 1 to all other nodes less than or equal to \(h\) after adding the edge with weight \(x\).
+Therefore, nodes that already have a distance from node 1 that is less than or equal to \(h\) do not need to be considered.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 3030;
+
+vector<int> adj[NN];
+
+int n;
+
+bool can(int x, int h) {
+	vector<int> vec;
+	for(int i = 1; i <= n; i++) {
+		if(dst[1][i] > h) vec.push_back(i);
+	}
+	if(vec.empty()) return true;
+    
+	//need to check more.
+}
+
+int main() {
+	
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d", &n);
+        for(int i = 1; i <= n; i++) adj[i].clear();
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d %d", &u, &v);
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        
+        for(int x = 1; x <= n; x++) {
+        	int st = 0, ed = n;
+        	while(ed - st > 1) {
+        		int md = st + ed >> 1;
+        		if(can(x, md)) ed = md;
+        		else st = md;
+        	}
+        	printf("%d ", ed);
+        }
+        puts("");
+    }
+}
+
+
+
+
+Let's assume the nodes \(vec_0, vec_1, \ldots, vec_m\) are the remaining nodes.
+Currently, we have \(dist(1, vec_0) > h\) and \(dist(1, vec_1) > 0\), ..., \(dist(1, vec_m) > 0\). (Here, \(dist(u, v)\) represents the shortest path from \(u\) to \(v\).)
+The obvious requirement is that we need to add the edge (1, u). Here, node \(u\) should be the central point, meaning that \(max(dist(u, vec_0), dist(u, vec_1), dist(u, vec_m))\) should be minimized.
+If we don't chose this central point into the node of our adding edge, some nodes from \(vec_0, vec_1, \ldots, vec_m\) will be biased toward one side. Consequently, we won't be able to minimize the answer.
+The central node is the middle point of diameter of node set: {\(vec_0, vec_1, .., vec_m\)}
+
+
+
+
+
+
+To calculate the diameter, we first need to determine all possible shortest paths between any two nodes.
+We can calculate this using the depth-first search algorithm in a total of \(O(n^2)\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 3030;
+
+vector<int> adj[NN];
+
+int dst[NN][NN], rt;
+
+void calc_dist(int u, int f = 0) {
+	for(int v : adj[u]) if(v != f) {
+		dst[rt][v] = dst[rt][u] + 1;
+		calc_dist(v, u);
+	}
+}
+
+int n;
+
+bool can(int x, int h) {
+	vector<int> vec;
+	for(int i = 1; i <= n; i++) {
+		if(dst[1][i] > h) vec.push_back(i);
+	}
+	if(vec.empty()) return true;
+    
+	//need to check more.	
+}
+
+int main() {
+	
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d", &n);
+        for(int i = 1; i <= n; i++) adj[i].clear();
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d %d", &u, &v);
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        
+        for(int i = 1; i <= n; i++) {
+        	dst[rt = i][rt] = 0, calc_dist(rt);
+        }
+        
+        for(int x = 1; x <= n; x++) {
+        	int st = 0, ed = n;
+        	while(ed - st > 1) {
+        		int md = st + ed >> 1;
+        		if(can(x, md)) ed = md;
+        		else st = md;
+        	}
+        	printf("%d ", ed);
+        }
+        puts("");
+    }
+}
+
+
+
+
+Let's let's calculate the length of diameter:
+The method for calculating the diameter involves selecting one node first, then identifying the farthest node from it as one endpoint of the diameter.
+From that endpoint, you select another farthest node to determine the other endpoint of the diameter.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 3030;
+
+vector<int> adj[NN];
+
+int dst[NN][NN], rt;
+
+void calc_dist(int u, int f = 0) {
+	for(int v : adj[u]) if(v != f) {
+		dst[rt][v] = dst[rt][u] + 1;
+		calc_dist(v, u);
+	}
+}
+
+int n;
+
+bool can(int x, int h) {
+	vector<int> vec;
+	for(int i = 1; i <= n; i++) {
+		if(dst[1][i] > h) vec.push_back(i);
+	}
+	if(vec.empty()) return true;
+	
+	int mx = -1, A = vec[0], B;
+	for(int u : vec) if(dst[A][u] > mx) {
+		mx = dst[A][u], B = u;
+	}
+	mx = -1;
+	for(int u : vec) if(dst[B][u] > mx) {
+		mx = dst[B][u], A = u;
+	}
+	// A and B are the end points of diameter.
+}
+
+int main() {
+	
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d", &n);
+        for(int i = 1; i <= n; i++) adj[i].clear();
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d %d", &u, &v);
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        
+        for(int i = 1; i <= n; i++) {
+        	dst[rt = i][rt] = 0, calc_dist(rt);
+        }
+        
+        for(int x = 1; x <= n; x++) {
+        	int st = 0, ed = n;
+        	while(ed - st > 1) {
+        		int md = st + ed >> 1;
+        		if(can(x, md)) ed = md;
+        		else st = md;
+        	}
+        	printf("%d ", ed);
+        }
+        puts("");
+    }
+}
+
+
+
+
+The length of diameter of node set {\(vec_0, vec_1, ..., vec_m\)} is dst[A][B].
+If we add an edge that has \(x\) weight between node 1 and the center of this diameter, we can update all distances from node 1 to node \( \text{vec}_i \) to a minimum of \( x + \left\lceil \frac{\text{dst}[A][B]}{2} \right\rceil \).
+So finally we only need to check this value is less than or equal to \(h\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 3030;
+
+vector<int> adj[NN];
+
+int dst[NN][NN], rt;
+
+void calc_dist(int u, int f = 0) {
+	for(int v : adj[u]) if(v != f) {
+		dst[rt][v] = dst[rt][u] + 1;
+		calc_dist(v, u);
+	}
+}
+
+int n;
+
+bool can(int x, int h) {
+	vector<int> vec;
+	for(int i = 1; i <= n; i++) {
+		if(dst[1][i] > h) vec.push_back(i);
+	}
+	if(vec.empty()) return true;
+	
+	int mx = -1, A = vec[0], B;
+	for(int u : vec) if(dst[A][u] > mx) {
+		mx = dst[A][u], B = u;
+	}
+	mx = -1;
+	for(int u : vec) if(dst[B][u] > mx) {
+		mx = dst[B][u], A = u;
+	}
+	return x + (dst[A][B] + 1 >> 1) <= h;
+}
+
+int main() {
+	
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d", &n);
+        for(int i = 1; i <= n; i++) adj[i].clear();
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d %d", &u, &v);
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+        }
+        
+        for(int i = 1; i <= n; i++) {
+        	dst[rt = i][rt] = 0, calc_dist(rt);
+        }
+        
+        for(int x = 1; x <= n; x++) {
+        	int st = 0, ed = n;
+        	while(ed - st > 1) {
+        		int md = st + ed >> 1;
+        		if(can(x, md)) ed = md;
+        		else st = md;
+        	}
+        	printf("%d ", ed);
+        }
+        puts("");
+    }
+}
+
+
+
+
+Let's examine a custom corner case, where n is its minimum value: n = 2.
+<code>
+1
+2
+1 2
+</code>
+In this case, the graph consists of only one edge (1, 2).
+Therefore, regardless of the additional edge x we add, the maximum distance will remain 1, as there will still only be one edge connecting node 1 and node 2.
+Thus, the answer is simply the original maximum distance for all x. The maximum distance from node 1 to any other nodes (in this case, only node 2) is 1, so the answer for this test case will be "1 1."
+
+
+
+
+
+1
+2
+1 2

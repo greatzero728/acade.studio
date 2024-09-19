@@ -1,0 +1,191 @@
+C. Captains Mode
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Kostya is a progamer specializing in the discipline of Dota 2. Valve Corporation, the developer of this game, has recently released a new patch which turned the balance of the game upside down. Kostya, as the captain of the team, realizes that the greatest responsibility lies on him, so he wants to resort to the analysis of innovations patch from the mathematical point of view to choose the best heroes for his team in every game.
+
+A Dota 2 match involves two teams, each of them must choose some heroes that the players of the team are going to play for, and it is forbidden to choose the same hero several times, even in different teams. In large electronic sports competitions where Kostya's team is going to participate, the matches are held in the Captains Mode. In this mode the captains select the heroes by making one of two possible actions in a certain, predetermined order: pick or ban.
+
+\(\bull\) To pick a hero for the team. After the captain picks, the picked hero goes to his team (later one of a team members will play it) and can no longer be selected by any of the teams.
+\(\bull\) To ban a hero. After the ban the hero is not sent to any of the teams, but it still can no longer be selected by any of the teams.
+
+The team captain may miss a pick or a ban. If he misses a pick, a random hero is added to his team from those that were available at that moment, and if he misses a ban, no hero is banned, as if there was no ban.
+
+Kostya has already identified the strength of all the heroes based on the new patch fixes. Of course, Kostya knows the order of picks and bans. The strength of a team is the sum of the strengths of the team's heroes and both teams that participate in the match seek to maximize the difference in strengths in their favor. Help Kostya determine what team, the first one or the second one, has advantage in the match, and how large the advantage is.
+
+Input
+The first line contains a single integer n (2 ≤ n ≤ 100) — the number of heroes in Dota 2.
+
+The second line contains n integers \(s_1, s_2, ..., s_n (1 ≤ s_i ≤ 10^6)\) — the strengths of all the heroes.
+
+The third line contains a single integer m (2 ≤ m ≤ min(n, 20)) — the number of actions the captains of the team must perform.
+
+Next m lines look like "action team", where action is the needed action: a pick (represented as a "p") or a ban (represented as a "b"), and team is the number of the team that needs to perform the action (number 1 or 2).
+
+It is guaranteed that each team makes at least one pick. Besides, each team has the same number of picks and the same number of bans.
+
+Output
+Print a single integer — the difference between the strength of the first team and the strength of the second team if the captains of both teams will act optimally well.
+
+
+
+
+\(\bull\) naive algorithm:
+Let's generate all possible ways to select m heroes from n by simulating every sequence of picks and bans.
+For each action, the algorithm iterates through all remaining available heroes, selecting the optimal one based on the action type (pick or ban).
+The time complexity is \(O({}_nP_m)\), which represents the number of permutations of m heroes from n.
+This approach leads to a time limit exceeded error because the factorial growth in permutations makes the algorithm impractical for larger values of n and m, especially when n is up to 100 and m is up to 20.
+
+
+
+
+We only need to consider the strongest m heroes for two reasons:
+
+\(\bull\) First, if the current operation is a pick, we obviously select the strongest available hero to maximize our team's strength.
+\(\bull\) Second, if the operation is a ban, we ban heroes that would most benefit the opposing team, which would naturally be from the strongest m heroes, as weaker heroes would not significantly impact the match.
+
+Thus, any hero outside the top m is irrelevant for both picking and banning decisions.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+
+int n, m;
+vector<int> strengths;
+vector<pair<char, int>> actions;
+
+int main() {
+    scanf("%d", &n);
+    strengths.resize(n);
+    for(int i = n; i--; ) scanf("%d", &strengths[i]);
+    
+    sort(strengths.rbegin(), strengths.rend());
+    scanf("%d", &m);
+    
+    actions.resize(m);
+    for(int i = 0; i < m; i++) {
+        scanf(" %c %d", &actions[i].x, &actions[i].y);
+    }
+    return 0;
+}
+
+
+
+
+Let's define the state of the game as a pair of integers (i, mask), where i is the current turn and mask is a bit mask of the strongest m heroes that are still available. 
+We can use a recursive approach to solve this problem. In each turn, if the action is a pick, we try to pick each available hero and recursively call the function for the next turn. 
+If the action is a ban, we try to ban each available hero and recursively call the function for the next turn. 
+We use memoization to store the results of subproblems to avoid redundant calculations. 
+The base case is when we have made all the picks and bans, in which case we return the difference in strength between the two teams. 
+
+The main idea is to use a depth-first search (DFS) approach to explore all possible sequences of picks and bans, and use memoization to store the results of subproblems to avoid redundant calculations. 
+
+We will use a 2D array dp to store the results of subproblems, where dp[i][mask] stores the maximum difference in strength that can be achieved for the first team if the current turn is i and the available heroes are represented by the bit mask mask. 
+
+For each turn i, we iterate over all possible masks and for each mask, we try to pick or ban each available hero and recursively call the function for the next turn. 
+
+We use a variable "res" to store the maximum difference in strength that can be achieved for the first team for the current turn and mask. 
+
+If the action is a pick, we try to pick each available hero and recursively call the function for the next turn. 
+
+If the action is a ban, we try to ban each available hero and recursively call the function for the next turn. 
+
+We update the value of "res" with the maximum difference in strength that can be achieved for the first team for the current turn and mask. 
+
+Finally, we return the value of "res" as the result of the function. 
+
+This approach has a time complexity of O(m * 2^m) and a space complexity of O(m * 2^m), which is acceptable since m is at most 20. 
+
+Note that we use a recursive approach with memoization to solve this problem, which is a common technique for solving problems with overlapping subproblems. 
+We also use bit masks to represent the available heroes, which is a common technique for solving problems with subsets. 
+
+Overall, this approach is efficient and effective for solving this problem.
+
+
+
+
+Above approach is correct, but we need to correct some minor issues.
+The declaration of dp is correct, but the transition including initial value are weak. So we need more detail about how to calculate dp[i][mask].
+The time complexity is \(O(m \cdot 2 ^ m)\), not O(m * 2^m). And also space complexity is \(O(m \cdot 2 ^ m)\), not O(m * 2^m).
+Let's formulate the real algorithm again, with the detailed transition and correct latex in the next block.
+
+
+
+
+We need to reformulate the algorithm.
+Let \(dp[i][mask]\) be the maximum difference in strength that can be achieved for the first team if the current turn is \(i\) and the available heroes are represented by the bit mask \(mask\).
+We initialize \(dp[m][mask] = 0\) for all \(mask\).
+For each turn \(i\) from \(m-1\) to \(0\), we iterate over all possible masks and for each mask, we try to pick or ban each available hero and recursively call the function for the next turn.
+Let \(res = -\infty\) be the maximum difference in strength that can be achieved for the first team for the current turn and mask.
+If the action is a pick, we try to pick each available hero \(j\) and recursively call the function for the next turn, and update \(res\) with the maximum value.
+If the action is a ban, we try to ban each available hero \(j\) and recursively call the function for the next turn, and update \(res\) with the maximum value.
+We update the value of \(dp[i][mask]\) with the value of \(res\).
+Finally, we return the value of \(dp[0][2^m - 1]\) as the result of the function.
+This approach has a time complexity of \(O(m \cdot 2^m)\) and a space complexity of \(O(m \cdot 2^m)\), which is acceptable since \(m\) is at most 20.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+
+int n, m;
+vector<int> strengths;
+vector<pair<char, int>> actions;
+int dp[21][1 << 20];
+
+int solve(int i, int mask) {
+    if(i == m) return 0;
+    if(dp[i][mask] != -1) return dp[i][mask];
+    int res = (actions[i].y == 1) ? -INT_MAX : INT_MAX;
+    for(int j = 0; j < m; j++) if((mask & (1 << j)) != 0) {
+        int new_mask = mask ^ (1 << j);
+        int value;
+        if(actions[i].x == 'p')
+            value = (actions[i].y == 1 ? strengths[j] : -strengths[j]) + solve(i + 1, new_mask);
+        else value = solve(i + 1, new_mask);
+        res = (actions[i].y == 1) ? max(res, value) : min(res, value);
+    }
+    return dp[i][mask] = res;
+}
+
+int main() {
+    scanf("%d", &n);
+    strengths.resize(n);
+    for(int i = n; i--; ) scanf("%d", &strengths[i]);
+    
+    sort(strengths.rbegin(), strengths.rend());
+    scanf("%d", &m);
+    
+    actions.resize(m);
+    for(int i = 0; i < m; i++) {
+        scanf(" %c %d", &actions[i].x, &actions[i].y);
+    }
+    memset(dp, -1, sizeof dp);
+    printf("%d\n", solve(0, (1 << m) - 1));
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case where all \(s_i\) values are the same.
+In this case, regardless of the method used, both teams will have the same strength.
+Consequently, the difference between the strength of the first team and the second team will always be 0.
+
+
+
+
+10
+7 7 7 7 7 7 7 7 7 7
+2
+p 1
+p 2

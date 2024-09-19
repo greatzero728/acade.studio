@@ -1,0 +1,97 @@
+C. Bear and Poker
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Limak is an old brown bear. He often plays poker with his friends. Today they went to a casino. There are n players (including Limak himself) and right now all of them have bids on the table. i-th of them has bid with size \(a_i\) dollars.
+
+Each player can double his bid any number of times and triple his bid any number of times. The casino has a great jackpot for making all bids equal. Is it possible that Limak and his friends will win a jackpot?
+
+Input
+First line of input contains an integer n (2 ≤ n ≤ \(10^5\)), the number of players.
+
+The second line contains n integer numbers \(a_1, a_2, ..., a_n (1 ≤ a_i ≤ 10^9)\) — the bids of players.
+
+Output
+Print "Yes" (without the quotes) if players can make their bids become equal, or "No" otherwise.
+
+Note
+In the first sample test first and third players should double their bids twice, second player should double his bid once and fourth player should both double and triple his bid.
+
+It can be shown that in the second sample test there is no way to make all bids equal.
+
+
+
+
+
+Let's consider a naive approach. Suppose that after we update the array, all elements change to \(x\).
+This means that we already multiplied optimally each \(a_i\) by 2 or 3 to make \(a_i\) is same as \(x\). (where \(1 \leq i \leq n\)).
+It is evident that \(x\) is divisible by \(a_i\).
+So we can iterate all possible \(x\) and can check if \(x\) is divisible by \(a_i\).
+If such \(x\) exists, then that means, the optimal solution exists, too.
+Otherwise, the optimal solution doesn't exist.
+But \(a_i \leq 10 ^ 9\), so it's difficult to iterate all possible \(x\), because at least \(x \geq a_i\) satisfied.
+So this naive algorithm is a time limit exceeding algorithm.
+
+
+
+
+To solve this problem, we need to determine if it's possible for all bids to become equal by doubling and tripling them. 
+
+First, let's analyze the problem and think about what conditions must be met for the bids to become equal. We can represent each bid as a product of its prime factors. For two bids to become equal, they must have the same prime factors.
+
+The given bids can be represented as \(a_i = 2^x * 3^y * k_i\), where \(k_i\) is the remaining number after removing all 2's and 3's from \(a_i\), and \(x\) and \(y\) are the number of 2's and 3's in the factorization of \(a_i\), respectively.
+
+To make all bids equal, the numbers \(k_i\) must all be equal. If they are not equal, it's impossible to make all bids equal.
+
+So, the first step is to check if all \(k_i\) are equal. If they are, then the next step is to check if all bids can be made equal by doubling and tripling. If not, the answer is "No".
+
+Let's write a simple code to read the input and calculate \(k_i\) for each bid.
+
+Next step would be to implement the IO part of the code to read in values for n, and the bids, and calculate \(k_i\) for each bid. We'll do it in a simple loop, using a function to calculate \(k_i\). 
+
+Please see the next step, which is a CODE block.
+
+
+
+
+#include <iostream>
+#include <vector>
+
+int remove_2_and_3(int x) {
+    while (x % 2 == 0) x /= 2;
+    while (x % 3 == 0) x /= 3;
+    return x;
+}
+
+int main() {
+    int n;
+    std::cin >> n;
+    std::vector<int> k(n);
+    for (int i = 0; i < n; i++) {
+        int x;
+        std::cin >> x;
+        k[i] = remove_2_and_3(x);
+    }
+    for (int i = 1; i < n; i++) {
+        if (k[i] != k[0]) {
+            std::cout << "No";
+            return 0;
+        }
+    }
+    std::cout << "Yes";
+    return 0;
+}
+
+
+
+
+Let's check a custom corner case, where n and \(a_i\) are their minimum values: \(n = 2, a_i = 1\).
+2
+1 1
+In this case, the all elements of array \(a\) are already same, so the answer for this case will be "Yes".
+
+
+
+
+2
+1 1

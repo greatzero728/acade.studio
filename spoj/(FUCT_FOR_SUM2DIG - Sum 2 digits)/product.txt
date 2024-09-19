@@ -1,0 +1,77 @@
+FUCT_FOR_SUM2DIG - Sum 2 digits
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Enter a positive number n. Find out all 2-digit number whose sum of 2 digits is equal to n.
+
+Input
+Contain a single number n.
+
+Constraints
+1 ≤ n ≤ 18
+
+Output
+Print out all 2-digit numbers whose sum of 2 digits is equal to n.
+
+Each solution in one line.
+
+If it doesn't have any solution, print out "NO".
+
+
+
+
+
+
+The problem asks to find all 2-digit numbers whose sum of 2 digits is equal to a given number n. We can start by breaking down the possible range of values for the two digits. Let's call the tens digit x and the units digit y. We know that 1 ≤ n ≤ 18, and since x + y = n, we can conclude that 0 ≤ x, y ≤ 9. Our goal is to iterate over all possible combinations of x and y that satisfy the equation x + y = n, and output the corresponding 2-digit numbers. 
+
+We can think about using a loop to iterate over all possible values of x, and then calculate the corresponding value of y such that x + y = n. If x and y are both within the valid range, we can output the 2-digit number.
+
+We should also consider the edge case where n is too small or too large, resulting in no valid solutions. In this case, we should output "NO". 
+
+Next, we can start writing the code to read the input and implement the loop to find the solutions.
+
+
+
+
+#include <iostream>
+
+int main() {
+    int n;
+    std::cin >> n;
+    bool found = false;
+    for (int x = 1; x <= 9; x++) {
+        int y = n - x;
+        if (y >= 0 && y <= 9) {
+            std::cout << x * 10 + y << " = " << x << " + " << y << " = " << n << std::endl;
+            found = true;
+        }
+    }
+    if (!found) {
+        std::cout << "NO" << std::endl;
+    }
+    return 0;
+}
+
+
+
+
+The output of the test looks correct. We have found all the 2-digit numbers whose sum of 2 digits is equal to 8, as expected. Our code seems to be working as intended. We should try testing it with a different input to see if it handles edge cases correctly. For example, we can test it with n = 1 or n = 18 to see if it outputs the correct results.
+
+
+
+
+If n = 1, the sum of the digits is 1, so the 2-digit number must be 10.
+So the answer will be "10 = 1 + 0 = 1" in this case.
+If n = 18, the sum of the digits is 18, so the 2-digit number must be 99.
+So the answer will be "99 = 9 + 9 = 18" in this case.
+
+
+
+
+1
+
+
+
+
+18

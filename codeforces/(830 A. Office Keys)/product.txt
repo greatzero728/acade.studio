@@ -1,0 +1,121 @@
+A. Office Keys
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+There are n people and k keys on a straight line. Every person wants to get to the office which is located on the line as well. To do that, he needs to reach some point with a key, take the key and then go to the office. Once a key is taken by somebody, it couldn't be taken by anybody else.
+
+You are to determine the minimum time needed for all n people to get to the office with keys. Assume that people move a unit distance per 1 second. If two people reach a key at the same time, only one of them can take the key. A person can pass through a point with a key without taking it.
+
+Input
+The first line contains three integers n, k and p (1 ≤ n ≤ 1 000, n ≤ k ≤ 2 000, 1 ≤ p ≤ \(10^9\)) — the number of people, the number of keys and the office location.
+
+The second line contains n distinct integers \(a_1, a_2, ..., a_n (1 ≤ a_i ≤ 10^9)\) — positions in which people are located initially. The positions are given in arbitrary order.
+
+The third line contains k distinct integers \(b_1, b_2, ..., b_k (1 ≤ b_j ≤ 10^9)\) — positions of the keys. The positions are given in arbitrary order.
+
+Note that there can't be more than one person or more than one key in the same point. A person and a key can be located in the same point.
+
+Output
+Print the minimum time (in seconds) needed for all n to reach the office with keys.
+
+Note
+In the first example the person located at point 20 should take the key located at point 40 and go with it to the office located at point 50. He spends 30 seconds. The person located at point 100 can take the key located at point 80 and go to the office with it. He spends 50 seconds. Thus, after 50 seconds everybody is in office with keys.
+
+
+
+
+Let's consider about the naive approach to solve the problem.
+We can check all possible options in this problem.
+The 1st person select his key, and there are k options.
+The 2nd person select his key, and there are k-1 options, because already 1st person selected his key.
+The 3rd person select his key, and there are k-2 options, because already 2 people selected their keys.
+The 4th person select his key, and there are k-3 options, because already 3 people selected their keys.
+...
+The nth person select his key, and there are k-(n-1) options, because already (n-1) people selected their keys.
+After determining all the keys, we only need to maximize the answer based on the distance that each person moves.
+Howeber, as we can see, the number of all possible options are \(k \cdot (k - 1) \cdot (k - 2) \cdot ... \cdot (k - (n - 1)\) and this can be up to \(2000 \cdot (2000 - 1) \cdot (2000 - 2) \cdot ... \cdot (2000 - (1000 - 1)) = 2000 \cdot 1999 \cdot 1998 \cdot 1997 \cdots \cdot 1001\), very huge amount.
+So this naive algorithm is a time limit exceed algorithm.
+
+
+
+
+Let's think about a way to optimize the algorithm. We can observe that the keys that the people will take must be a continuous sequence of length n in the sorted array of keys. This is because if there is a gap in the sequence of keys, it means that there is a key that is not taken by anyone, which contradicts the fact that there are n people and n keys to be taken.
+
+This observation can help us to reduce the number of possible options. Instead of checking all possible combinations of keys, we can only check the continuous sequences of length n in the sorted array of keys. This will greatly reduce the number of options and make the algorithm more efficient.
+
+Let's think about how to implement this idea in code. We can first sort the array of keys, and then use a sliding window approach to check all continuous sequences of length n. For each sequence, we can calculate the maximum distance that any person needs to move, and keep track of the minimum maximum distance found so far.
+
+This approach should be much faster than the naive algorithm, and it should be able to find the correct answer within the time limit.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int NN = 2020;
+
+int a[NN], b[NN];
+
+int main() {
+    int n, k, p; scanf("%d %d %d", &n, &k, &p);
+    for(int i = n; i--; ) scanf("%d", a + i);
+    for(int i = k; i--; ) scanf("%d", b + i);
+}
+
+
+
+
+Let's think about how to sort the arrays a and b in ascending order. We can use the built-in sort function in C++ to do this. We should also consider how to implement the sliding window approach to check all continuous sequences of length n in the sorted array of keys.
+
+We can use two pointers, one at the start of the window and one at the end of the window, to keep track of the current sequence of keys. We can then calculate the maximum distance that any person needs to move for each sequence, and keep track of the minimum maximum distance found so far.
+
+Let's also think about how to calculate the maximum distance that any person needs to move for each sequence. We can use the absolute difference between the position of the person and the position of the key, plus the absolute difference between the position of the key and the position of the office.
+
+We should also consider how to handle the case where the person is already at the office. In this case, the distance that the person needs to move is 0.
+
+Let's implement these ideas in code.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int NN = 2020;
+
+int a[NN], b[NN];
+
+int main() {
+    int n, k, p; scanf("%d %d %d", &n, &k, &p);
+    for(int i = n; i--; ) scanf("%d", a + i);
+    for(int i = k; i--; ) scanf("%d", b + i);
+    sort(a, a + n);
+    sort(b, b + k);
+    int ans = INT_MAX;
+    for(int i = 0; i + n <= k; i++) {
+        int res = 0;
+        for(int j = 0; j < n; j++) {
+            res = max(res, abs(a[j] - b[i + j]) + abs(b[i + j] - p));
+        }
+        ans = min(ans, res);
+    }
+    printf("%d\n", ans);
+}
+
+
+
+
+Let's check a custom corner case, where \(n, k, p, a_i, b_i\) are their minimum values: \(n = 1, k = 1, p = 1, a_i = 1, b_i = 1\).
+1 1 1
+1
+1
+In this case, the there are only one person and one key, and the position of person, key and office location are all the same.
+So the person can be reach the key point immediately, and can be reach the office location immediately, so in this case, the answer should be 0.
+
+
+
+
+1 1 1
+1
+1

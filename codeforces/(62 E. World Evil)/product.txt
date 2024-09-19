@@ -1,0 +1,177 @@
+E. World Evil
+time limit per test5 seconds
+memory limit per test256 megabytes
+As a result of Pinky and Brain's mysterious experiments in the Large Hadron Collider some portals or black holes opened to the parallel dimension. And the World Evil has crept to the veil between their world and ours. Brain quickly evaluated the situation and he understood that the more evil tentacles creep out and become free, the higher is the possibility that Brain will rule the world.
+
+The collider's constriction is a rectangular grid rolled into a cylinder and consisting of n rows and m columns such as is shown in the picture below:
+<img 1>
+
+In this example n = 4, m = 5. Dotted lines are corridores that close each column to a ring, i. e. connect the n-th and the 1-th rows of the grid.
+
+In the leftmost column of the grid the portals are situated and the tentacles of the World Evil are ready to creep out from there. In the rightmost column the exit doors are located. The tentacles can only get out through those doors. The segments joining the nodes of the grid are corridors.
+
+Brain would be glad to let all the tentacles out but he faces a problem: the infinite number of tentacles can creep out of the portals, every tentacle possesses infinite length and some width and the volume of the corridors are, unfortunately, quite limited. Brain could approximately evaluate the maximal number of tentacles that will be able to crawl through every corridor.
+
+Now help the mice to determine the maximal number of tentacles of the World Evil that will crawl out of the Large Hadron Collider.
+
+Input
+The first line of the input file contains two integers n and m (2 ≤ n ≤ 5, 2 ≤ m ≤ 105). They are the sizes of the Large Hadron Collider grid. The next m - 1 lines contain n numbers each. They are the horizontal corridors' capacities. The next m lines contain n numbers each. They are the vertical corridors' capacities. Corridors are described from left to right and from top to bottom. Every n-th vertical corridor connects nodes of the n-th and 1-th rows. A corridor's capacity is a non-negative integer that does not exceed 109.
+
+Output
+Print a single number, the number of the World Evil tentacles Pinky and Brain will command.
+
+Please, do not use %lld specificator to read or write 64-bit integers in C++. It is preffered to use cout (also you may use %I64d).
+
+
+
+
+
+Let's consider the given cyllinder structure as a graph, then the problem changes to finding the maximum flow in the graph.
+We can solve this using a naive approach with a maximum flow algorithm, but this will likely result in a time limit exceeded error, as the number of nodes can be up to 500,000 and the number of edges can reach 1,000,000. Even if we introduce tricks to reduce the time complexity, we will still encounter time limit errors due to the high time complexity of the maximum flow algorithm.
+
+\(\bullet\) According the max-flow min-cut theorem, the maximum flow through any network from a given source to a given sink is exactly the sum of the edge weights that, if removed, would totally disconnect the source from the sink. So calculating maximum flow, we can calculate minimum cut of the given graph.
+Since the shape of the graph is cylindrical and the number of points on the cross section of the cylinder is at most 5, we can consider a dynamic approach to determine the minimum cut for the given problem.
+
+\(\bullet\) Let's denote the answer for the case where we consider only the 1st, 2nd, 3rd, ..., \(i\)-th cylinder cross-sections as \(dp[i][j]\). Here, if the \(k\)-th bit of \(j\) is 1, it means that the World Evil cannot pass through the \(k\)-th node of the \(u\)-th cylinder cross-section; otherwise, if it is 0, it means that the World Evil can pass through the \(k\)-th node of the \(u\)-th cylinder cross-section.
+\(\bullet\) Then, the answer will be \(dp[m][2^n - 1]\), as we have to cut the graph.
+\(-\) The initial state is \(dp[1][0] = 0\).
+For general case:
+\(-\) Let's consider the vertical edges in the \(i\)-th cross-section:
+If the state of the \(k\)-th node and the \((k + 1) \% n\)-th node is different, it means that one of them is 0, so we must cut the \(k\)-th vertical edge. If we do not cut this edge, a new flow will emerge from the node where the state is 0 to the node where the state is also 0, causing their states to become the same: 0. Therefore, we have to cut the \(k\)-th edge in this case.
+\(-\) Let's consider the horizontal edges that connect the \(i\)-th cross-section to the \((i + 1)\)-th cross-section:
+If the \(k\)-th node is in state 0, we can block the \(k\)-th horizontal edge and update the value of the next state according to the corresponding cost.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 101010;
+
+int horizon[NN][5], vertical[NN][5], n, m;
+
+int main() {
+	cin>>n>>m;
+	for(int i = 1; i < m; i++) {
+		for(int j = 0; j < n; j++) cin>>horizon[i][j];
+	}
+	for(int i = 0; i < m; i++) {
+		for(int j = 0; j < n; j++) cin>>vertical[i][j];
+	}
+}
+
+
+
+
+
+
+Let's implement this: The initial state is \(dp[1][0] = 0\), and answer will be \(dp[m][2^n - 1]\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010;
+
+int horizon[NN][5], vertical[NN][5], n, m;
+INT dp[NN][32];
+
+int main() {
+	cin>>n>>m;
+	for(int i = 1; i < m; i++) {
+		for(int j = 0; j < n; j++) cin>>horizon[i][j];
+	}
+	for(int i = 0; i < m; i++) {
+		for(int j = 0; j < n; j++) cin>>vertical[i][j];
+	}
+	
+	memset(dp, 0x3f, sizeof dp);
+	dp[1][0] = 0;
+	
+	printf("%lld\n", dp[m][(1 << n) - 1]);
+}
+
+
+
+
+
+
+Let's calculate all possible \(dp[i][j]\) using the transmission mentioned in block 1:
+\(-\) Let's consider the vertical edges in the \(i\)-th cross-section:
+If the state of the \(k\)-th node and the \((k + 1) \% n\)-th node is different, we have to add \(vertical[i][k]\) to the \(dp[i][j]\).
+\(-\) Let's consider the horizontal edges that connect the \(i\)-th cross-section to the \((i + 1)\)-th cross-section:
+If the \(k\)-th node is in state 0, we need to maximize dp[i + 1][j ^ (1 << k)] by \(dp[i][j] + horizon[i][k]\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010;
+
+int horizon[NN][5], vertical[NN][5], n, m;
+INT dp[NN][32];
+
+int main() {
+	cin>>n>>m;
+	for(int i = 1; i < m; i++) {
+		for(int j = 0; j < n; j++) cin>>horizon[i][j];
+	}
+	for(int i = 0; i < m; i++) {
+		for(int j = 0; j < n; j++) cin>>vertical[i][j];
+	}
+	
+	memset(dp, 0x3f, sizeof dp);
+	dp[1][0] = 0;
+	for(int i = 1; i < m; i++) {
+		for(int j = 0; j < 1 << n; j++) {
+			for(int k = 0; k < n; k++) if(!((j >> k) & 1)) {
+				dp[i][j ^ (1 << k)] = min(dp[i][j ^ (1 << k)], dp[i][j] + horizon[i][k]);
+			}
+			for(int k = 0; k < n; k++) {
+				if(((j >> k) & 1) ^ ((j >> (k + 1) % n) & 1)) dp[i][j] += vertical[i][k];
+				dp[i + 1][j] = dp[i][j];
+			}
+		}
+	}
+	
+	printf("%lld\n", dp[m][(1 << n) - 1]);
+}
+
+
+
+
+
+
+Let's consider the custom corner case where \(n\) and \(m\) are both at their minimum values: \(n = 2\) and \(m = 2\).
+<b>Input</b>
+<code>
+2 2
+1
+1
+1 1
+1 1
+</code>
+In this case, the number of nodes in the cross-section is 2, and all weights are 1, so the minimum cut of the graph will be 2.
+
+
+
+
+
+2 2
+1
+1
+1 1
+1 1

@@ -1,0 +1,123 @@
+TAP2015A - AM FM
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Amelia has decided to retire from programming competitions and move to a more peaceful place, away from the noisy city. She dreams of sitting in front of her house to see the sunset over the countryside, while listening on the radio to one of her beloved soap operas. However, before fulfilling her dreams she must solve one last problem, which consists in choosing where she should move.
+
+The countryside where Amelia wants to move to is very large and flat, so much so that it can be represented by an infinite plane on which we imagine a Cartesian coordinate system (X, Y). In this countryside there are N radio stations numbered 1 through N. The i-th radio station transmits its signal from an antenna placed at point \((X_i, Y_i)\), having a signal range of Ri. This radio station can be tuned in to from any point (X, Y) whose distance to the antenna is less or equal to the corresponding range, i.e. satisfying:
+
+\((X - Xi)^2 + (Y - Yi)^2 ≤ {R_i}^2\)
+
+The signals from different radio stations can overlap, but will never interfere with each other. In order to listen to as many soap operas as possible, Amelia wants to place her house at some point within the range of the maximum possible number of radio stations. Now Amelia wants to know, given the description of the countryside, what is the maximum number of radio stations she will be able to tune in to as she sees the sunset over the countryside sitting in front of her house.
+
+Input
+There are multiple test cases in the input file. For each test case, the first line contains an integer N representing the number of radio stations in the countryside (1 ≤ N ≤ 100). Each of the following N lines contains three integers \(X_i, Y_i\) and \(R_i\) representing respectively the coordinates of the antenna and the range of the i-th radio station (-1000 ≤ \(X_i, Y_i\) ≤ 1000 and 1 ≤ \(R_i\) ≤ 1000 for i = 1, 2, ... N).
+
+Output
+For each test case, print one line containing an integer representing the maximum number of radio stations Amelia will be able to tune in to if she optimally chooses where to move to.
+
+
+
+
+
+
+\(\bullet\) The given problem is to find out the maximum number of radio stations that Amelia can listen.
+So we can check all possible position(X, Y) of Amelia's house, and if we determin the position of Amelia's house, then we only need to iterate all radio station\((X_i, Y_i)\) and can count the number of radio stations that she can listen using the given formula: \((X - Xi)^2 + (Y - Yi)^2 ≤ {R_i}^2\) in time complexity O(N).
+For all possible position(X, Y), we counted the number of radio stations that she can listen, so we only need to calculate the maximum value of those counts.
+But, here the main challenge is that there are infinite candidates for position(X, Y).
+So with this naive approach, we can't iterate all possible candidates for Amelia's house.
+
+\(\bullet\) Let's suppose that Amelia already determine her house position(X, Y) optimally.
+We can consider each radio station(\(X_i, Y_i\)) as the circle(\(X_i, Y_i, R_i\)). (\(R_i\) is the radius of this circle)
+Let's assume the answer is k. Then, exactly k circles (representing the radio station) will include the point (X, Y) as an interior point.
+Let's consider the area that point (X, Y) can be located. This area will be surrounded by a collection of partial circumferences of k circles.
+We can move the point (X, Y) to a specific position that we can calculate easily to reduce the number of candidates of house location.
+1) If the area is only one part of a certain circle(ax, ay, ry), then the center(ax, ay) will be also located in the same area, so we can move point(X, Y) to center(ax, ay). (Here, point (ax, ay) can be any of N points (\(X_i, Y_i\)), \(1 \leq i \leq N\))
+2) The other case means that there is an intersection point of two circles within the bounds of our area. So we can move point (X, Y) to the intersection point of the two circles. (Here, the number of candidate intersection points between two circles is \(\frac{N \cdot (N - 1)}{2}\).)
+Overall, we reduce the possible candidate points from infinite to \(N + \frac{N \cdot (N - 1)}{2}\).
+
+We have already reduced the number of candidate position of the house to \(N + \frac{N \cdot (N - 1)}{2}\), so we only need to implement the same approach mentioned in naive approach, and the time complexity will be \(O(N ^ 3)\). (\(N ^ 2\) will be used for iterate all possible candidates, N will be used for calculate the number of radio stations after we fix the house position.)
+
+
+
+
+Now, we can implement the same approach mentioned in the naive approach with the reduced candidate points. 
+For this, we only need to iterate \(N + \frac{N \cdot (N - 1)}{2}\) candidate points, and for each candidate point, we iterate all N radio stations and check whether the point is located in the area of the radio station or not.
+
+So, we can implement it using two nested loops. The outer loop will iterate all candidate points and the inner loop will check all N radio stations for each candidate point. 
+
+But first, we need to calculate all candidate points. We can do this by iterating all N radio stations and \(\frac{N \cdot (N - 1)}{2}\) pairs of two radio stations.
+
+For each pair of two radio stations, we can calculate two intersection points of two circles using the formula for the intersection of two circles.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using DO = long double;
+
+const DO eps = 1e-9;
+const int NN = 1212;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO s) {return point(x * s, y * s);}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO al) {return *this & point(cosl(al), sinl(al));}
+	DO nor() {return sqrtl(*this * *this);}
+	DO nor2() {return *this * *this;}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+} p[NN];
+
+int X[NN], Y[NN], R[NN];
+
+int main() {
+	int n; cin>>n;
+	vector<point> vec;
+	for(int i = n; i--; ) {
+		cin>>X[i]>>Y[i]>>R[i];
+		vec.push_back(point(X[i], Y[i]));
+	}
+	
+	for(int i = n; i--; ) {
+		point p1 = point(X[i], Y[i]); DO r1 = R[i];
+		for(int j = i; j--; ) {
+			point p2 = point(X[j], Y[j]); DO r2 = R[j];
+			
+			DO d = (p1 - p2).nor();
+			if(d > r1 + r2 + eps || d < fabsl(r1 - r2) - eps) continue;
+			
+			DO al = acosl((r1 * r1 + d * d - r2 * r2) / (2 * r1 * d));
+			
+			vec.push_back(p1 + (p2 - p1).rotate(al).norm() * r1);
+			vec.push_back(p1 + (p2 - p1).rotate(-al).norm() * r1);
+		}
+	}
+	
+	int ans = 1;
+	for(point P: vec) {
+		int num = 0;
+		for(int i = n; i--; ) {
+			if((point(X[i], Y[i]) - P).nor2() < R[i] * R[i] + eps) num++;
+		}
+		ans = max(ans, num);
+	}
+	cout<<ans<<endl;
+	return 0;
+}
+
+
+
+

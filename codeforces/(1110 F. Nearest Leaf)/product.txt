@@ -1,0 +1,621 @@
+<b>Title:</b> Nearest Leaf
+<b>time limit per test:</b> 4 seconds
+<b>memory limit per test:</b> 512 megabytes
+
+Let's define the Eulerian traversal of a tree (a connected undirected graph without cycles) as follows: consider a depth-first search algorithm which traverses vertices of the tree and enumerates them in the order of visiting (only the first visit of each vertex counts). This function starts from the vertex number \(1\) and then recursively runs from all vertices which are connected with an edge with the current vertex and are not yet visited in increasing numbers order. Formally, you can describe this function using the following pseudocode:
+
+<code>
+next_id = 1
+id = array of length n filled with -1
+visited = array of length n filled with false
+
+function dfs(v):
+visited[v] = true
+id[v] = next_id
+next_id += 1
+for to in neighbors of v in increasing order:
+if not visited[to]:
+dfs(to)
+</code>
+
+You are given a weighted tree, the vertices of which were enumerated with integers from \(1\) to \(n\) using the algorithm described above.
+
+A <i>leaf </i> is a vertex of the tree which is connected with only one other vertex. In the tree given to you, the vertex \(1\) is not a leaf. The distance between two vertices in the tree is the sum of weights of the edges on the simple path between them.
+
+You have to answer \(q\) queries of the following type: given integers \(𝑣\), \(l\) and \(𝑟\), find the shortest distance from vertex \(𝑣\) to one of the leaves with indices from \(𝑙\) to \(𝑟\) inclusive.
+
+<b>Input</b>
+The first line contains two integers \(𝑛\) and \(𝑞\) \((3≤𝑛≤500000,1≤𝑞≤500000
+)\) — the number of vertices in the tree and the number of queries, respectively.
+
+The \((𝑖−1)\)-th of the following \(𝑛−1\) lines contains two integers \(p_𝑖\) and \(𝑤_𝑖\) \((1≤𝑝_𝑖<𝑖,1≤𝑤_𝑖≤10^9)\), denoting an edge between vertices \(p_i\) and 𝑖 with the weight \(𝑤_𝑖\).
+
+It's guaranteed that the given edges form a tree and the vertices are enumerated in the Eulerian traversal order and that the vertex with index \(1\) is not a leaf.
+
+The next \(𝑞\) lines describe the queries. Each of them contains three integers \(𝑣_𝑖, 𝑙_𝑖, 𝑟_𝑖(1≤𝑣_𝑖≤𝑛,1≤𝑙_𝑖≤𝑟_𝑖≤𝑛),\) describing the parameters of the query. It is guaranteed that there is at least one leaf with index 𝑥 such that \(𝑙_𝑖≤𝑥≤𝑟_i.\)
+
+<b>Output</b>
+Output \(𝑞\) integers — the answers for the queries in the order they are given in the input.
+
+<b>Note</b>
+In the first example, the tree looks like this:
+
+<img img >
+
+In the first query, the nearest leaf for the vertex 1 is vertex 4 with distance 3. In the second query, the nearest leaf for vertex 5 is vertex 5 with distance 0. In the third query the nearest leaf for vertex 4 is vertex 4; however, it is not inside interval [1,2] of the query. The only leaf in interval [1,2] is vertex 2 with distance 13 from vertex 4.
+
+
+
+
+The naive solution to this problem involves calculating the distances from the leaf nodes in the given range for each query using the DFS algorithm and then finding the minimum amongst them, but this would be computationally expensive as each query would take O(n) time, making the overall complexity O(n*q).
+So, we need to optimize this further. To do this, we can try resolving each query in O(log n) time by using a range minimum query over a segment tree.
+Firstly, let's take the tree as input in the form of an adjacency list.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define INF 100010001000100010
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    ll n,q;
+    cin>>n>>q;
+    ll t1,t2;
+    vector<vector<pair<ll,ll>>> adj(n);
+    for(ll i=1;i<n;i++)
+    {
+        cin>>t1>>t2;
+        t1--;
+        adj[i].push_back({t1,t2});
+        adj[t1].push_back({i,t2});
+    }
+}
+
+
+
+
+Now let's do a dfs traversal of the tree, mark the leaves and store the distances of each node from the first node, and set the distances for non-leaf nodes as INF. We are not using INT_MAX here as the distance range in the question is mentioned as \(10^9\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define INF 100010001000100010
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    ll n,q;
+    cin>>n>>q;
+    ll t1,t2;
+    vector<vector<pair<ll,ll>>> adj(n);
+    for(ll i=1;i<n;i++)
+    {
+        cin>>t1>>t2;
+        t1--;
+        adj[i].push_back({t1,t2});
+        adj[t1].push_back({i,t2});
+    }
+    vector<ll> isLeaf(n);
+    vector<ll> dis(n,INF);
+    dis[0]=0;
+    function <void(ll,ll)> dfs= [&](ll node,ll parent){
+        if(adj[node].size()==1){
+            isLeaf[node]=1;
+        }
+        for(auto i: adj[node])
+        {
+            count=max(count,i.first);
+            if(i.first==parent)continue;
+            dis[i.first]=dis[node]+i.second;
+            dfs(i.first,node);
+        }
+        
+    };
+    dfs(0,-1);
+    for(ll i=0;i<n;i++){
+        if(isLeaf[i]==0)dis[i]=INF;
+    }
+}
+
+
+
+
+We also want to keep track of the segment that lies in the subtree of a particular node, so we know that as the tree is in Euler's form, it will start with the next value of that node and will end at some higher value, so we track it in a vector 'till'.
+
+
+
+
+Now let's create a segment tree over the distance vector, which will support range minimum queries and range update add queries using the lazy propagation technique.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define INF 100010001000100010
+class SegmentTree {
+private:
+    vector<ll> tree;
+    vector<ll> lazy;
+    ll n;
+
+    void build(vector<ll>& arr, ll node, ll start, ll end) {
+        if (start == end) {
+            tree[node] = arr[start];
+        } else {
+            ll mid = (start + end) / 2;
+            build(arr, 2 * node + 1, start, mid);
+            build(arr, 2 * node + 2, mid + 1, end);
+            tree[node] = min(tree[2 * node + 1], tree[2 * node + 2]);
+        }
+    }
+
+    void updateRangeUtil(ll node, ll start, ll end, ll l, ll r, ll val) {
+        if (lazy[node] != 0) {
+            // Update current node
+            tree[node] += lazy[node];
+
+            // Propagate to children if not a leaf node
+            if (start != end) {
+                lazy[2 * node + 1] += lazy[node];
+                lazy[2 * node + 2] += lazy[node];
+            }
+
+            // Reset the lazy value for current node
+            lazy[node] = 0;
+        }
+
+        // No overlap condition
+        if (start > end || start > r || end < l)
+            return;
+
+        // Total overlap condition
+        if (start >= l && end <= r) {
+            tree[node] += val;
+            if (start != end) { // Not a leaf node
+                lazy[2 * node + 1] += val;
+                lazy[2 * node + 2] += val;
+            }
+            return;
+        }
+
+        // Partial overlap condition
+        ll mid = (start + end) / 2;
+        updateRangeUtil(2 * node + 1, start, mid, l, r, val);
+        updateRangeUtil(2 * node + 2, mid + 1, end, l, r, val);
+        tree[node] = min(tree[2 * node + 1], tree[2 * node + 2]);
+    }
+
+    ll queryRangeUtil(ll node, ll start, ll end, ll l, ll r) {
+        if (start > end || start > r || end < l)
+            return INF; // Out of range
+
+        if (lazy[node] != 0) {
+            tree[node] += lazy[node];
+            if (start != end) {
+                lazy[2 * node + 1] += lazy[node];
+                lazy[2 * node + 2] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+
+        if (start >= l && end <= r)
+            return tree[node];
+
+        ll mid = (start + end) / 2;
+        ll left_query = queryRangeUtil(2 * node + 1, start, mid, l, r);
+        ll right_query = queryRangeUtil(2 * node + 2, mid + 1, end, l, r);
+        return min(left_query, right_query);
+    }
+
+public:
+    SegmentTree(vector<ll>& arr) {
+        n = arr.size();
+        tree.resize(4 * n);
+        lazy.resize(4 * n, 0);
+        build(arr, 0, 0, n - 1);
+    }
+
+    void update_range(ll l, ll r, ll val) {
+        updateRangeUtil(0, 0, n - 1, l, r, val);
+    }
+
+    ll query_range(ll l, ll r) {
+        return queryRangeUtil(0, 0, n - 1, l, r);
+    }
+};
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    ll n,q;
+    cin>>n>>q;
+    ll t1,t2;
+    vector<vector<pair<ll,ll>>> adj(n);
+    for(ll i=1;i<n;i++)
+    {
+        cin>>t1>>t2;
+        t1--;
+        adj[i].push_back({t1,t2});
+        adj[t1].push_back({i,t2});
+    }
+    vector<ll> isLeaf(n);
+    vector<ll> dis(n,INF);
+    vector<ll> till(n);
+    dis[0]=0;
+    ll count=0;
+    function <void(ll,ll)> dfs= [&](ll node,ll parent){
+        if(adj[node].size()==1){
+            isLeaf[node]=1;
+        }
+        for(auto i: adj[node])
+        {
+            count=max(count,i.first);
+            if(i.first==parent)continue;
+            dis[i.first]=dis[node]+i.second;
+            dfs(i.first,node);
+        }
+        till[node]=count;
+        
+    };
+    dfs(0,-1);
+    for(ll i=0;i<n;i++){
+        if(isLeaf[i]==0)dis[i]=INF;
+    }
+    SegmentTree seg(dis);
+}
+
+
+
+
+Now, let's take the queries and make a map of queries, where each node is mapped with range queries of that node. We are doing this to resolve these queries in clusters by making range updates in the segment tree so that the queries are answered for each node.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define INF 100010001000100010
+class SegmentTree {
+private:
+    vector<ll> tree;
+    vector<ll> lazy;
+    ll n;
+
+    void build(vector<ll>& arr, ll node, ll start, ll end) {
+        if (start == end) {
+            tree[node] = arr[start];
+        } else {
+            ll mid = (start + end) / 2;
+            build(arr, 2 * node + 1, start, mid);
+            build(arr, 2 * node + 2, mid + 1, end);
+            tree[node] = min(tree[2 * node + 1], tree[2 * node + 2]);
+        }
+    }
+
+    void updateRangeUtil(ll node, ll start, ll end, ll l, ll r, ll val) {
+        if (lazy[node] != 0) {
+            // Update current node
+            tree[node] += lazy[node];
+
+            // Propagate to children if not a leaf node
+            if (start != end) {
+                lazy[2 * node + 1] += lazy[node];
+                lazy[2 * node + 2] += lazy[node];
+            }
+
+            // Reset the lazy value for current node
+            lazy[node] = 0;
+        }
+
+        // No overlap condition
+        if (start > end || start > r || end < l)
+            return;
+
+        // Total overlap condition
+        if (start >= l && end <= r) {
+            tree[node] += val;
+            if (start != end) { // Not a leaf node
+                lazy[2 * node + 1] += val;
+                lazy[2 * node + 2] += val;
+            }
+            return;
+        }
+
+        // Partial overlap condition
+        ll mid = (start + end) / 2;
+        updateRangeUtil(2 * node + 1, start, mid, l, r, val);
+        updateRangeUtil(2 * node + 2, mid + 1, end, l, r, val);
+        tree[node] = min(tree[2 * node + 1], tree[2 * node + 2]);
+    }
+
+    ll queryRangeUtil(ll node, ll start, ll end, ll l, ll r) {
+        if (start > end || start > r || end < l)
+            return INF; // Out of range
+
+        if (lazy[node] != 0) {
+            tree[node] += lazy[node];
+            if (start != end) {
+                lazy[2 * node + 1] += lazy[node];
+                lazy[2 * node + 2] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+
+        if (start >= l && end <= r)
+            return tree[node];
+
+        ll mid = (start + end) / 2;
+        ll left_query = queryRangeUtil(2 * node + 1, start, mid, l, r);
+        ll right_query = queryRangeUtil(2 * node + 2, mid + 1, end, l, r);
+        return min(left_query, right_query);
+    }
+
+public:
+    SegmentTree(vector<ll>& arr) {
+        n = arr.size();
+        tree.resize(4 * n);
+        lazy.resize(4 * n, 0);
+        build(arr, 0, 0, n - 1);
+    }
+
+    void update_range(ll l, ll r, ll val) {
+        updateRangeUtil(0, 0, n - 1, l, r, val);
+    }
+
+    ll query_range(ll l, ll r) {
+        return queryRangeUtil(0, 0, n - 1, l, r);
+    }
+};
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    ll n,q;
+    cin>>n>>q;
+    ll t1,t2;
+    vector<vector<pair<ll,ll>>> adj(n);
+    for(ll i=1;i<n;i++)
+    {
+        cin>>t1>>t2;
+        t1--;
+        adj[i].push_back({t1,t2});
+        adj[t1].push_back({i,t2});
+    }
+    vector<ll> isLeaf(n);
+    vector<ll> dis(n,INF);
+    vector<ll> till(n);
+    dis[0]=0;
+    ll count=0;
+    function <void(ll,ll)> dfs= [&](ll node,ll parent){
+        if(adj[node].size()==1){
+            isLeaf[node]=1;
+        }
+        for(auto i: adj[node])
+        {
+            count=max(count,i.first);
+            if(i.first==parent)continue;
+            dis[i.first]=dis[node]+i.second;
+            dfs(i.first,node);
+        }
+        till[node]=count;
+        
+    };
+    dfs(0,-1);
+    for(ll i=0;i<n;i++){
+        if(isLeaf[i]==0)dis[i]=INF;
+    }
+    SegmentTree seg(dis);
+    map <ll,vector<vector<ll>>>query;
+    for(ll i=0;i<q;i++)
+    {
+        ll nd, le, r;
+        cin>>nd>>le>>r;
+        nd--;le--;r--;
+        vector<ll> v(3);
+        v[0]=le;v[1]=r;v[2]=i;
+        query[nd].push_back(v);
+    }   
+}
+
+
+
+
+Now, let's traverse the tree, resolve the queries for each node, and as we traverse the tree and reach a new node, decrease the distance of the subtree of this node by the edge weight through which we reached here and increase the distance of the other nodes by this edge weight, using range update, enabling us to answer the queries for the node we have reached now. After the DFS of this node is over, we will revert the changes we did right now.We can store the results of the queries in a vector and print it at the end.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+#define INF 100010001000100010
+class SegmentTree {
+private:
+    vector<ll> tree;
+    vector<ll> lazy;
+    ll n;
+
+    void build(vector<ll>& arr, ll node, ll start, ll end) {
+        if (start == end) {
+            tree[node] = arr[start];
+        } else {
+            ll mid = (start + end) / 2;
+            build(arr, 2 * node + 1, start, mid);
+            build(arr, 2 * node + 2, mid + 1, end);
+            tree[node] = min(tree[2 * node + 1], tree[2 * node + 2]);
+        }
+    }
+
+    void updateRangeUtil(ll node, ll start, ll end, ll l, ll r, ll val) {
+        if (lazy[node] != 0) {
+            // Update current node
+            tree[node] += lazy[node];
+
+            // Propagate to children if not a leaf node
+            if (start != end) {
+                lazy[2 * node + 1] += lazy[node];
+                lazy[2 * node + 2] += lazy[node];
+            }
+
+            // Reset the lazy value for current node
+            lazy[node] = 0;
+        }
+
+        // No overlap condition
+        if (start > end || start > r || end < l)
+            return;
+
+        // Total overlap condition
+        if (start >= l && end <= r) {
+            tree[node] += val;
+            if (start != end) { // Not a leaf node
+                lazy[2 * node + 1] += val;
+                lazy[2 * node + 2] += val;
+            }
+            return;
+        }
+
+        // Partial overlap condition
+        ll mid = (start + end) / 2;
+        updateRangeUtil(2 * node + 1, start, mid, l, r, val);
+        updateRangeUtil(2 * node + 2, mid + 1, end, l, r, val);
+        tree[node] = min(tree[2 * node + 1], tree[2 * node + 2]);
+    }
+
+    ll queryRangeUtil(ll node, ll start, ll end, ll l, ll r) {
+        if (start > end || start > r || end < l)
+            return INF; // Out of range
+
+        if (lazy[node] != 0) {
+            tree[node] += lazy[node];
+            if (start != end) {
+                lazy[2 * node + 1] += lazy[node];
+                lazy[2 * node + 2] += lazy[node];
+            }
+            lazy[node] = 0;
+        }
+
+        if (start >= l && end <= r)
+            return tree[node];
+
+        ll mid = (start + end) / 2;
+        ll left_query = queryRangeUtil(2 * node + 1, start, mid, l, r);
+        ll right_query = queryRangeUtil(2 * node + 2, mid + 1, end, l, r);
+        return min(left_query, right_query);
+    }
+
+public:
+    SegmentTree(vector<ll>& arr) {
+        n = arr.size();
+        tree.resize(4 * n);
+        lazy.resize(4 * n, 0);
+        build(arr, 0, 0, n - 1);
+    }
+
+    void update_range(ll l, ll r, ll val) {
+        updateRangeUtil(0, 0, n - 1, l, r, val);
+    }
+
+    ll query_range(ll l, ll r) {
+        return queryRangeUtil(0, 0, n - 1, l, r);
+    }
+};
+
+signed main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    ll n,q;
+    cin>>n>>q;
+    ll t1,t2;
+    vector<vector<pair<ll,ll>>> adj(n);
+    for(ll i=1;i<n;i++)
+    {
+        cin>>t1>>t2;
+        t1--;
+        adj[i].push_back({t1,t2});
+        adj[t1].push_back({i,t2});
+    }
+    vector<ll> isLeaf(n);
+    vector<ll> dis(n,INF);
+    vector<ll> till(n);
+    dis[0]=0;
+    ll count=0;
+    function <void(ll,ll)> dfs= [&](ll node,ll parent){
+        if(adj[node].size()==1){
+            isLeaf[node]=1;
+        }
+        for(auto i: adj[node])
+        {
+            count=max(count,i.first);
+            if(i.first==parent)continue;
+            dis[i.first]=dis[node]+i.second;
+            dfs(i.first,node);
+        }
+        till[node]=count;
+        
+    };
+    dfs(0,-1);
+    for(ll i=0;i<n;i++){
+        if(isLeaf[i]==0)dis[i]=INF;
+    }
+    SegmentTree seg(dis);
+    map <ll,vector<vector<ll>>>query;
+    for(ll i=0;i<q;i++)
+    {
+        ll nd, le, r;
+        cin>>nd>>le>>r;
+        nd--;le--;r--;
+        vector<ll> v(3);
+        v[0]=le;v[1]=r;v[2]=i;
+        query[nd].push_back(v);
+    }   
+    vector<ll> ans(q);
+    function <void(ll,ll)> dfs2=[&](ll node,ll parent){
+        for(auto i:query[node]){
+            ans[i[2]]=seg.query_range(i[0],i[1]);
+        }
+        for(auto i:adj[node]){
+            if(i.first==parent)continue;
+            seg.update_range(i.first,till[i.first],-i.second);
+            seg.update_range(0,i.first-1,i.second);
+            seg.update_range(till[i.first]+1,n-1,i.second);
+            dfs2(i.first,node);
+            seg.update_range(i.first,till[i.first],i.second);
+            seg.update_range(0,i.first-1,-i.second);
+            seg.update_range(till[i.first]+1,n-1,-i.second);
+        }
+
+    };
+    dfs2(0,-1);
+    for(ll i=0;i<q;i++)cout<<ans[i]<<endl;
+}
+
+
+
+
+Let's test a trivial case of a bamboo tree, where 2 is connected to 1 and 1 is connected to 3, all edge weights being 1; if we query the range minimum for node 3 in the range [1,2], we expect the answer to be 2.
+
+
+
+
+3 1
+1 1
+1 1
+3 1 2

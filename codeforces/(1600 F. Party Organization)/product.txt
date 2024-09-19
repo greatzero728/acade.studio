@@ -1,0 +1,186 @@
+<b>Party Organization</b>
+<b>time limit per test : 1 second</b>
+<b>memory limit per test : 256 megabytes</b>
+
+
+On the great island of Baltia, there live \(N\) people, numbered from 1 to \(N\). There are exactly \(M\) pairs of people that are friends with each other. The people of Baltia want to organize a successful party, but they have very strict rules on what a party is and when the party is successful. On the island of Baltia, a party is a gathering of exactly 5 people. The party is considered to be successful if either all the people at the party are friends with each other (so that they can all talk to each other without having to worry about talking to someone they are not friends with) or no two people at the party are friends with each other (so that everyone can just be on their phones without anyone else bothering them). Please help the people of Baltia organize a successful party or tell them that it's impossible to do so.
+
+<b>input </b>
+The first line contains two integer numbers, \(N (5 \leq N \leq 2*10^5)\) and \( M (0 \leq M \leq 2*10^5) \) – the number of people that live in Baltia, and the number of friendships. The next \( M \) lines each contains two integers \( U_i \) and \(V_i\) \( (1 \leq U_i,V_i \leq N) \) – meaning that person \( U_i\) is friends with person \(V_i\). Two friends can not be in the list of friends twice (no pairs are repeated) and a person can be friends with themselves \((U_i \ne V_i)\).
+<b>output </b>
+If it's possible to organize a successful party, print 5 numbers indicating which 5 people should be invited to the party. If it's not possible to organize a successful party, print -1 instead. If there are multiple successful parties possible, print any.
+
+
+
+
+Let's begin with the naive solution, which is to generate all possible combinations of 5 people out of \(N\) people, then check each combination to see if every pair in the 5-person group is friends or if no pair in the 5-person group is friends. However, this solution will exceed the time limit because there will be \(\binom{N}{5}\) combinations, so we need to find a better solution.
+
+First, we will address the problem as a graph problem to make it easier. Where the people on the island of Baltia are represented by the vertices of a graph and the friendships between them are represented by edges colored by red. and the people who don't know each other are represented by edges colored blue. The answer is to determine whether there exists a subset of 5 vertices that form monochromatic cliques (is a subset of vertices of an undirected graph such that every two distinct vertices in the clique are adjacent.).
+
+This problem is a classic problem that can be solved by Ramsey's theorem which Ramsey's theorem states that for any complete graph, there exists a minimum number \( R(r, s) \) for which every blue-red edge coloring of the complete graph on \(R(r, s)\) vertices contains a blue clique on \(r\) vertices or a red clique on \(s\) vertices, and in our problem \( r =s= 5 \) and for \(R(5,5)\) is known by its upper-bound equal to 48.
+
+now we guarantee that there always be an answer when \( N \geq \ 48 \) so now we can apply the naive solution but for \( N \leq \ 48 \) and check all possible combinations and if one is valid we will print it otherwise we will print \(-1\).
+
+
+
+
+First, we will start by taking input and bounding our \(N\) to the \(min(N,48)\) because there will always be a solution for \(N\) above 47 and maintain a \(vis\) array to check if a two-person know each other or not.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+#define sz(x) (int)x.size()
+
+void acc() {
+    int n, m;
+    cin >> n >> m;
+    int bound = min(n, 48);
+    vector<vector<bool>> vis(bound + 1, vector<bool>(bound + 1));
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        if (u <= bound and v <= bound) {
+            vis[u][v] = 1;
+            vis[v][u] = 1;
+        }
+    }
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    acc();
+}
+
+
+
+
+Now we need to implement a function that checks if the current combination is valid or not by counting the number of edges between the vertices to check whether they form a clique or not.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+#define sz(x) (int)x.size()
+
+void acc() {
+    int n, m;
+    cin >> n >> m;
+    int bound = min(n, 48);
+    vector<vector<bool>> vis(bound + 1, vector<bool>(bound + 1));
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        if (u <= bound and v <= bound) {
+            vis[u][v] = 1;
+            vis[v][u] = 1;
+        }
+    }
+    auto check = [&](vector<int> v) {
+        int sum = 0;
+        for (int i = 0; i < sz(v); i++) {
+            for (int j = i + 1; j < sz(v); j++) {
+                sum += vis[v[i]][v[j]];
+            }
+        }
+        return (sum == 0 or sum == 10);
+    };
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    acc();
+}
+
+
+
+
+Now we will produce all the possible combinations and check if one is valid we will print this combination otherwise we will print \(-1\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+#define sz(x) (int)x.size()
+
+void acc() {
+    int n, m;
+    cin >> n >> m;
+    int bound = min(n, 48);
+    vector<vector<bool>> vis(bound + 1, vector<bool>(bound + 1));
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        if (u <= bound and v <= bound) {
+            vis[u][v] = 1;
+            vis[v][u] = 1;
+        }
+    }
+    auto check = [&](vector<int> v) {
+        int sum = 0;
+        for (int i = 0; i < sz(v); i++) {
+            for (int j = i + 1; j < sz(v); j++) {
+                sum += vis[v[i]][v[j]];
+            }
+        }
+        return (sum == 0 or sum == 10);
+    };
+    for (int i = 1; i <= bound; i++) {
+        for (int j = i + 1; j <= bound; j++) {
+            for (int l = j + 1; l <= bound; l++) {
+                for (int d = l + 1; d <= bound; d++) {
+                    for (int o = d + 1; o <= bound; o++) {
+                        vector<int> v;
+                        v.push_back(i);
+                        v.push_back(j);
+                        v.push_back(l);
+                        v.push_back(d);
+                        v.push_back(o);
+                        if (check(v)) {
+                            cout << i << " " << j << " " << l << " " << d << " " << o << '\n';
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    cout << -1 << '\n';
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    acc();
+}
+
+
+
+
+Let's try a custom test that has an input of 5 people and only the first person and the second person know each other to check the invalid case.
+<b>explanation</b>
+Since there are only 5 people, there are only two ways to form a clique.
+1- All 5 people are friends with each other.
+2- None of the 5 people are friends with each other.
+Since none of the two ways are achieved, then the expected output is \(-1\).
+
+<b>input</b>
+5 1
+1 2
+<b>output</b>
+-1
+
+
+
+
+5 1
+1 2

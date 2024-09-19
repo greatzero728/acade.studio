@@ -1,0 +1,109 @@
+<b>TREEGAME - Tree Game</b>
+Time limit: 7.477s
+Memory limit: 1536MB
+
+A complete binary tree of depth h is given. You can asign the value 0 or 1 to each leaf. Its internal nodes compute their values based on the values of their children, which is 0 if both children have value 1, and 1 otherwise. You play a game with a computer. The computer can ask you for a value of any leaf, and you can tell him either 0 or 1. The computer wants to know the root value, and he will keep asking until he is absolutely sure what the root value is. Your goal is to make him ask as many questions as possible. It is known that you can make a computer ask for all leaves. For a given sequence of leaves determine a sequence of 0's and 1's as answers to those leaves such that at no point before asking the last leaf value can the computer be sure of the root value. You must answer each question optimally (i.e. you should not make use of the knowledge of what the computer's (i+1)st query will be when you answer the ith query).
+
+<b>Input</b>
+
+In the first line of input the number h is given \((1 \le h \le 15)\). In the second line a space-separated list of \(2^h\) numbers are given. They are a permutation of the numbers 1, 2, ..., \(2^h\), and they represent the order of asked leaves (leaves of a tree are indexed from left to right).
+
+<b>Output</b>
+
+On a single line write a space-separated sequence of 0's and 1's corresponding to the values of leaves in the given order of being asked. If there are multiple solutions, write any of them. Do not output a response for the last query.
+
+
+
+
+The naive solution is to try each combination of \(0\)'s and \(1\)'s and try to validate each combination, This will not fit in our time limit.
+
+Our main solution uses a greedy approach that ensures the root of each sub-tree, where all nodes have been assigned to values, is set to 1 (the sub-tree itself can have any values, but its root must be 1).
+
+This can be done by traversing from each leaf that given in a query to the first node \(n\) that has an adjacent node with no value (Note: both nodes are children for the same parent) and assign \(n\) to \(1\) then backtrack to the leaf and assigning values all the way down alternatively \((0,1,0,1,....)\). This will ensure that each sub-tree of values will have \(1\) at its root which has an empty adjacent node (without a value) which will lead to the final desired state that we have one of the tree root's children with a value \(1\) and the other is empty then we cant determine the value of the root.
+
+Time complexity: \(O(2^h \cdot h)\). (this is approximate upperbound as it is hard to calculate the sum of operations will be done by the traversing up to a node and down to the leaf for each query).
+
+
+
+
+Lets take the input and intialize the array \(val\) which will store the answer for each node (0 or 1).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int val[1000000 + 10], x;
+
+int main() {
+    int h;
+    cin >> h;
+    for (int i = 0; i <= (1 << (h + 1)); i++) val[i] = -1;
+    for (int i = 1; i < (1 << h); i++) {
+        cin >> x;
+    }
+    cin >> x;
+}
+
+
+
+
+Implementing our \(bc\) function that will check for the first node \(n\) that has an adjacent child that has not been assigned to a value yet and assign \(1\) to node \(n\) then update all the chain of nodes values from \(n\) to the leaf with alternating values \((0,1,0,1,....)\).
+
+Note: array \(val\) is an array that represent our binary tree with the root at index \(0\) and to traverse to the children you need to update the current node index \(i\) with \(i \cdot 2 + 1\) for left child or \(i \cdot 2 + 2\) for the right child, and to go for a parent update the \(i\) with \(i/2\). That is why we add \(2^h\) to the node index \(x\) to get its \(i\) in the \(val\) array.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int val[1000000 + 10], x;
+
+int bc(int n) {
+    if (val[n ^ 1] == -1) {
+        val[n] = 1;
+        return 1;
+    }
+    return val[n] = bc(n / 2) ^ 1;
+}
+
+int main() {
+    int h;
+    cin >> h;
+    for (int i = 0; i <= (1 << (h + 1)); i++) val[i] = -1;
+    for (int i = 1; i < (1 << h); i++) {
+        cin >> x;
+        x += (1 << h);
+        --x;
+        cout << bc(x) << ' ';
+    }
+    cin >> x;
+}
+
+
+
+
+Lest test the solution on a custom test case where the h = 1.
+
+1
+1 2
+
+The expected output is 1 as this the only solution for tree of height 1. as the first leaf will be 1 and the computer cant determined if the root will be 0 or 1 as we need to know the second leaf value first to determine.
+
+Motivation: To test small values of the input that can cause RTE.
+
+
+
+
+Lest test the solution on a custom test case where the h = 1.
+
+1
+1 2
+
+The expected output is 1 as this the only solution for tree of height 1. as the first leaf will be 1 and the computer cant determined if the root will be 0 or 1 as we need to know the second leaf value first to determine.
+
+Motivation: To test small values of the input that can cause RTE.

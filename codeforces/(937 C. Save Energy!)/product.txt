@@ -1,0 +1,175 @@
+<b>C. Save Energy!</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Julia is going to cook a chicken in the kitchen of her dormitory. To save energy, the stove in the kitchen automatically turns off after \(k\) minutes after turning on.
+
+During cooking, Julia goes to the kitchen every \(d\) minutes and turns on the stove if it is turned off. While the cooker is turned off, it stays warm. The stove switches on and off instantly.
+
+It is known that the chicken needs \(t\) minutes to be cooked on the stove, if it is turned on, and \(2t\) minutes, if it is turned off. You need to find out, how much time will Julia have to cook the chicken, if it is considered that the chicken is cooked evenly, with constant speed when the stove is turned on and at a constant speed when it is turned off.
+
+<b>Input</b>
+The single line contains three integers \(k, d\) and \(t (1 ≤ k, d, t ≤ 10^{18})\).
+
+<b>Output</b>
+Print a single number, the total time of cooking in minutes. The relative or absolute error must not exceed \(10 ^{- 9}\).
+
+Namely, let's assume that your answer is x and the answer of the jury is y. The checker program will consider your answer correct if \(\frac{|x - y|}{max(1, y)} \leq 10 ^ {-9}\).
+
+<b>Note</b>
+In the first example, the chicken will be cooked for 3 minutes on the turned on stove, after this it will be cooked for \(\frac{3}{6}\). Then the chicken will be cooked for one minute on a turned off stove, it will be cooked for \(\frac{1}{12}\). Thus, after four minutes the chicken will be cooked for \(\frac{3}{6} + \frac{1}{12} = \frac{7}{12}\). Before the fifth minute Julia will turn on the stove and after 2.5 minutes the chicken will be ready \(\frac{7}{12} + \frac{2.5}{6} = 1\).
+
+In the second example, when the stove is turned off, Julia will immediately turn it on, so the stove will always be turned on and the chicken will be cooked in 20 minutes.
+
+
+
+
+\(\bullet\) Let's think about the naive approach to solve this problem.
+We can iterate for all minutes in order of 1, 2, 3, ...
+While iterating the minutes, we can check current minute is the state of turn on, or turn off. We can maintain such information easily.
+To calculate the total time of cooking, we can initialize \(s = 2 \cdot t\). If current state is on state, then we can subtract 2 from \(s\), and otherwise, we can subtract 1 from \(s\). If \(s\) reaches non-positive value, then that is meaning the cooking is already finished.
+This naive algorithm is simple and correct, but as we can see in the problem description all variables are in the range of \(10 ^ {18}\), so this approach will make time limit exceed error result.
+
+\(\bullet\) Julia checks the state every \(d\) minutes. Let's consider the first moment \(p\) that Julia find out state is turn off. She immediately change the state as turn on. Then the state changes to turn on immediately, and this is the same state of the beginning. This means that our cooking period repeats \(p\) time period.
+It's easy to calculate how much value we have to subtract from \(s\) in one period. Then we can find out how many period we need to finish cooking and can implement all period activity in one operation. Then, we only need to check only for remain one or zero period.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    long long k, d, t; cin>>k>>d>>t;
+}
+
+
+
+
+We convert the problem as subtracting problem above mentioned description.
+The initial value is \(2 \cdot t\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    long long k, d, t; cin>>k>>d>>t;
+    long long s = t * 2;
+}
+
+
+
+
+Let's calculate the value that should be subtracted from \(s\).
+The length of period is \(p = \lceil \frac{k}{d} \rceil \cdot d\).
+This period consists \(k\) minutes of turn on state and \(p - k\) minutes of turn off state.
+For turn on state, we should subtract 2 from \(s\), and for turn off state, we should subtract 1 from \(s\).
+So total we have to subtract \(2 \cdot k + (p - k) = p + k\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    long long k, d, t; cin>>k>>d>>t;
+    long long s = t * 2;
+    long long p = (k + d - 1) / d * d;
+    long long sub = p + k;
+}
+
+
+
+
+Then the number of completeds period that we need for cooking is \(\frac{s}{sub}\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    long long k, d, t; cin>>k>>d>>t;
+    long long s = t * 2;
+    long long p = (k + d - 1) / d * d;
+    long long sub = p + k;
+    long long num = s / sub;
+}
+
+
+
+
+After we subtract all completed periods, \(s\) will be changed into \(s \% sub\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    long long k, d, t; cin>>k>>d>>t;
+    long long s = t * 2;
+    long long p = (k + d - 1) / d * d;
+    long long sub = p + k;
+    long long num = s / sub;
+    long long remain = s % sub;
+}
+
+
+
+
+\(\bullet\) If \(remain\) greater than \(2 \cdot k\), this is meaning we have to subtract for \(k\) minutes of turn on state, and \(remain - 2 \cdot k\) minutes of turn off state.
+In this case, the final answer will be \(num \cdot p + k + (remain - 2 \cdot k) = num \cdot p + remain - k\).
+\(\bullet\) Otherwise, we only need to subtract for \(remain\) minutes of turn on state.
+In this case, the final answer will be \(num \cdot p + \frac{remain}{2}\).
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main() {
+    long long k, d, t; cin>>k>>d>>t;
+    long long s = t * 2;
+    long long p = (k + d - 1) / d * d;
+    long long sub = p + k;
+    long long num = s / sub;
+    long long remain = s % sub;
+    if(remain > 2 * k) {
+        cout << fixed << setprecision(10) << (double)(num * p + remain - k) << endl;
+    } else {
+        cout << fixed << setprecision(10) << (double)(num * p + remain / 2.0) << endl;
+    }
+}
+
+
+
+
+This is actually 6.5 and can be considered same with the sample output.
+
+
+
+
+This is actually 20.0 and can be considered same with the sample output.
+
+
+
+
+Let's check a custom corner case, where \(k, d, t\) are their minimum possible value: \(k = d = t = 1\).
+<b>Input</b>
+<code>
+1 1 1
+</code>
+In this case because t is only 1, we can complete the cooking in one minute of turn on state, so the answer will be 1.
+
+
+
+
+1 1 1

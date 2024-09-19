@@ -1,0 +1,85 @@
+<b>IITKWPCO - Create Collections</b>
+<b>Time limit:</b> 1s
+<b>Memory limit:</b> 1536MB
+
+Little Feluda likes to play very much. As you know he only plays with numbers. So he is given \(n\) numbers. Now tries to group the numbers into disjoint collections each containing two numbers. He can form the collection containing two numbers iff small number in the collection is exactly half of large number.
+
+Given n numbers, Find out how many maximum number of collections he can form ?
+
+<b>Input</b>
+\(T\): number of test cases. \((1 <= T <= 100)\).
+
+For each test case:
+
+First line will contain \(n\) : \((1 <= n <= 100)\)
+
+Then next line will contain \(n\) numbers single space separated. Range of each number will be between \(1\) and \(10^6\).
+
+<b>Output</b>
+For each test case, output maximum number of collections that can be formed.
+
+
+
+
+We need to find the maximum number of collections that can be formed from a given set of numbers. A collection can be formed if the smaller number is exactly half of the larger number. We can approach this problem by first sorting the numbers in ascending order. Then, we can iterate through the sorted numbers and check if the current number is half of any of the remaining numbers. If it is, we can form a collection and remove both numbers from the list. We can repeat this process until we have checked all numbers.
+
+The time complexity of this approach is O(n^2), where n is the number of numbers. This is because we are iterating through the list of numbers and checking each number against all remaining numbers. However, since the maximum number of numbers is 100, this approach should be efficient enough.
+
+Next, we need to write the code to read the input and iterate through the test cases. We will use a simple loop to read the input and process each test case. We will also use a vector to store the numbers for each test case.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    while (t--) {
+        int n;
+        cin >> n;
+        vector<int> numbers(n);
+        for (int i = 0; i < n; i++) {
+            cin >> numbers[i];
+        }
+        sort(numbers.begin(), numbers.end());
+        int collections = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (numbers[j] == 2 * numbers[i]) {
+                    collections++;
+                    numbers[i] = -1;
+                    numbers[j] = -1;
+                    break;
+                }
+            }
+        }
+        cout << collections << endl;
+    }
+    return 0;
+}
+
+
+
+
+
+Let's test the code on the minimum input constraints. For a single test case with only one number equal to \(1\), we cannot form any collections since collections contain two numbers. Therefore, the answer is \(0\).
+
+Input:
+1
+1
+1
+
+Output:
+0
+
+
+
+
+1
+1
+1

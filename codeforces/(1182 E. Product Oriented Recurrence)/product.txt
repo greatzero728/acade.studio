@@ -1,0 +1,412 @@
+E. Product Oriented Recurrence
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Let \(f_x=c^{2x−6}⋅f_{x−1}⋅f_{x−2}⋅f_{x−3}\) for \(x≥4\).
+
+You have given integers \(n, f_1, f_2, f_3\), and \(c\). Find \(f_n \mod (10^9+7)\).
+
+Input
+The only line contains five integers \(n, f_1, f_2, f_3\), and \(c (4≤n≤10^{18}, 1≤f_1, f_2, f_3, c≤10^9)\).
+
+Output
+Print \(f_n \mod (10^9+7)\).
+
+Note
+In the first example, \(f_4=90, f_5=72900\).
+
+In the second example, \(f_{17}≈2.28×10^{29587}\).
+
+
+
+
+We are given a recursive relation for \(f_x\), and we need to find \(f_n \mod (10^9+7)\). To solve this problem, we can use dynamic programming to store the values of \(f_x\) for small values of \(x\) and then use these values to compute \(f_n\).
+
+The given recurrence relation involves \(f_{x-1}\), \(f_{x-2}\), and \(f_{x-3}\), so we will need to store at least the last three values of \(f_x\). We will also need to handle the base cases where \(x=1\), \(x=2\), and \(x=3\).
+
+We can start by initializing an array or vector to store the values of \(f_x\) for \(x=1, 2, 3\), and then iteratively compute the values of \(f_x\) for larger values of \(x\) using the recurrence relation. We will also need to apply the modulo operation at each step to avoid overflow.
+
+The time complexity of this approach will be \(O(n)\), where \(n\) is the given value of \(n\). However, since \(n\) can be very large (up to \(10^{18}\)), we will need to optimize our solution further to meet the time limit.
+
+One possible optimization is to use matrix exponentiation to compute the values of \(f_x\) more efficiently. We can represent the recurrence relation as a matrix and then use exponentiation by squaring to compute the values of \(f_x\) in \(O(\log n)\) time.
+
+In the next step, we will write the code to read the input and initialize the base cases.
+
+
+
+
+The first algorithm mentioned in block 1 can be considered a naive approach.
+As we confirmed, the time complexity of this algorithm is \( O(n) \), and since \( n \) can be as large as \( 10^{18} \), we cannot use this algorithm; it will result in a time limit exceeded error.
+
+
+
+
+We have the recurrence relation \(f_x = c^{2x-6} \cdot f_{x-1} \cdot f_{x-2} \cdot f_{x-3}\).
+
+Let's examine the right side. Notice that it contains terms indexed by \(x-1\), \(x-2\), and \(x-3\), indicating a dependency on previous terms.
+
+The indices on the right side can be expressed as follows:
+- Left side: \(x\)
+- Right side: \(x - 1\), \(x - 2\), \(x - 3\)
+- The sum of the right side indices is \(3x - 6\).
+
+The exponent of \(c\) on the right side is \(2x - 6\), which is similar to the sum of the indices from the right side.
+
+To effectively handle the \(c^{2x-6}\) term, we can multiply both sides by \(c^x\). This results in:
+\( c^x f_x = c^{3x - 6} \cdot f_{x-1} \cdot f_{x-2} \cdot f_{x-3} \)
+
+Let's rewrite the above result. The updated expression is:
+\( c^x f_x = c^{x - 1} f_{x-1} \cdot c^{x - 2} f_{x-2} \cdot c^{x - 3} f_{x-3} \)
+
+
+
+
+Let's use the new expression \( c^x f_x = c^{x - 1} f_{x-1} \cdot c^{x - 2} f_{x-2} \cdot c^{x - 3} f_{x-3} \) to simplify the problem.
+
+We can define a new sequence \(g_x = c^x f_x\). Then the above expression becomes:
+\( g_x = g_{x-1} \cdot g_{x-2} \cdot g_{x-3} \)
+
+This is a much simpler recurrence relation, and we can use it to compute the values of \(g_x\) more efficiently.
+
+We can then use the values of \(g_x\) to compute the values of \(f_x\) by dividing by \(c^x\).
+
+In the next step, we will write the code to implement this new recurrence relation and compute the values of \(f_x\).
+
+
+
+
+To calculate \(g_n\), it is clear that we need to employ a fast matrix multiplication algorithm, as \( n \) can be as large as \( 10^{18} \).
+However, the right side of expression remains multiplication, so we cannot utilize the fast matrix multiplication algorithm.
+
+\(\bull\) A powerful trick here is to take the logarithm of the recurrence relation. This turns the multiplication into addition, which can then be solved using matrix exponentiation.
+
+Let’s define a new sequence: \( h_n = \log_p(g_n) \)
+The recurrence relation becomes: \( h_n = h_{n - 1} + h_{n - 2} + h_{n - 3} \)
+
+Here, we can set \(p\) as any prime number. After calculating \(h_n\), we can determine \(f_n = \frac{g_n}{c^n} = \frac{p^{h_n}}{c^n}\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    long long n, f1, f2, f3, c;
+    cin >> n >> f1 >> f2 >> f3 >> c;
+}
+
+
+
+
+\( h_n = h_{n - 1} + h_{n - 2} + h_{n - 3} \)
+Let's represent this recurrence relation as a matrix:
+\(
+\begin{bmatrix}
+h[n] \\
+h[n-1] \\
+h[n-2]
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 1 & 1 \\
+1 & 0 & 0 \\
+0 & 1 & 0
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+h[n-1] \\
+h[n-2] \\
+h[n-3]
+\end{bmatrix}
+\)
+
+
+
+
+Let's define a matrix \(A\) as follows:
+\( A = \begin{bmatrix} 1 & 1 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix} \)
+Then our recurrence relation changes as follows:
+\( \begin{bmatrix} h_n \\ h_{n-1} \\ h_{n-2} \end{bmatrix} = A \begin{bmatrix} h_{n-1} \\ h_{n-2} \\ h_{n-3} \end{bmatrix} \)
+
+To calculate \(h_n\), we can use matrix exponentiation to raise the matrix \(A\) to the power of \(n-3\) and then multiply it by the initial values of \(h_1, h_2, h_3\).
+
+Let's formulate again.
+\(
+\begin{bmatrix} h_n \\ h_{n-1} \\ h_{n-2} \end{bmatrix} = A \begin{bmatrix} h_{n-1} \\ h_{n-2} \\ h_{n-3} \end{bmatrix} = A^2 \begin{bmatrix} h_{n-2} \\ h_{n-3} \\ h_{n-4} \end{bmatrix} \ldots = A^{n-3} \begin{bmatrix} h_3 \\ h_2 \\ h_1 \end{bmatrix}
+\)
+
+
+
+
+We can solve this problem step by step.
+Let's first calculate the matrix \(A\) to the power of \(n-3\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+long long mod_pow(long long a, long long b) {
+    long long res = 1;
+    while (b) {
+        if (b & 1) res = res * a % MOD;
+        a = a * a % MOD;
+        b >>= 1;
+    }
+    return res;
+}
+
+struct Matrix {
+    int data[3][3];
+    Matrix() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                data[i][j] = 0;
+            }
+        }
+    }
+    Matrix operator*(const Matrix &other) {
+        Matrix res;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < 3; k++) {
+                    res.data[i][j] = (res.data[i][j] + 1LL * data[i][k] * other.data[k][j]) % MOD;
+                }
+            }
+        }
+        return res;
+    }
+};
+
+int main() {
+    long long n, f1, f2, f3, c;
+    cin >> n >> f1 >> f2 >> f3 >> c;
+    Matrix A;
+    A.data[0][0] = A.data[0][1] = A.data[0][2] = A.data[1][0] = A.data[2][1] = 1;
+    Matrix res;
+    res.data[0][0] = res.data[1][1] = res.data[2][2] = 1;
+    n -= 3;
+    while (n) {
+        if (n & 1) res = res * A;
+        A = A * A;
+        n >>= 1;
+    }
+}
+
+
+
+
+We have already calculated \(res = A^{n-3}\). 
+
+\(
+\begin{bmatrix} h_n \\ h_{n-1} \\ h_{n-2} \end{bmatrix} = A^{n-3} \begin{bmatrix} h_3 \\ h_2 \\ h_1 \end{bmatrix} = res \begin{bmatrix} h_3 \\ h_2 \\ h_1 \end{bmatrix} = \begin{bmatrix} res_{00} & res_{01} & res_{02} \\ res_{10} & res_{11} & res_{12} \\ res_{20} & res_{21} & res_{22} \end{bmatrix} \cdot \begin{bmatrix} h_3 \\ h_2 \\ h_1 \end{bmatrix}
+\)
+
+So \(h_n = res_{00} \cdot h_3 + res_{01} \cdot h_2 + res_{02} \cdot h_1\).
+
+Here, the following meets according to the definition of \(h_n\):
+\( h_1 = \log_p(g_1) = \log_p(c^1 \cdot f_1) = \log_p(f_1 \cdot c^1) \)
+\( h_2 = \log_p(g_2) = \log_p(c^2 \cdot f_2) = \log_p(f_2 \cdot c^2) \)
+\( h_3 = \log_p(g_3) = \log_p(c^3 \cdot f_3) = \log_p(f_3 \cdot c^3) \)
+
+
+
+
+Let's rewrite \(h_n\):
+\(
+h_n = res_{00} \cdot h_3 + res_{01} \cdot h_2 + res_{02} \cdot h_1 = res_{00} \cdot \log_p(f_3 \cdot c^3) + res_{01} \cdot \log_p(f_2 \cdot c^2) + res_{02} \cdot \log_p(f_1 \cdot c^1)
+\)
+
+We can use the properties of logarithms to combine them. Specifically, you can use the fact that \( a \cdot \log_p(b) = \log_p(b^a) \) and the property \( \log_p(a) + \log_p(b) = \log_p(a \cdot b) \).
+
+\(h_n = \log_p\left(\left(f_3 \cdot c^3\right)^{res_{00}}\right) + \log_p\left(\left(f_2 \cdot c^2\right)^{res_{01}}\right) + \log_p\left(\left(f_1 \cdot c^1\right)^{res_{02}}\right) = \log_p\left(\left(f_3 \cdot c^3\right)^{res_{00}} \cdot \left(f_2 \cdot c^2\right)^{res_{01}} \cdot \left(f_1 \cdot c^1\right)^{res_{02}}\right) = \log_p\left(c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00}} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)\right)\)
+
+
+Then, \(f_n\) will be as follows:
+
+\(
+f_n = \frac{g_n}{c^n} = \frac{p^{\left(h_n\right)}}{c^n} = \frac{p^{\log_p\left(c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00}} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)\right)}}{c^n} = \frac{c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00}} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)}{c^n} = c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00} - n} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)\mod (MOD)
+\)
+(Here, \(MOD = 10 ^ 9 + 7\))
+
+
+
+
+
+According to Fermat's Little Theorem, if \( p \) is a prime number and \( a \) is an integer not divisible by \( p \), then: \(a^{p-1} \equiv 1 \mod p\)
+
+So in our case, \(c^{MOD-1} \equiv 1 \mod MOD\), \(f_1^{MOD-1} \equiv 1 \mod MOD\), \(f_2^{MOD-1} \equiv 1 \mod MOD\), and \(f_3^{MOD-1} \equiv 1 \mod MOD\) hold true, as \(c\), \(f_1\), \(f_2\), and \(f_3\) are integers not divisible by \(MOD\).
+This means that \(\left(1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00} - n\right)\), \(res_{00}\), \(res_{01}\), \(res_{02}\) can be extremely large, so we can reduce \(res_{00}\), \(res_{01}\), and \(res_{02}\) modulo \(MOD - 1\).
+
+However, we have already calculated \(res_{00}\), \(res_{01}\), and \(res_{02}\) using modulo \(MOD\) in coding block 10, so we need to fix the errors. We have to change all modulo operations in block 10 from \(MOD\) to \(MOD - 1\).
+Let's fix coding block 10 here to obtain the correct results using modulo \(MOD - 1\), not modulo \(MOD\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+long long mod_pow(long long a, long long b) {
+    long long res = 1;
+    while (b) {
+        if (b & 1) res = res * a % MOD;
+        a = a * a % MOD;
+        b >>= 1;
+    }
+    return res;
+}
+
+struct Matrix {
+    int data[3][3];
+    Matrix() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                data[i][j] = 0;
+            }
+        }
+    }
+    Matrix operator*(const Matrix &other) {
+        Matrix res;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < 3; k++) {
+                    res.data[i][j] = (res.data[i][j] + 1LL * data[i][k] * other.data[k][j]) % (MOD - 1);
+                }
+            }
+        }
+        return res;
+    }
+};
+
+int main() {
+    long long n, f1, f2, f3, c;
+    cin >> n >> f1 >> f2 >> f3 >> c;
+    Matrix A;
+    A.data[0][0] = A.data[0][1] = A.data[0][2] = A.data[1][0] = A.data[2][1] = 1;
+    Matrix res;
+    res.data[0][0] = res.data[1][1] = res.data[2][2] = 1;
+    n -= 3;
+    while (n) {
+        if (n & 1) res = res * A;
+        A = A * A;
+        n >>= 1;
+    }
+}
+
+
+
+
+We calculated \(f_n\) in block 12 as follows:
+\(
+f_n = \frac{g_n}{c^n} = \frac{p^{\left(h_n\right)}}{c^n} = \frac{p^{\log_p\left(c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00}} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)\right)}}{c^n} = \frac{c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00}} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)}{c^n} = c^{1 \cdot res_{02} + 2 \cdot res_{01} + 3 \cdot res_{00} - n} \cdot \left(f_1^{res_{02}}\right) \cdot \left(f_2^{res_{01}}\right) \cdot \left(f_3^{res_{00}}\right)\mod (MOD)
+\)
+
+Let's calculate \(f_n\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MOD = 1000000007;
+
+long long mod_pow(long long a, long long b) {
+    long long res = 1;
+    while (b) {
+        if (b & 1) res = res * a % MOD;
+        a = a * a % MOD;
+        b >>= 1;
+    }
+    return res;
+}
+
+struct Matrix {
+    int data[3][3];
+    Matrix() {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                data[i][j] = 0;
+            }
+        }
+    }
+    Matrix operator*(const Matrix &other) {
+        Matrix res;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < 3; k++) {
+                    res.data[i][j] = (res.data[i][j] + 1LL * data[i][k] * other.data[k][j]) % (MOD - 1);
+                }
+            }
+        }
+        return res;
+    }
+};
+
+int main() {
+    long long n, f1, f2, f3, c;
+    cin >> n >> f1 >> f2 >> f3 >> c;
+    Matrix A;
+    A.data[0][0] = A.data[0][1] = A.data[0][2] = A.data[1][0] = A.data[2][1] = 1;
+    Matrix res;
+    res.data[0][0] = res.data[1][1] = res.data[2][2] = 1;
+    
+    long long N = n;
+    n -= 3;
+    while (n) {
+        if (n & 1) res = res * A;
+        A = A * A;
+        n >>= 1;
+    }
+    long long res00 = res.data[0][0], res01 = res.data[0][1], res02 = res.data[0][2];
+    long long c_pow = (1LL * res02 + 2LL * res01 + 3LL * res00 - (N % (MOD - 1)) + (MOD - 1)) % (MOD - 1);
+    long long c_val = mod_pow(c, c_pow);
+    long long f1_val = mod_pow(f1, res02);
+    long long f2_val = mod_pow(f2, res01);
+    long long f3_val = mod_pow(f3, res00);
+    long long f_n = c_val * f1_val % MOD * f2_val % MOD * f3_val % MOD;
+    cout << f_n << endl;
+}
+
+
+
+
+5 1 2 5 3
+
+
+
+
+17 97 41 37 11
+
+
+
+
+Let's examine a custom corner case where \(n\), \(f_1\), \(f_2\), \(f_3\), and \(c\) are at their minimum values: \(n = 4\), \(f_1 = f_2 = f_3 = c = 1\).
+
+<code>
+4 1 1 1 1
+</code>
+
+In this case, we have:
+
+\(
+f_n = c^{2 \cdot n - 6} \cdot f_{n - 1} \cdot f_{n - 2} \cdot f_{n - 3} = c^{2 \cdot 4 - 6} \cdot f_{4 - 1} \cdot f_{4 - 2} \cdot f_{4 - 3} = c^2 \cdot f_3 \cdot f_2 \cdot f_1 = 1.
+\)
+
+Thus, the answer will be 1.
+
+
+
+
+4 1 1 1 1

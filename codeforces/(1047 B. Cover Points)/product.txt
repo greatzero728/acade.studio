@@ -1,0 +1,89 @@
+<b>Cover Points</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+There are \(n\) points on the plane, \((x_1,y_1),(x_2,y_2),\cdots,(x_n,y_n)\).
+
+You need to place an isosceles triangle with two sides on the coordinate axis to cover all points (a point is covered if it lies inside the triangle or on the side of the triangle). Calculate the minimum length of the shorter side of the triangle.
+
+<b>Input</b>
+First line contains one integer \(n\) \((1≤n≤10^5)\).
+
+Each of the next \(n\) lines contains two integers \(x_i\) and \(y_i\) \((1≤x_i,y_i≤10^9)\).
+
+<b>Output</b>
+Print the minimum length of the shorter side of the triangle. It can be proved that it's always an integer.
+
+<b>Note</b>
+Illustration for the first example:
+
+<img 1>
+
+Illustration for the second example:
+
+<img 2>
+
+
+
+
+
+The equation of a diagonal line of an isosceles triangle with two sides of length \(d\) on the coordinate axis is \(y=d-x\).
+If \(y_i \leq d-x_i\), point \((x_i, y_i)\) is covered by the triangle, otherwise, it is not.
+The naive solution is to find the minimum \(d\) such that \(y_i \leq d-x_i\) is satisfied for every \(i\).
+\(y_i \leq d-x_i\) is satisfied if and only if \(x_i+y_i \leq d\) is satisfied.
+So the minimum such \(d\) is the maximum of \(x_i + y_i\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN = 100005;
+
+int n;
+pair<int, int> a[MAXN];
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> a[i].first >> a[i].second;
+    }
+    int ans = 0;
+    for (int i = 0; i < n; i++) {
+        ans = max(ans, a[i].first + a[i].second);
+    }
+    cout << ans << endl;
+    return 0;
+}
+
+
+
+
+Let's test with custom input for smallest 
+n
+n.
+
+Input
+1
+1 1
+
+The triangle with sides of length 1 doesn't cover 
+(
+1
+,
+1
+)
+(1,1) while the triangle with length 2 does.
+So the answer is 2.
+
+Output
+2
+
+
+
+
+1
+1 1

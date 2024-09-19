@@ -1,0 +1,402 @@
+<b>Two chandeliers</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+Vasya is a CEO of a big construction company. And as any other big boss he has a spacious, richly furnished office with two crystal chandeliers. To stay motivated Vasya needs the color of light at his office to change every day. That's why he ordered both chandeliers that can change its color cyclically. For example: red – brown – yellow – red – brown – yellow and so on.
+
+There are many chandeliers that differs in color set or order of colors. And the person responsible for the light made a critical mistake — they bought two different chandeliers.
+
+Since chandeliers are different, some days they will have the same color, but some days — different. Of course, it looks poor and only annoys Vasya. As a result, at the \(k\)-th time when chandeliers will light with different colors, Vasya will become very angry and, most probably, will fire the person who bought chandeliers.
+
+Your task is to calculate the day, when it happens (counting from the day chandeliers were installed). You can think that Vasya works every day without weekends and days off.
+
+<b>Input</b>
+The first line contains three integers \(n\), \(m\) and \(k\) \((1≤n,m≤500000; 1≤k≤10^{12})\) — the number of colors in the first and the second chandeliers and how many times colors should differ to anger Vasya.
+
+The second line contains \(n\) <b>different</b> integers \(a_i (1≤a_i≤2⋅max(n,m))\) that describe the first chandelier's sequence of colors.
+
+The third line contains \(m\) <b>different</b> integers \(b_j (1≤b_j≤2⋅max(n,m))\) that describe the second chandelier's sequence of colors.
+
+At the \(i\)-th day, the first chandelier has a color \(a_x\), where \(x=((i−1) \mod n)+1)\) and the second one has a color \(b_y\), where \(y=((i−1) \mod m)+1)\).
+
+It's guaranteed that sequence \(a\) differs from sequence \(b\), so there are will be days when colors of chandeliers differs.
+
+<b>Output</b>
+Print the single integer — the index of day when Vasya will become angry.
+
+<b>Note</b>
+In the first example, the chandeliers will have different colors at days 1, 2, 3 and 5. That's why the answer is 5.
+
+
+
+
+
+The naive solution is to compare two color of each day one by one until the number of different colors is \(k\), but this takes too long time.
+We want to know the minimum value of the days, so we can use binary search.
+To do this, we need to check whether the number of days when the two colors are different among the first \(D\) days is not smaller than \(k\). Then we can get the minimum of such \(D\) by using binary search.
+It is easier to count the number of days when two colors are same rather than when two colors are different.
+The elements in each sequence are distinct, so there is at most one \(b_j\) such that \(a_i=b_j\) for every \(i(1\leq i \leq n)\).
+So if the two colors are the same on \(x\)-th day, \(x \equiv i (\mod n), x \equiv j (\mod m)\) must be satisfied for one pair \((i, j)\) such that \(a_i=b_j\).
+Let's assume that \(GCD(n, m)=p, n=pq, m=pr\). Then \(x\equiv i(\mod pq), x\equiv j(\mod pr)\) is satisfied.
+Then \(x\equiv i (\mod p), x\equiv j(\mod p)\) so, \(i\equiv j(\mod p)\) must be satisfied. If it is not satisfied, there is no such \(x\).
+Let's assume that \(i-j=p \cdot d\) and \(x=l \cdot pq + i\).
+\(x\equiv j (\mod pr)\) , so \(l\cdot pq + i - j\equiv 0(\mod pr)\).
+Divide both side by \(p\), then \(l\cdot q + d \equiv 0(\mod r)\) is satisfied.
+\(q, r\) are coprime so \(l \equiv -\frac{d}{q} (\mod r)\).
+\(x=l\cdot pq + i\) and \(l\cdot pq \equiv (l\mod r) \cdot pq (\mod pqr)\), so \(x \equiv (l\mod r) \cdot pq + i(\mod pqr)\)
+So \(x\) is cyclic of length \(pqr\) and we can get the number of such \(x\) which is no larger than \(D\).
+The sum of such count is the number of the days when two colors are the same.
+We can calculate the minimum of \(k\) by using binary search.
+Let's take the input.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll k;
+ll a[N], b[N];
+ 
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+	for (int i = 1; i <= m; i++) scanf("%d", &b[i]);
+}
+
+
+
+
+Save the position of \(b_j\) in array \(pos\).
+\(b_j\leq 2\cdot max(n, m) \), so fix the size of \(pos\) by 2 times of array \(a\) or \(b\).
+Save pairs \((i, j)\) if there exists \(b_j\) such that \(a_i=b_j\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll k;
+ll a[N], b[N];
+ll pos[N * 2];
+
+vector <pair <int, int> > v;
+ 
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+	for (int i = 1; i <= m; i++) scanf("%d", &b[i]), pos[b[i]] = i;
+	for (int i = 1; i <= n; i++) {
+		if (pos[a[i]]) {
+			v.push_back({i, pos[a[i]]});
+		}
+	}
+}
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll k;
+ll a[N], b[N];
+ll pos[N * 2];
+
+vector <pair <int, int> > v;
+ 
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+	for (int i = 1; i <= m; i++) scanf("%d", &b[i]), pos[b[i]] = i;
+	for (int i = 1; i <= n; i++) {
+		if (pos[a[i]]) {
+			v.push_back({i, pos[a[i]]});
+		}
+	}
+}
+
+
+
+
+Calculate \(p, q, r\).
+Calculate \(inv = \frac{1}{q} \mod r\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll p, q, r, inv;
+ll k;
+ll a[N], b[N];
+ll pos[N * 2];
+
+vector <pair <int, int> > v;
+
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+	for (int i = 1; i <= m; i++) scanf("%d", &b[i]), pos[b[i]] = i;
+	for (int i = 1; i <= n; i++) {
+		if (pos[a[i]]) {
+			v.push_back({i, pos[a[i]]});
+		}
+	}
+	p = __gcd(n, m);
+	q = n / p;
+	r = m / p;
+	for (int i = 1; i < r; i++) {
+		if (q * i % r == 1) {
+			inv = i;
+			break;
+		}
+	}
+}
+
+
+
+
+Build a function to check weather the number of days when two colors are different among the first \(D\) days is not smaller than \(k\) for integer \(D\).
+Initiate \(rt\) by \(D\) because there are \(D\) days.
+For every \((i, j)\) such that \(a_i=b_j\), calculate the number of \(x\) such that \(x \equiv i (\mod n), x \equiv j(\mod m)\) is satisfied, then decrease \(rt\) by it, because the number of days when two colors are different is the difference between the total number of days and the number of days when two colors are the same.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll p, q, r, d, inv, l;
+ll k;
+ll a[N], b[N];
+ll pos[N * 2];
+
+vector <pair <int, int> > v;
+
+ll check(ll D) {
+	ll rt = D;
+	for (int t = 0; t < v.size(); t++) {
+		int i = v[t].first;
+		int j = v[t].second;
+		if ((i - j) % p) continue;
+		d = (i - j) / p;
+		l = ((- d * inv % r) + r) % r;
+		ll pqr = p * q * r;
+		l = (l * n + i) % pqr;
+		rt -= D / pqr;
+		if (l != 0 && l <= D % pqr) rt --;
+	}
+	return rt >= k;
+}
+ 
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+	for (int i = 1; i <= m; i++) scanf("%d", &b[i]), pos[b[i]] = i;
+	for (int i = 1; i <= n; i++) {
+		if (pos[a[i]]) {
+			v.push_back({i, pos[a[i]]});
+		}
+	}
+	p = __gcd(n, m);
+	q = n / p;
+	r = m / p;
+	for (int i = 1; i < r; i++) {
+		if (q * i % r == 1) {
+			inv = i;
+			break;
+		}
+	}
+}
+
+
+
+
+Calculate the minimum of \(D\) such that \(check(D)\) is true by using binary search.
+Print the answer.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll p, q, r, d, inv, l;
+ll k;
+ll a[N], b[N];
+ll pos[N * 2];
+
+vector <pair <int, int> > v;
+
+ll check(ll D) {
+	ll rt = D;
+	for (int t = 0; t < v.size(); t++) {
+		int i = v[t].first;
+		int j = v[t].second;
+		if ((i - j) % p) continue;
+		d = (i - j) / p;
+		l = ((- d * inv % r) + r) % r;
+		ll pqr = p * q * r;
+		l = (l * n + i) % pqr;
+		rt -= D / pqr;
+		if (l != 0 && l <= D % pqr) rt --;
+	}
+	return rt >= k;
+}
+ 
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+	for (int i = 1; i <= m; i++) scanf("%d", &b[i]), pos[b[i]] = i;
+	for (int i = 1; i <= n; i++) {
+		if (pos[a[i]]) {
+			v.push_back({i, pos[a[i]]});
+		}
+	}
+	p = __gcd(n, m);
+	q = n / p;
+	r = m / p;
+	for (int i = 1; i < r; i++) {
+		if (q * i % r == 1) {
+			inv = i;
+			break;
+		}
+	}
+	
+	ll lo = 0, hi = 1e18;
+	while (lo + 1 < hi){
+		ll mi = (lo + hi) / 2;
+		if (check(mi)) hi = mi;
+		else lo = mi;
+	}
+	cout << hi << endl;
+}
+
+
+
+
+Let's test with custom input for smallest \(n, m, k\).
+
+Input
+1 1 1
+1
+2
+
+The two colors of first day are different so, the answer is 1.
+
+Expected answer
+1
+
+
+
+
+1 1 1
+1
+2
+
+
+
+
+The code gets Time limit exceeded.
+We have to input at most \(10^6\) integers, so the time for taking input may be long.
+Let's use boilerplate code for fast input and output.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define N 500010
+#define ll long long
+
+ll n, m;
+ll p, q, r, d, inv, l;
+ll k;
+ll a[N], b[N];
+ll pos[N * 2];
+
+vector <pair <int, int> > v;
+
+long long int read_int(){
+	char r;
+	bool start=false,neg=false;
+	long long int ret=0;
+	while(true){
+		r=getchar();
+		if((r-'0'<0 || r-'0'>9) && r!='-' && !start){
+			continue;
+		}
+		if((r-'0'<0 || r-'0'>9) && r!='-' && start){
+			break;
+		}
+		if(start)ret*=10;
+		start=true;
+		ret+=r-'0';
+	}
+	return ret;
+}
+
+ll check(ll D) {
+	ll rt = D;
+	for (int t = 0; t < v.size(); t++) {
+		int i = v[t].first;
+		int j = v[t].second;
+		if ((i - j) % p) continue;
+		d = (i - j) / p;
+		l = ((- d * inv % r) + r) % r;
+		ll pqr = p * q * r;
+		l = (l * n + i) % pqr;
+		rt -= D / pqr;
+		if (l != 0 && l <= D % pqr) rt --;
+	}
+	return rt >= k;
+}
+ 
+int main(){
+	cin >> n >> m >> k;
+	for (int i = 1; i <= n; i++) a[i] = read_int();
+	for (int i = 1; i <= m; i++) b[i] = read_int(), pos[b[i]] = i;
+	for (int i = 1; i <= n; i++) {
+		if (pos[a[i]]) {
+			v.push_back({i, pos[a[i]]});
+		}
+	}
+	p = __gcd(n, m);
+	q = n / p;
+	r = m / p;
+	for (int i = 1; i < r; i++) {
+		if (q * i % r == 1) {
+			inv = i;
+			break;
+		}
+	}
+	
+	ll lo = 0, hi = 1e18;
+	while (lo + 1 < hi){
+		ll mi = (lo + hi) / 2;
+		if (check(mi)) hi = mi;
+		else lo = mi;
+	}
+	cout << hi << endl;
+}

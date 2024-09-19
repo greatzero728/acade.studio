@@ -1,0 +1,173 @@
+<b>C. Little Elephant and Problem</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+The Little Elephant has got a problem — somebody has been touching his sorted by non-decreasing array \(a\) of length \(n\) and possibly swapped some elements of the array.
+
+The Little Elephant doesn't want to call the police until he understands if he could have accidentally changed the array himself. He thinks that he could have accidentally changed array \(a\), only if array \(a\) can be sorted in no more than one operation of swapping elements (not necessarily adjacent). That is, the Little Elephant could have accidentally swapped some two elements.
+
+Help the Little Elephant, determine if he could have accidentally changed the array \(a\), sorted by non-decreasing, himself.
+
+<b>Input</b>
+The first line contains a single integer \(n (2 ≤ n ≤ 10^5)\) — the size of array \(a\). The next line contains \(n\) positive integers, separated by single spaces and not exceeding \(10^9\), — array \(a\).
+
+Note that the elements of the array are not necessarily distinct numbers.
+
+<b>Output</b>
+In a single line print "YES" (without the quotes) if the Little Elephant could have accidentally changed the array himself, and "NO" (without the quotes) otherwise.
+
+<b>Note</b>
+In the first sample the array has already been sorted, so to sort it, we need 0 swap operations, that is not more than 1. Thus, the answer is "YES".
+
+In the second sample we can sort the array if we swap elements 1 and 3, so we need 1 swap operation to sort the array. Thus, the answer is "YES".
+
+In the third sample we can't sort the array in more than one swap operation, so the answer is "NO".
+
+
+
+
+
+Using a naive approach, we can perform all possible \(\binom{n}{2}\) swaps and check if the array is sorted after each swap in \(O(n)\) time. Therefore, with this naive method, we can solve the problem in \(O(n^3)\), which is too slow given that \(n \leq 10^5\). As a result, this approach will lead to a time limit exceeded error.
+
+To solve this problem, we can sort the given array and compare it with the original array. If the number of differences between the two arrays is 0 or 2, we can conclude that the array can be sorted in no more than one operation of swapping elements.
+
+Let's denote the original array as \(a\) and the sorted array as \( \text{sorted\_a} \). If \(a\) and \( \text{sorted\_a} \) are identical, then no swaps are needed, so the answer is "YES". If \(a\) and \( \text{sorted\_a} \) differ in exactly two positions, say \(i\) and \(j\), then swapping \(a_i\) and \(a_j\) will make \(a\) identical to \( \text{sorted\_a} \), so the answer is again "YES". If \(a\) and \( \text{sorted\_a} \) differ in more than two positions, then at least two swaps are needed to make \(a\) identical to \( \text{sorted\_a} \), so the answer is "NO". 
+
+This approach works because the array is initially sorted in non-decreasing order, and swapping two elements can only change the order of these two elements. If we need to swap more than two elements, it means that the array is not sorted in non-decreasing order, and we need more than one swap operation to sort it.
+
+Therefore, we can solve this problem by sorting the given array, comparing it with the original array, and counting the number of differences between them. If the number of differences is 0 or 2, we output "YES", otherwise we output "NO".
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+
+    return 0;
+}
+
+
+
+
+
+Let's create an array \( \text{sorted\_a} \) by copying the array \( a \) and then sorting it, which has a time complexity of \( O(n \cdot \log(n)) \).
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+
+    vector<int> sorted_a = a;
+    sort(sorted_a.begin(), sorted_a.end());
+
+    return 0;
+}
+
+
+
+
+
+Let's count the number of different positions between \( a \) and \( \text{sorted\_a} \).
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+
+    vector<int> sorted_a = a;
+    sort(sorted_a.begin(), sorted_a.end());
+
+    int count = 0;
+    for (int i = 0; i < n; ++i) {
+        if (a[i] != sorted_a[i]) {
+            count++;
+        }
+    }
+	
+	return 0;
+}
+
+
+
+
+
+If the number of differences between the two arrays is 0 or 2, we can conclude that the array can be sorted in no more than one operation of swapping elements.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+
+    vector<int> sorted_a = a;
+    sort(sorted_a.begin(), sorted_a.end());
+
+    int count = 0;
+    for (int i = 0; i < n; ++i) {
+        if (a[i] != sorted_a[i]) {
+            count++;
+        }
+    }
+	
+	if(count == 0 || count == 2) puts("YES");
+	else puts("NO");
+
+    return 0;
+}
+
+
+
+
+
+Let's add a custom corner case, where \(n\) is its minimum possible value: \(n = 2\).
+In this case, the size of array \(a\) is 2, so we can sort the given array within one swap operation.
+So the answer for this case, is "YES".
+
+
+
+
+
+2
+3 1

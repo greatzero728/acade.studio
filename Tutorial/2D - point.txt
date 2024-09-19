@@ -1,0 +1,27 @@
+1. Vector Addition (\(\color{green}{vector\ a}\) \(\color{red}{+}\) \(\color{green}{vector\ b}\)):  
+   This operator adds the components of two vectors together to produce a new vector.
+2. Vector Subtraction (\(\color{green}{vector\ a}\) \(\color{red}{-}\) \(\color{green}{vector\ b}\)):  
+   This operator subtracts the components of one vector from another, yielding a new vector that represents the difference between them.
+
+3. Scalar Multiplication (\(\color{green}{vector\ a}\) \(\color{red}{*}\) \(\color{blue}{scalar}\)):  
+   This operator multiplies both the x and y components of the vector by a scalar, scaling the vector by the given factor.
+4. Scalar Division (\(\color{green}{vector\ a}\) \(\color{red}{/}\) \(\color{blue}{scalar}\)):  
+   This operator divides both components of the vector by a scalar, scaling down the vector proportionally.
+
+5. 2D cross Product (\(\color{green}{vector\ a}\) \(\color{red}\hat{}\) \(\color{green}{vector\ b}\)):  
+   This operator computes the 2D cross product of two vectors, returning a scalar that represents the signed area of the parallelogram formed by the two vectors.
+   This operator computes the 2D cross product of two vectors, returning a scalar that represents the signed area of the parallelogram formed by the two vectors.
+6. Dot Product (\(\color{green}{vector\ a}\) \(\color{red}{*}\) \(\color{green}{vector\ b}\)):  
+   This method computes the dot product of two vectors, resulting in a scalar that measures how much one vector aligns with the other.
+
+
+This section covers the rotation aspect:
+7. Complex Multiplication (\(\color{green}{vector\ a}\) \(\color{red}{\&}\) \(\color{green}{vector\ b}\)):  
+   This operator multiplies two vectors as if they were complex numbers, resulting in a new vector. It is often used for rotating vectors in 2D space.
+8. Rotation (\(\color{green}{vector.rotate(Cos, Sin)}\)):  
+   This method rotates the vector by applying the cosine and sine of the rotation angle, resulting in a new rotated vector.
+
+9. Vector length (\(\color{green}{vector.nor()}\)):  
+   This method calculates the length of the vector, which is the distance from the origin to the vector's position in space.
+10. Normalization (\(\color{green}{vector.norm()}\)):  
+    This method returns a unit vector in the same direction as the original vector, ensuring it has a length of 1. If the vector's magnitude is near zero, it returns the original vector.

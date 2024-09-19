@@ -1,0 +1,17 @@
+BBOARD - Billboard
+Time limit:	0.100s
+Source limit:	50000B
+Memory limit:	1536MB
+
+The manager of the International Popcorn-Selling Company has just decided that a number of advertising billboards should be installed throughout the city. The city consists of a number of crossings connected by (bidirectional) streets. Crossings are numbered by integers 1..N.
+
+There should be one billboard at every crossing. However, to cut down expenses, there have been only three types of billboards printed. Nevertheless, the billboards should be arranged in such a way that one never meets the same billboard twice in a row when driving through the city (suppose that it is possible to turn back only at the crossing). How should they be installed?
+
+Input specification
+The input file starts with a line containing the number of test cases. Every test case starts with a line containing two (blank separated) integers N(1<= N <=600), M(1<= M <=10000) where N is the number of crossings and M is the number of streets. Each of the next M lines contains two integers x, y, indicating a street connecting crossings x and y.
+
+Output specification
+The output file contains a sequence of N numbers delimited by whitespace for every test case. The i-th member of this sequence denotes the type of the billboard at the crossing i (assume that the types of the billboards are numbered 1,2,3). If it is not possible to install the billboards in the described manner, the sequence consists of a single number -1.
+
+Note that it is not necessary to write the entire sequence in one line. To prevent the problems with the mailer you may split long lines into several shorter ones.
+

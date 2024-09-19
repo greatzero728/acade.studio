@@ -1,0 +1,384 @@
+A. Diana and Liana
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+At the first holiday in spring, the town Shortriver traditionally conducts a flower festival. Townsfolk wear traditional wreaths during these festivals. Each wreath contains exactly k flowers.
+
+The work material for the wreaths for all n citizens of Shortriver is cut from the longest flowered liana that grew in the town that year. Liana is a sequence \(a_1, a_2, ..., a_m\), where \(a_i\) is an integer that denotes the type of flower at the position i. This year the liana is very long (m≥n⋅k), and that means every citizen will get a wreath.
+
+Very soon the liana will be inserted into a special cutting machine in order to make work material for wreaths. The machine works in a simple manner: it cuts k flowers from the beginning of the liana, then another k flowers and so on. Each such piece of k flowers is called a workpiece. The machine works until there are less than k flowers on the liana.
+
+Diana has found a weaving schematic for the most beautiful wreath imaginable. In order to weave it, k flowers must contain flowers of types \(b_1, b_2, ..., b_s\), while other can be of any type. If a type appears in this sequence several times, there should be at least that many flowers of that type as the number of occurrences of this flower in the sequence. The order of the flowers in a workpiece does not matter.
+
+Diana has a chance to remove some flowers from the liana before it is inserted into the cutting machine. She can remove flowers from any part of the liana without breaking liana into pieces. If Diana removes too many flowers, it may happen so that some of the citizens do not get a wreath. Could some flowers be removed from the liana so that at least one workpiece would conform to the schematic and machine would still be able to create at least n workpieces?
+
+Input
+The first line contains four integers m, k, n and s (1≤n,k,m≤\(5⋅10^5\), k⋅n≤m, 1≤s≤k): the number of flowers on the liana, the number of flowers in one wreath, the amount of citizens and the length of Diana's flower sequence respectively.
+
+The second line contains m integers \(a_1, a_2, ..., a_m (1≤a_i≤5⋅10^5)\)  — types of flowers on the liana.
+
+The third line contains s integers \(b_1, b_2, ..., b_s (1≤b_i≤5⋅10^5)\)  — the sequence in Diana's schematic.
+
+Output
+If it's impossible to remove some of the flowers so that there would be at least n workpieces and at least one of them fullfills Diana's schematic requirements, output −1.
+
+Otherwise in the first line output one integer d  — the number of flowers to be removed by Diana.
+
+In the next line output d different integers  — the positions of the flowers to be removed.
+
+If there are multiple answers, print any.
+
+Note
+In the first example, if you don't remove any flowers, the machine would put out two workpieces with flower types [1,2,3] and [3,2,1]. Those workpieces don't fit Diana's schematic. But if you remove flower on 4-th place, the machine would output workpieces [1,2,3] and [2,1,2]. The second workpiece fits Diana's schematic.
+
+In the second example there is no way to remove flowers so that every citizen gets a wreath and Diana gets a workpiece that fits here schematic.
+
+In the third example Diana is the only citizen of the town and that means she can, for example, just remove all flowers except the ones she needs.
+
+
+
+
+We need to find a way to remove some flowers so that at least one wreath conforms to the schematic, while still allowing the machine to create at least \( n \) wreaths.
+
+\(\bull\) naive algorithm
+We can explore all possible ways to remove flowers to determine the valid answer.
+After identifying the flowers that need to be removed, we can simulate the machine's operation to check if we have created at least one wreath that conforms to the schematic.
+However, the number of ways to remove flowers is equal to the number of subsets of {1, 2, ..., m}. Therefore, we must consider all \(2^m\) possible ways to remove flowers.
+This approach is inefficient because \(m\) can be as large as \(5 \cdot 10^5\).
+So if we use this naive algorithm we will get time limit exceed result.
+
+
+
+
+\(\bull\) real algorithm
+
+We can use a sliding window technique to find a segment that contains all the required flowers for the schematic.
+This algorithm involves maintaining a window of flower types between indices \( L \) and \( R \) such that the flower types in this window satisfy the requirements of Diana's schematic. Here, [L, R) represents current sliding window. (\(1 \leq L \leq m, L < R \leq m + 1\))
+
+We can iterate through possible starting points \( L \) from 1 to \( m \), and for each \( L \), you expand the window by increasing \( R \) until the flower counts within the window satisfy Diana's schematic. The idea is to adjust \( R \) as long as the current segment \( [L, R) \) contains enough flowers of the required types.
+This process repeats for each starting \( L \), sliding the window forward.
+The time complexity is \(O(m)\) because each index L is iterated once, and R only moves forward (never backward) as the window expands, resulting in a linear pass through the flower sequence.
+
+\(\bull\) We need to consider the constraint that the machine can still create at least n wreaths after removing some flowers. This means that the total number of flowers removed should not exceed \(m - n \cdot k\).
+
+Let's determine the optimal way to remove flowers to create a wreath that conforms to the schematic.
+
+
+
+
+\(\bull\) How do we delete the flowers from the left part of \([L, R)\)?
+Let's examine how the machine operates: it cuts \( k \) flowers from left to right, creating wreaths one by one.
+If the machine reaches the part of our sliding window, it will add flowers if the number of flowers currently inserted into the wreath is less than \( k \). Because of this, we can't create a wreath that consists solely of the flowers from our sliding window part. In this case, if there are any flowers inserted into the wreath before reaching our section, we must delete them as well to ensure that the wreath contains only the flowers from our sliding window.
+If we don't take this into account, we will end up with an incorrect result.
+
+We need to delete \(\text{max}\left(\left\lfloor \frac{L - 1}{k} \right\rfloor - (n - 1), 0\right) \cdot k + (L - 1) \% k\) flowers from the left part of our sliding window.
+This is because if \(\left\lfloor \frac{L - 1}{k} \right\rfloor \geq n\), it means our sliding window part is not included in the \(n\) wreaths. In this case we have to remain only n-1 wreaths left part of our sliding window.
+Another reason is that if \( L - 1 \) is not divisible by \( k \), then the remaining \( (L - 1) \% k \) flowers will be left before we enter our sliding window part. So, we also need to remove the remaining \( (L - 1) \% k\) flowers.
+
+
+
+
+\(\bull\) How do we delete the flowers from the part of \([L, R)\)?
+We need to create one wreath that conforms to the schematic using the flowers in the range \([L, R)\).
+We maintained a sliding window so that the current flower list contains flowers of types \(b_1, b_2, \ldots, b_s\).
+This means we fixed \(L\) and maintained \(R\) as the leftmost index that meets the above requirement.
+If the length of \([L, R)\) is greater than \(k\), we must remove flowers from left to right so that the current flower list contains flowers of types \(b_1, b_2, \ldots, b_s\) until exactly \(k\) flowers remain in our sliding window.
+
+
+
+
+\(\bull\) How do we delete the flowers from the right part of \([L, R)\)?
+We don't need to delete flowers from the right part of \([L, R)\) because the sliding window already contains the required flower types for Diana's schematic, and any excess flowers beyond \( R \) are irrelevant to forming the valid wreath.
+Additionally, since we only need to ensure one valid workpiece, removing flowers outside this window doesn't improve the result but may reduce the total number of wreaths, which is undesirable.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505050;
+
+int a[NN];
+
+int main() {
+    int m, k, n, s; scanf("%d %d %d %d", &m, &k, &n, &s);
+    for(int i = 1; i <= m; i++) scanf("%d", a + i);
+    
+    while(s--) {
+        int b; scanf("%d", &b);
+    }
+}
+
+
+
+
+Let's write the structure of the sliding window algorithm.
+We need to maintain a frequency array, \(\text{cur\_cnt}\), to count the occurrences of each flower type in the range \([L, R)\) and compare it with the frequency array, \(\text{cnt}\), of the required flowers for the schematic. Here, \(\text{cnt}\) represents the information of \(b_1, b_2, \ldots, b_s\), and \(\text{cur\_cnt}\) represents the information of \(a_i\) for \(L \leq i < R\).
+The condition for the sliding window is that for every flower type \( x \), \( \text{cur\_cnt}[x] \geq \text{cnt}[x] \).
+Another condition is that since we have to select \( k \) flowers in \([L, R)\), the length of \([L, R)\) should be greater than or equal to \( k \).
+
+It's challenging to maintain \( \text{cur\_cnt}[x] \geq \text{cnt}[x] \) with low time complexity for every \( x \). \((1 \leq x \leq 5 \cdot 10 ^ 5 ) \)
+Therefore, let's keep track of the number of flower types that appear in \( b_1, b_2, \ldots, b_s \) as \( \text{num} \), and the number of flower types that appear in \([L, R)\) as \( \text{cur\_num} \).
+This way, we only need to update \( \text{num} \) and \( \text{cur\_num} \) based on the changes in \( L \) and \( R \), and we only need to check if \( \text{cur\_num} \) matches \( \text{cnt} \) instead of checking \( \text{cur\_cnt}[x] \geq \text{cnt}[x] \) for all \( x \).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505050;
+
+int a[NN], cnt[NN], cur_cnt[NN];
+
+int main() {
+    int m, k, n, s; scanf("%d %d %d %d", &m, &k, &n, &s);
+    for(int i = 1; i <= m; i++) scanf("%d", a + i);
+    
+    int num = 0;
+    while(s--) {
+        int b; scanf("%d", &b);
+        if(!cnt[b]++) num++;
+    }
+    for(int L = 1, R = 1, cur_num = 0; L <= m; L++) {
+        for(; R <= m && (cur_num < num || R - L < k); R++) {
+            if(++cur_cnt[a[R]] == cnt[a[R]]) cur_num++;
+        }
+        if(cur_num == num && R - L >= k) {
+            //We have to check if we can make valid answer from [L, R)
+        }
+        if(cur_cnt[a[L]]-- == cnt[a[L]]) cur_num--;
+    }
+    puts("-1");
+}
+
+
+
+
+The number of flowers that we have to delete to the left of \([L, R)\) is given by \(\text{max}\left(\left\lfloor \frac{L - 1}{k} \right\rfloor - (n - 1), 0\right) \cdot k + (L - 1) \% k\). (I explained this in block 3.)
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505050;
+
+int a[NN], cnt[NN], cur_cnt[NN];
+
+int main() {
+    int m, k, n, s; scanf("%d %d %d %d", &m, &k, &n, &s);
+    for(int i = 1; i <= m; i++) scanf("%d", a + i);
+    
+    int num = 0;
+    while(s--) {
+        int b; scanf("%d", &b);
+        if(!cnt[b]++) num++;
+    }
+    for(int L = 1, R = 1, cur_num = 0; L <= m; L++) {
+        for(; R <= m && (cur_num < num || R - L < k); R++) {
+            if(++cur_cnt[a[R]] == cnt[a[R]]) cur_num++;
+        }
+        if(cur_num == num && R - L >= k) {
+            int del_left = max((L - 1) / k - (n - 1), 0) * k + (L - 1) % k;
+        }
+        if(cur_cnt[a[L]]-- == cnt[a[L]]) cur_num--;
+    }
+    puts("-1");
+}
+
+
+
+
+The number of flowers that we have to delete in \([L, R)\) is given by \(R - L - k\). (I explained this in block 4.)
+We need to keep the necessary \(k\) flowers in the current range \([L, R)\), so the other \(R - L - k\) flowers should be deleted.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505050;
+
+int a[NN], cnt[NN], cur_cnt[NN];
+
+int main() {
+    int m, k, n, s; scanf("%d %d %d %d", &m, &k, &n, &s);
+    for(int i = 1; i <= m; i++) scanf("%d", a + i);
+    
+    int num = 0;
+    while(s--) {
+        int b; scanf("%d", &b);
+        if(!cnt[b]++) num++;
+    }
+    for(int L = 1, R = 1, cur_num = 0; L <= m; L++) {
+        for(; R <= m && (cur_num < num || R - L < k); R++) {
+            if(++cur_cnt[a[R]] == cnt[a[R]]) cur_num++;
+        }
+        if(cur_num == num && R - L >= k) {
+            int del_left = max((L - 1) / k - (n - 1), 0) * k + (L - 1) % k;
+            int del_inrange = R - L - k;
+        }
+        if(cur_cnt[a[L]]-- == cnt[a[L]]) cur_num--;
+    }
+    puts("-1");
+}
+
+
+
+
+The number of flowers that we have to delete to the right of \([L, R)\) is 0. (I explained this number in block 5.)
+
+The number of flowers that we need to delete for the current state \([L, R)\) is the sum of \( \text{del\_left} \) and \( \text{del\_inrange} \). Let's denote this number as \( \text{total} \).
+
+After deleting these flowers, the machine should be able to make \( n \) wreaths, so \( m - \text{total} \) should be greater than or equal to \( n \cdot k \).
+And we have already split the full array into three parts: left of \([L, R)\), \([L, R)\), and right of \([L, R)\). Thus, the total number of wreaths that we can make among all parts should be greater than or equal to \( n \).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505050;
+
+int a[NN], cnt[NN], cur_cnt[NN];
+
+int main() {
+    int m, k, n, s; scanf("%d %d %d %d", &m, &k, &n, &s);
+    for(int i = 1; i <= m; i++) scanf("%d", a + i);
+    
+    int num = 0;
+    while(s--) {
+        int b; scanf("%d", &b);
+        if(!cnt[b]++) num++;
+    }
+    for(int L = 1, R = 1, cur_num = 0; L <= m; L++) {
+        for(; R <= m && (cur_num < num || R - L < k); R++) {
+            if(++cur_cnt[a[R]] == cnt[a[R]]) cur_num++;
+        }
+        if(cur_num == num && R - L >= k) {
+            int del_left = max((L - 1) / k - (n - 1), 0) * k + (L - 1) % k;
+            int del_inrange = R - L - k;
+            int total = del_left + del_inrange;
+            if(total <= m - n * k && (L - 1) / k + 1 + (m - R + 1) / k >= n) {
+                //Let's print the answer.
+            }
+        }
+        if(cur_cnt[a[L]]-- == cnt[a[L]]) cur_num--;
+    }
+    puts("-1");
+}
+
+
+
+
+Finally, we can print the answer.
+For the left part of \([L, R)\), we need to delete \( \text{del\_left} \) flowers. Without loss of generality, we can delete the first \( \text{del\_left} \) flowers.
+And for the part of \([L, R)\), under the mandatory requirement that \( \text{cur\_cnt}[x] \geq \text{cnt}[x] \) for all \( x \), we can delete all the remaining flowers that do not affect the wreaths that can be made from the range \([L, R)\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505050;
+
+int a[NN], cnt[NN], cur_cnt[NN];
+
+int main() {
+    int m, k, n, s; scanf("%d %d %d %d", &m, &k, &n, &s);
+    for(int i = 1; i <= m; i++) scanf("%d", a + i);
+    
+    int num = 0;
+    while(s--) {
+        int b; scanf("%d", &b);
+        if(!cnt[b]++) num++;
+    }
+    for(int L = 1, R = 1, cur_num = 0; L <= m; L++) {
+        for(; R <= m && (cur_num < num || R - L < k); R++) {
+            if(++cur_cnt[a[R]] == cnt[a[R]]) cur_num++;
+        }
+        if(cur_num == num && R - L >= k) {
+            int del_left = max((L - 1) / k - (n - 1), 0) * k + (L - 1) % k;
+            int del_inrange = R - L - k;
+            int total = del_left + del_inrange;
+            if(total <= m - n * k && (L - 1) / k + 1 + (m - R + 1) / k >= n) {
+                printf("%d\n", total);
+                for(int i = 1; i <= del_left; i++) printf("%d ", i);
+                for(int i = L; i < R && del_inrange > 0; i++) {
+                    if(cur_cnt[a[i]]-- > cnt[a[i]]) printf("%d ", i), del_inrange--;
+                }
+                return 0;
+            }
+        }
+        if(cur_cnt[a[L]]-- == cnt[a[L]]) cur_num--;
+    }
+    puts("-1");
+}
+
+
+
+
+7 3 2 2
+1 2 3 3 2 1 2
+2 2
+
+
+
+
+13 4 3 3
+3 2 6 4 1 4 4 7 1 3 3 2 4
+4 3 4
+
+
+
+
+13 4 1 3
+3 2 6 4 1 4 4 7 1 3 3 2 4
+4 3 4
+
+
+
+
+This output differs from the sample output. Let me verify if my output is correct. My output indicates that I should delete the 2nd and 3rd elements. So, let's proceed with deleting the 2nd and 3rd elements.
+
+Original array: \(3 \, \textcolor{red}{2} \, \textcolor{red}{6} \, 4 \, 1 \, 4 \, 4 \, 7 \, 1 \, 3 \, 3 \, 2 \, 4\)
+
+After deletion: \(3 \, 4 \, 1 \, 4 \, 4 \, 7 \, 1 \, 3 \, 3 \, 2 \, 4\)
+
+After deletion, the machine has to select \(n = 1\) wreath, so it will select the first \(k = 4\) elements: \(3 \, 4 \, 1 \, 4\) once.
+
+The list \(\{3, 4, 1, 4\}\) includes the given \(b\) array \(\{4, 3, 4\}\), so my answer is valid.
+
+
+
+
+Let's examine a custom corner case where \(m, k, n, s, a_i, b_i\) are all at their minimum value: \(m = k = n = s = a_i = b_i = 1\).
+
+<code>
+1 1 1 1
+1
+1
+</code>
+
+In this test case, we already have \(k \cdot n = m\), so we cannot remove any flowers from the original array. The machine will simply select {1} (the full array), which includes array \(b\): {1}. Therefore, if we remove nothing, and the result is valid. 
+
+So, in this case, the answer should be "0".
+
+
+
+
+1 1 1 1
+1
+1

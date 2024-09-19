@@ -1,0 +1,233 @@
+We can solve this problem using a naive algorithm that recursively searches all possible paths.
+For a query, we can start from node \(s_i\). At each step, store the current city number \(u\) and the number of car change events \(k\), until now. Then, we consider all cases that arrive at city \(t_i\) with \(k_i\) car changes.
+But, \(r \leq 10^5, k_i \leq 1000\) and the number of possible paths from \(s_i\) to \(t_i\) is extremely large, so we cannot solve this problem using a naive approach. The result will be time limit exceed error.
+
+Let's solve this problem using dynamic programming.
+Let's denote the minimum required time to complete the round from \(u\) to \(v\) by changing the car at most \(k\) times as \(dp[k][u][v]\), then the answer is \(dp[k][u][v]\).
+The initial state is represented by \(dp[0][u][v]\), which signifies the minimum required time to complete the round from \(u\) to \(v\) without changing the car. This can be calculated as follows: \(dp[0][u][v] = min(d[k][u][v])\), where \(k\) is the index of all cars and \(1 \leq k \leq m\), and \(d[k][u][v]\) is the shortest path from city \(u\) to city \(v\) using only car \(k\).
+The \(dp[k][u][v]\) can be understood as follows: move from city \(u\) to city \(w\) within \((k - 1)\) car changes, then select one car to travel from \(w\) to \(v\). (Here, \(u\) is the index of car.)
+Therefore, \(dp[k][u][v] = \min(dp[k - 1][u][w] + dp[0][w][v])\). (Here, \(w\) represents the index of a city, where \(1 \leq w \leq n\).)
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 66;
+
+int d[NN][NN][NN];
+
+int main() {
+	
+	int n, m, r; scanf("%d %d %d", &n, &m, &r);
+	for(int k = 1; k <= m; k++) {
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) scanf("%d", d[k][u] + v);
+		}
+	}
+	
+	while(r--) {
+		int u, v, k; scanf("%d %d %d", &u, &v, &k);
+	}
+}
+
+
+
+
+
+Let's calculate \(d[k][u][v]\) (the shortest path from city \(u\) to city \(v\) using only car \(k\)) using Floyd-Warshall algorithm in \(O(n^3)\).
+
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 66;
+
+int d[NN][NN][NN];
+
+int main() {
+	
+	int n, m, r; scanf("%d %d %d", &n, &m, &r);
+	for(int k = 1; k <= m; k++) {
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) scanf("%d", d[k][u] + v);
+		}
+		for(int w = 1; w <= n; w++) {
+			for(int u = 1; u <= n; u++) {
+				for(int v = 1; v <= n; v++) d[k][u][v] = min(d[k][u][v], d[k][u][w] + d[k][w][v]);
+			}
+		}
+	}
+	
+	while(r--) {
+		int u, v, k; scanf("%d %d %d", &u, &v, &k);
+	}
+}
+
+
+
+
+
+Let's calculate initial state of \(dp[k][u][v]\).
+\(dp[0][u][v]\) can be calculated as follows: \(dp[0][u][v] = min(d[k][u][v])\), where \(k\) is the index of all cars and \(1 \leq k \leq m\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 66, inf = 1e9;
+
+int d[NN][NN][NN], dp[NN][NN][NN];
+
+int main() {
+	
+	int n, m, r; scanf("%d %d %d", &n, &m, &r);
+	
+	for(int i = 0; i <= n; i++) {
+		for(int j = 1; j <= n; j++) {
+			for(int k = 1; k <= n; k++) dp[i][j][k] = inf;
+		}
+	}
+	for(int k = 1; k <= m; k++) {
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) scanf("%d", d[k][u] + v);
+		}
+		for(int w = 1; w <= n; w++) {
+			for(int u = 1; u <= n; u++) {
+				for(int v = 1; v <= n; v++) d[k][u][v] = min(d[k][u][v], d[k][u][w] + d[k][w][v]);
+			}
+		}
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) dp[0][u][v] = min(dp[0][u][v], d[k][u][v]);
+		}
+	}
+	
+	while(r--) {
+		int u, v, k; scanf("%d %d %d", &u, &v, &k);
+		printf("%d\n", dp[min(k, n)][u][v]);
+	}
+}
+
+
+
+
+
+Let's implement this: \(dp[k][u][v] = \min(dp[k - 1][u][w] + dp[0][w][v])\). (Here, \(w\) represents the index of a city, where \(1 \leq w \leq n\).)
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 66, inf = 1e9;
+
+int d[NN][NN][NN], dp[NN][NN][NN];
+
+int main() {
+	
+	int n, m, r; scanf("%d %d %d", &n, &m, &r);
+	
+	for(int i = 0; i <= n; i++) {
+		for(int j = 1; j <= n; j++) {
+			for(int k = 1; k <= n; k++) dp[i][j][k] = inf;
+		}
+	}
+	for(int k = 1; k <= m; k++) {
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) scanf("%d", d[k][u] + v);
+		}
+		for(int w = 1; w <= n; w++) {
+			for(int u = 1; u <= n; u++) {
+				for(int v = 1; v <= n; v++) d[k][u][v] = min(d[k][u][v], d[k][u][w] + d[k][w][v]);
+			}
+		}
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) dp[0][u][v] = min(dp[0][u][v], d[k][u][v]);
+		}
+	}
+	
+	for(int k = 1; k <= n; k++) {
+		for(int u = 1; u <= n; u++) {
+			for(int v = 1; v <= n; v++) {
+				for(int w = 1; w <= n; w++) dp[k][u][v] = min(dp[k][u][v], dp[k - 1][u][w] + dp[0][w][v]);
+			}
+		}
+	}
+	
+	while(r--) {
+		int u, v, k; scanf("%d %d %d", &u, &v, &k);
+		printf("%d\n", dp[min(k, n)][u][v]);
+	}
+}
+
+
+
+
+
+4 2 3
+0 1 5 6
+2 0 3 6
+1 3 0 1
+6 6 7 0
+0 3 5 6
+2 0 1 6
+1 3 0 2
+6 6 7 0
+1 4 2
+1 4 1
+1 4 3
+
+
+
+
+
+4 2 3
+0 7 3 3
+8 0 10 5
+1 1 0 4
+8 9 2 0
+0 3 3 9
+7 0 4 9
+3 8 0 4
+4 8 9 0
+2 3 3
+2 1 3
+1 2 2
+
+
+
+
+
+Let's check the following corner test case, where \(n, m, r\) are minimum. (\(n = 2, m = 1, r = 1\)
+<b>Input</b>
+<code>
+2 1 1
+0 1
+2 0
+1 2 0
+</code>
+In this case, we need to calculate the minimum required time to travel from city 1 to city 2 with out any changing the car. This is same value with the shortest path from 1 to 2 so the answer will be 1.
+
+
+
+
+
+2 1 1
+0 1
+2 0
+1 2 0

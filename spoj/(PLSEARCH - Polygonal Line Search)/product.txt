@@ -1,0 +1,642 @@
+<b>Polygonal Line Search
+Time limit: 1s
+Memory limit: 1536MB </b>
+
+Multiple polygonal lines are given on the xy-plane. Given a list of polygonal lines and a template, you must find out polygonal lines which have the same shape as the template.
+
+A polygonal line consists of several line segments parallel to x-axis or y-axis. It is defined by a list of xy-coordinates of vertices from the start-point to the end-point in order, and always turns 90 degrees at each vertex. A single polygonal line does not pass the same point twice. Two polygonal lines have the same shape when they fully overlap each other only with rotation and translation within xy-plane (i.e. without magnification or a flip). The vertices given in reverse order from the start-point to the end-point is the same as that given in order.
+
+Figure 1 shows examples of polygonal lines. In this figure, polygonal lines A and B have the same shape.
+
+Write a program that answers polygonal lines which have the same shape as the template.
+
+<img 1>
+<b>Input</b>
+The input consists of multiple datasets. The end of the input is indicated by a line which contains a zero.
+
+A dataset is given as follows.
+
+n
+Polygonal line0
+Polygonal line1
+Polygonal line2
+...
+Polygonal linen
+
+n is the number of polygonal lines for the object of search on xy-plane. n is an integer, and 1 <= n <= 50. Polygonal line0 indicates the template.
+
+A polygonal line is given as follows.
+
+m
+x1 y1
+x2 y2
+...
+xm ym
+m is the number of the vertices of a polygonal line (3 <= m <= 10). xi and yi, separated by a space, are the x- and y-coordinates of a vertex, respectively (-10000 < xi < 10000, -10000 < yi < 10000).
+
+<b>Output</b>
+For each dataset in the input, your program should report numbers assigned to the polygonal lines that have the same shape as the template, in ascending order. Each number must be written in a separate line without any other characters such as leading or trailing spaces.
+
+Five continuous "+"s must be placed in a line at the end of each dataset.
+
+
+
+
+<b>The naive brute-force solution</b> for this problem involves comparing each polygonal line in the dataset to the template in a straightforward manner, considering all possible transformations (rotation, translation, and reverse order).
+
+<b>Time Complexity:</b>
+- <b>Normalization of the template and lines</b>: Each polygonal line has at most \(m\) vertices, so normalizing it into vector sequences takes \(O(m)\) per line.
+- <b>Comparing each line to all transformations</b>: There are at most 8 transformations (4 rotations and their reversed versions). Since each transformation comparison involves \(O(m)\) operations, comparing one line to the template takes \(O(8 \cdot m) = O(m)\).
+- <b>Overall complexity</b>: With up to \(n\) polygonal lines, the total time complexity for comparing all lines is \(O(n \cdot m)\) per dataset. This is manageable given the problem constraints.
+
+Given the constraints (\(n \leq 50 \text{ and } m \leq 10\)), this brute-force solution runs efficiently within the time limits.
+
+
+
+
+We will first loop infinitely until \(n=0\).
+Now let's input the polygonal lines. We will store each line of the polygon as a pair of integers and then we will store the lines of the polygon in a vector named "lines".
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+    }
+}
+
+
+
+
+A polygonal line is defined by a sequence of vertices (x, y) in the xy-plane. To compare shapes while ignoring translation (shifting the line), we convert the polygonal line into a sequence of <b>vectors</b>.
+
+This can be done easily as the differences between consecutive vertices form vectors, representing the direction and length of the line segments between each pair of adjacent vertices. For example, if the line has vertices \((x_1, y_1)\), \((x_2, y_2)\), ..., \((x_m, y_m)\), the corresponding vectors are:
+\((x_2 - x_1, y_2 - y_1), (x_3 - x_2, y_3 - y_2), \dots, (x_m - x_{m-1}, y_m - y_{m-1})\)
+
+This transformation eliminates the impact of the absolute position of the polygonal line in the plane, allowing us to focus on the shape itself.
+
+Now, let's create the \(getVectors\) function that takes the lines of a polygonal and converts it to vectors for that polygonal.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+    }
+}
+
+
+
+
+
+Let's now create \(rotate90\) and this function takes a vector and returns its 90-degree clockwise rotation. To account for all possible rotations of a polygonal line, we need a way to rotate the vectors that describe the polygonal line.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+    }
+}
+
+
+
+
+Let's now create a function \(generateAllRotations\) that takes the vectors of a polygonal and generates all the rotations for it \((0°, 90°, 180°, 270°)\). This is because a polygonal line can be rotated in these four ways while maintaining its shape. To check if two lines are identical, we must consider all these rotations.
+
+And this can be done easily as the original sequence is saved as the 0° rotation. So each subsequent rotation is calculated by rotating the previous one by 90°.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+vector<vector<pair<int, int>>> generateAllRotations(vector<pair<int, int>>& vectors) {
+    vector<vector<pair<int, int>>> rotations(4);
+    rotations[0] = vectors;
+    for (int i = 1; i < 4; ++i) {
+        for (auto& vec : rotations[i - 1]) {
+            rotations[i].push_back(rotate90(vec));
+        }
+    }
+    return rotations;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+    }
+}
+
+
+
+
+
+Let's set the first polygon to be a template so we can compare any other polygon in the dataset with this template. And for sure, we will convert its lines into vectors as we discussed before.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+vector<vector<pair<int, int>>> generateAllRotations(vector<pair<int, int>>& vectors) {
+    vector<vector<pair<int, int>>> rotations(4);
+    rotations[0] = vectors;
+    for (int i = 1; i < 4; ++i) {
+        for (auto& vec : rotations[i - 1]) {
+            rotations[i].push_back(rotate90(vec));
+        }
+    }
+    return rotations;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+        vector<pair<int, int>> templateVectors = getVectors(lines[0]);
+    }
+}
+
+
+
+
+
+Let's now create a function \(areEqual\) that takes two vector sequences (polygons) to check if they are identical, and this can be done easily because if two polygonal lines have the same shape, their vector sequences must be identical.
+
+The function first checks if the sizes of the two sequences are the same. If they are, it compares each corresponding vector. If any pair differs, the function returns false.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+vector<vector<pair<int, int>>> generateAllRotations(vector<pair<int, int>>& vectors) {
+    vector<vector<pair<int, int>>> rotations(4);
+    rotations[0] = vectors;
+    for (int i = 1; i < 4; ++i) {
+        for (auto& vec : rotations[i - 1]) {
+            rotations[i].push_back(rotate90(vec));
+        }
+    }
+    return rotations;
+}
+
+bool areEqual(vector<pair<int, int>>& a, vector<pair<int, int>>& b) {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (a[i] != b[i]) return false;
+    }
+    return true;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+        vector<pair<int, int>> templateVectors = getVectors(lines[0]);
+    }
+}
+
+
+
+
+
+Let's now implement the \(matchesTemplate\) function that checks whether a polygonal line matches the template polygon, considering all possible transformations (rotations and reversals).
+
+We first generate all rotations of the template and also generate all rotations of the reversed template.
+And then compare the vector sequence of the current polygonal line (lineVectors) with each rotation of the template and the reversed template. If a match is found, it returns true.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+vector<vector<pair<int, int>>> generateAllRotations(vector<pair<int, int>>& vectors) {
+    vector<vector<pair<int, int>>> rotations(4);
+    rotations[0] = vectors;
+    for (int i = 1; i < 4; ++i) {
+        for (auto& vec : rotations[i - 1]) {
+            rotations[i].push_back(rotate90(vec));
+        }
+    }
+    return rotations;
+}
+
+bool areEqual(vector<pair<int, int>>& a, vector<pair<int, int>>& b) {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (a[i] != b[i]) return false;
+    }
+    return true;
+}
+
+bool matchesTemplate(vector<pair<int, int>>& line, vector<pair<int, int>>& templateVectors) {
+    auto templateRotations = generateAllRotations(templateVectors);
+    vector<pair<int, int>> reversedTemplate(templateVectors.rbegin(), templateVectors.rend());
+    auto reversedTemplateRotations = generateAllRotations(reversedTemplate);
+    auto lineVectors = getVectors(line);
+    for (auto& rotation : templateRotations) {
+        if (areEqual(lineVectors, rotation)) return true;
+    }
+    for (auto& rotation : reversedTemplateRotations) {
+        if (areEqual(lineVectors, rotation)) return true;
+    }
+    return false;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+        vector<pair<int, int>> templateVectors = getVectors(lines[0]);
+    }
+}
+
+
+
+
+
+Let's loop over each polygon in the dataset (starting from 1, as 0 is the template polygon) and check if it matches the template polygon using \(matchesTemplate\) we just implemented, and if so, we store it in \(matchingLines\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+vector<vector<pair<int, int>>> generateAllRotations(vector<pair<int, int>>& vectors) {
+    vector<vector<pair<int, int>>> rotations(4);
+    rotations[0] = vectors;
+    for (int i = 1; i < 4; ++i) {
+        for (auto& vec : rotations[i - 1]) {
+            rotations[i].push_back(rotate90(vec));
+        }
+    }
+    return rotations;
+}
+
+bool areEqual(vector<pair<int, int>>& a, vector<pair<int, int>>& b) {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (a[i] != b[i]) return false;
+    }
+    return true;
+}
+
+bool matchesTemplate(vector<pair<int, int>>& line, vector<pair<int, int>>& templateVectors) {
+    auto templateRotations = generateAllRotations(templateVectors);
+    vector<pair<int, int>> reversedTemplate(templateVectors.rbegin(), templateVectors.rend());
+    auto reversedTemplateRotations = generateAllRotations(reversedTemplate);
+    auto lineVectors = getVectors(line);
+    for (auto& rotation : templateRotations) {
+        if (areEqual(lineVectors, rotation)) return true;
+    }
+    for (auto& rotation : reversedTemplateRotations) {
+        if (areEqual(lineVectors, rotation)) return true;
+    }
+    return false;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+        vector<pair<int, int>> templateVectors = getVectors(lines[0]);
+        vector<int> matchingLines;
+        for (int i = 1; i <= n; ++i) {
+            if (matchesTemplate(lines[i], templateVectors)) {
+                matchingLines.push_back(i);
+            }
+        }
+    }
+}
+
+
+
+
+Last thing we output the \(mathcingLines\) we found (if there) and then we print +++++ at the end of each dataset.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<pair<int, int>> getVectors(vector<pair<int, int>>& line) {
+    vector<pair<int, int>> vectors;
+    for (size_t i = 1; i < line.size(); ++i) {
+        int dx = line[i].first - line[i - 1].first;
+        int dy = line[i].second - line[i - 1].second;
+        vectors.push_back({dx, dy});
+    }
+    return vectors;
+}
+
+pair<int, int> rotate90(pair<int, int> vec) {
+    return {vec.second, -vec.first};
+}
+
+vector<vector<pair<int, int>>> generateAllRotations(vector<pair<int, int>>& vectors) {
+    vector<vector<pair<int, int>>> rotations(4);
+    rotations[0] = vectors;
+    for (int i = 1; i < 4; ++i) {
+        for (auto& vec : rotations[i - 1]) {
+            rotations[i].push_back(rotate90(vec));
+        }
+    }
+    return rotations;
+}
+
+bool areEqual(vector<pair<int, int>>& a, vector<pair<int, int>>& b) {
+    if (a.size() != b.size()) return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (a[i] != b[i]) return false;
+    }
+    return true;
+}
+
+bool matchesTemplate(vector<pair<int, int>>& line, vector<pair<int, int>>& templateVectors) {
+    auto templateRotations = generateAllRotations(templateVectors);
+    vector<pair<int, int>> reversedTemplate(templateVectors.rbegin(), templateVectors.rend());
+    auto reversedTemplateRotations = generateAllRotations(reversedTemplate);
+    auto lineVectors = getVectors(line);
+    for (auto& rotation : templateRotations) {
+        if (areEqual(lineVectors, rotation)) return true;
+    }
+    for (auto& rotation : reversedTemplateRotations) {
+        if (areEqual(lineVectors, rotation)) return true;
+    }
+    return false;
+}
+
+int main() {
+    while (true) {
+        int n;
+        cin >> n;
+        if (n == 0) break; 
+        vector<vector<pair<int, int>>> lines(n + 1);
+        int m;
+        for (int i = 0; i <= n; ++i) {
+            cin >> m;
+            vector<pair<int, int>> line(m);
+            for (int j = 0; j < m; ++j) {
+                cin >> line[j].first >> line[j].second;
+            }
+            lines[i] = line;
+        }
+        vector<pair<int, int>> templateVectors = getVectors(lines[0]);
+        vector<int> matchingLines;
+        for (int i = 1; i <= n; ++i) {
+            if (matchesTemplate(lines[i], templateVectors)) {
+                matchingLines.push_back(i);
+            }
+        }
+        for (int idx : matchingLines) {
+            cout << idx << endl;
+        }
+        cout << "+++++" << endl;
+    }
+}
+
+
+
+
+
+Our code runs correctly against the sample test case. Now let's test it against some custom test case with minimal constraints as a corner test case.
+
+<b>Test Case</b>
+<code>1
+1
+3
+0 0
+0 1
+1 0
+3
+2 2
+2 3
+3 2
+0</code>
+
+<b>Expected Output</b>
+<code>1
++++++</code>
+
+This is the expected output because the polygon with index \(1\) matches the shape of the template polygon (polygonal with index \(0\)).
+
+
+
+
+1
+3
+0 0
+0 1
+1 0
+3
+2 2
+2 3
+3 2
+0

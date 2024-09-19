@@ -1,0 +1,206 @@
+B. Santa Claus and Keyboard Check
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Santa Claus decided to disassemble his keyboard to clean it. After he returned all the keys back, he suddenly realized that some pairs of keys took each other's place! That is, Santa suspects that each key is either on its place, or on the place of another key, which is located exactly where the first key should be.
+
+In order to make sure that he's right and restore the correct order of keys, Santa typed his favorite patter looking only to his keyboard.
+
+You are given the Santa's favorite patter and the string he actually typed. Determine which pairs of keys could be mixed. Each key must occur in pairs at most once.
+
+Input
+The input consists of only two strings s and t denoting the favorite Santa's patter and the resulting string. s and t are not empty and have the same length, which is at most 1000. Both strings consist only of lowercase English letters.
+
+Output
+If Santa is wrong, and there is no way to divide some of keys into pairs and swap keys in each pair so that the keyboard will be fixed, print «-1» (without quotes).
+
+Otherwise, the first line of output should contain the only integer k (k ≥ 0) — the number of pairs of keys that should be swapped. The following k lines should contain two space-separated letters each, denoting the keys which should be swapped. All printed letters must be distinct.
+
+If there are several possible answers, print any of them. You are free to choose the order of the pairs and the order of keys in a pair.
+
+Each letter must occur at most once. Santa considers the keyboard to be fixed if he can print his favorite patter without mistakes.
+
+
+
+
+\(\bull\) naive algorithm
+If a character in the given pattern \(s\) doesn't match the corresponding character in the typed string \(t\), it suggests that those two keys might have been swapped. To track these swaps, we store pairs of swapped keys.
+
+However, if we find that one key is involved in more than one swap, it's a sign of a problem. A key can't be swapped with two different keys simultaneously, so we should immediately return "-1" to indicate that the keyboard cannot be fixed with simple swaps.
+
+As we identify the swaps, we must ensure that no conflicting swaps occur. Once we have all the potential swaps, we simulate fixing the keyboard by applying these swaps. This involves replacing each swapped key in the string with its intended counterpart.
+
+After applying all the swaps, we check if the modified string matches Santa's favorite pattern. If it does, the swaps are correct, and we print the number of swaps along with the pairs of letters that need to be swapped. If the strings do not match, it means the swaps weren't sufficient to correct the keyboard, and we return "-1".
+
+The time complexity of this algorithm is \(O(n)\).
+
+\(\bull\) As we can solve this problem with naive algorithm, we can just implement this algorithm.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    string s, t;
+    cin>>s>>t;
+}
+
+
+
+
+If a character in the given pattern \(s\) doesn't match the corresponding character in the typed string \(t\), it suggests that those two keys might have been swapped. To track these swaps, we store pairs of swapped keys.
+
+However, if we find that one key is involved in more than one swap, it's a sign of a problem. A key can't be swapped with two different keys simultaneously, so we should immediately return "-1" to indicate that the keyboard cannot be fixed with simple swaps.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    string s, t;
+    cin>>s>>t;
+    int n = s.size();
+    map<char, char> mp;
+    for(int i = n; i--; ) if(s[i] != t[i]) {
+        if(mp.find(s[i]) == mp.end()) {
+            if(mp.find(t[i]) == mp.end()) {
+                mp[s[i]] = t[i], mp[t[i]] = s[i];
+            }
+            else if(mp[t[i]] != s[i]) puts("-1"), exit(0);
+        }
+        else if(mp[s[i]] != t[i]) puts("-1"), exit(0);
+    }
+}
+
+
+
+
+As we identify the swaps, we must ensure that no conflicting swaps occur. Once we have all the potential swaps, we simulate fixing the keyboard by applying these swaps. This involves replacing each swapped key in the string with its intended counterpart.
+
+After applying all the swaps, we check if the modified string matches Santa's favorite pattern. If the strings do not match, it means the swaps weren't sufficient to correct the keyboard, and we return "-1".
+
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pcc = pair<char, char>;
+
+int main() {
+    string s, t;
+    cin>>s>>t;
+    int n = s.size();
+    map<char, char> mp;
+    for(int i = n; i--; ) if(s[i] != t[i]) {
+        if(mp.find(s[i]) == mp.end()) {
+            if(mp.find(t[i]) == mp.end()) {
+                mp[s[i]] = t[i], mp[t[i]] = s[i];
+            }
+            else if(mp[t[i]] != s[i]) puts("-1"), exit(0);
+        }
+        else if(mp[s[i]] != t[i]) puts("-1"), exit(0);
+    }
+    
+    for(int i = n; i--; ) if(mp.find(s[i]) != mp.end()) {
+        s[i] = mp[s[i]];
+    }
+    if(s != t) puts("-1");
+}
+
+
+
+After applying all the swaps, if the modified string matches Santa's favorite pattern, the swaps are deemed correct. We then print the number of swaps along with the pairs of letters that need to be swapped. To obtain the list of pairs of keys that should be swapped, we can store the pairs each time we identify a new pair.
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pcc = pair<char, char>;
+
+int main() {
+    string s, t;
+    cin>>s>>t;
+    int n = s.size();
+    map<char, char> mp;
+    vector<pcc> ans;
+    for(int i = n; i--; ) if(s[i] != t[i]) {
+        if(mp.find(s[i]) == mp.end()) {
+            if(mp.find(t[i]) == mp.end()) {
+                ans.push_back({s[i], t[i]});
+                mp[s[i]] = t[i], mp[t[i]] = s[i];
+            }
+            else if(mp[t[i]] != s[i]) puts("-1"), exit(0);
+        }
+        else if(mp[s[i]] != t[i]) puts("-1"), exit(0);
+    }
+    
+    for(int i = n; i--; ) if(mp.find(s[i]) != mp.end()) {
+        s[i] = mp[s[i]];
+    }
+    if(s != t) puts("-1");
+    else {
+        printf("%d\n", ans.size());
+        for(pcc p : ans) {
+            printf("%c %c\n", p.x, p.y);
+        }
+    }
+}
+
+
+
+
+helloworld
+ehoolwlroz
+
+
+
+
+This output appears different, but if there are multiple possible answers, we can choose both the order of the pairs and the order of the keys within each pair.
+In this case, I printed {(d, z), (l, o), (e, h)}, which is equivalent to {(h, e), (l, o), (d, z)} according to the above rule.
+
+
+
+
+hastalavistababy
+hastalavistababy
+
+
+
+
+
+merrychristmas
+christmasmerry
+
+
+
+
+Let's examine a custom corner case where \(|s|\) and \(|t|\) are at their minimum values: \(|s| = |t| = 1\). (Here, \(|s|\) represents the length of string \(s\), and \(|t|\) represents the length of string \(t\).)
+To check if my algorithm is correct in the case where \(s\) and \(t\) are equal:
+
+<code>
+a
+a
+</code>
+
+In this case, the two strings are already the same, so we don't need to swap any pairs according to my algorithm. Therefore, my answer will be "0".
+
+
+
+
+a
+a

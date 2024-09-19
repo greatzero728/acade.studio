@@ -1,0 +1,376 @@
+<b>D. Tree Tag
+time limit per test: 1 second
+memory limit per test: 256 megabytes</b>
+
+Alice and Bob are playing a fun game of tree tag.
+
+The game is played on a tree of \(n\) vertices numbered from \(1\) to \(n\). Recall that a tree on \(n\) vertices is an undirected, connected graph with \(n-1\) edges.
+
+Initially, Alice is located at vertex \(a\), and Bob at vertex \(b\). They take turns alternately, and Alice makes the first move. In a move, Alice can jump to a vertex with distance <b>at most</b> \(da\) from the current vertex. And in a move, Bob can jump to a vertex with distance <b>at most</b> \(db\) from the current vertex. The distance between two vertices is defined as the number of edges on the unique simple path between them. In particular, either player is allowed to stay at the same vertex in a move. Note that when performing a move, a player only occupies the starting and ending vertices of their move, not the vertices between them.
+
+If after at most \(10^{100}\) moves, Alice and Bob occupy the same vertex, then Alice is declared the winner. Otherwise, Bob wins.
+
+Determine the winner if both players play optimally.
+
+<b>Input</b>
+Each test contains multiple test cases. The first line contains the number of test cases \(t\) (\(1 \le t \le 10^4\)). Description of the test cases follows.
+
+The first line of each test case contains five integers \(n,a,b,da,db\) (\(2\le n\le 10^5\), \(1\le a,b\le n\), \(a\ne b\), \(1\le da,db\le n-1\)) — the number of vertices, Alice's vertex, Bob's vertex, Alice's maximum jumping distance, and Bob's maximum jumping distance, respectively.
+
+The following \(n-1\) lines describe the edges of the tree. The \(i\)-th of these lines contains two integers \(u\), \(v\) (\(1\le u, v\le n, u\ne v\)), denoting an edge between vertices \(u\) and \(v\). It is guaranteed that these edges form a tree structure.
+
+It is guaranteed that the sum of \(n\) across all test cases does not exceed \(10^5\).
+
+<b>Output</b>
+For each test case, output a single line containing the winner of the game: "Alice" or "Bob".
+
+<b>Note</b>
+In the first test case, Alice can win by moving to vertex \(1\). Then wherever Bob moves next, Alice will be able to move to the same vertex on the next move.
+
+<img ex1>
+
+In the second test case, Bob has the following strategy to win. Wherever Alice moves, Bob will always move to whichever of the two vertices \(1\) or \(6\) is farthest from Alice.
+
+<img ex2>
+
+
+
+
+After reading the problem, we can see that the naive solution for this problem is to simulate moves until we have an answer or the number of moves reaches \(10^{100}\), so we will stop as we don't find an answer and reach our limit. However, we can see that it will lead to TLE (Time Limit Exceeded) as the number of moves is too large.
+
+
+
+
+So we need to optimize this solution, let's assume that we are "Alice" and we are playing to win, what is the best move I can do to beat "Bob"?
+
+We can have some cases that we can brute force for it; the first one is to try to see if I can visit the start node of Bob, as this will lead to my victory as we are in the same node now.
+
+But what if I can do it in the first move and Bob is in a node I can't reach?
+
+Let's draw this case:
+<img s1>
+We can see in the image that if Alice can move only 2 nodes forward, the valid nodes she can visit are those nodes with blue colors, so she can't reach Bob in the first move. So, in this case, we will choose to go to the node that is closest to Bob as possible, as this will make us able to reach it in future moves. So, let's say we will move in this case to node 2 as this is the closest to Bob.
+
+So, the tree will be like in the next image, and we will mark the nodes that Bob can move to:
+<img s2>
+Now we can see that if I am Bob, the best move that I can do is to go to the node that has the greatest distance between it and Alice's node. So, in this case, we have multiple nodes to go like \((1,4,5,7)\), which have the greatest distance between them and Alice's node. So, it doesn't matter which node we will go to; let's go to node 1.
+
+So, let's draw the new tree and also it's Alice's move. So, let's mark the nodes that Alice can go to this time:
+<img s3>
+We can see that Alice can move to any node in the tree. So, in this move, we can move to node 1, which is the node that Bob is in, so she is in the same node as Bob, so she can win.
+
+So, we can see that we can get our answer with only two moves. First, move: we will try to reach Bob in it; if we can, so we win; otherwise, we will reach the node that is closest to Bob's node, and it's Bob's turn. So, he will move to the node that is far away as possible from Alice's node. Now we are in Alice's node; we will check if we can reach the node that contains Bob or not; if we can, so we can win; otherwise, we will lose the game and Bob wins.
+
+Now we need to prove how Bob will win if Alice can't reach his node. Let's add a new node in our tree and make \(db=4\), so let's see the image (the second image), which is Bob's turn after adding a new node and updating \(db=4\), and also mark the node that Bob can move to now:
+<img s4>
+We can see now Bob can move to a new node which is 9 as this is the best node which is far away from Alice's node. So, he will go to this node which is \(9\). Now, let's update our tree and also it's Alice's turn; so, we will draw nodes she can go to in her turn.
+<img s5>
+We can see Alice can't reach Bob in one move, so she will go to the closest node to it, which is 7.
+So, after this move, it's Bob's turn. So, he will return to node 8 again and get into a cycle when Bob goes to node 8, Alice goes to node 2, then Bob goes to node 9, and Alice goes to node 7, and so on until we finish all moves which is \(10^{100}\).
+
+So, we need to just check if Alice can win in at most two moves or not.
+
+So, let's start by taking our input and explain how to check every case in more details in the next blocks.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false), cin.tie(NULL), cout.tie(0);
+    int tests;
+    cin >> tests;
+    while (tests--) {
+        int n, a, b, da, db;
+        cin >> n >> a >> b >> da >> db;
+        vector<vector<int>> graph(n + 5);
+        for (int i = 1; i < n; i++) {
+            int u, v;
+            cin >> u >> v;
+            graph[u].push_back(v);
+            graph[v].push_back(u);
+        }
+    }
+}
+
+
+
+
+
+[5]
+Now we need to check the first case of the two cases, which is if Alice can win in only one move. So, we can see that Alice can win if she can reach a node that contains Bob in the first move, so we need to first check if the distance between Alice's node and Bob's node is less than or equal to \(da\). We can use a BFS to mark for every node what is the minimum distance I can reach this node from node \(a\) which contains Alice.
+So, let's start by writing our BFS function, which takes a node and calculates for every other node the minimum distance between them.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> BFS(int &root, int &n, vector<vector<int>> &graph) {
+    vector<int> Distance(n + 5, 1e9);
+    queue<int> q;
+    q.push(root);
+    Distance[root] = 0;
+    while (q.size()) {
+        int node = q.front();
+        q.pop();
+        for (auto i: graph[node]) {
+            if (Distance[node] + 1 < Distance[i]) {
+                Distance[i] = Distance[node] + 1;
+                q.push(i);
+            }
+        }
+    }
+    return Distance;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false), cin.tie(NULL), cout.tie(0);
+    int tests;
+    cin >> tests;
+    while (tests--) {
+        int n, a, b, da, db;
+        cin >> n >> a >> b >> da >> db;
+        vector<vector<int>> graph(n + 5);
+        for (int i = 1; i < n; i++) {
+            int u, v;
+            cin >> u >> v;
+            graph[u].push_back(v);
+            graph[v].push_back(u);
+        }
+    }
+}
+
+
+
+
+Now we have our BFS function that takes a root and returns a vector that stores for every node what is the minimum distance from the root to this node. Now all we need is to check if the distance between node \(a\) and \(b\) is less than or equal to \(da\). If yes, so Alice can reach Bob in only one move, so let's call this function with \(a\) as the root and check if the distance of \(b\) is less than or equal to \(da\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> BFS(int &root, int &n, vector<vector<int>> &graph) {
+    vector<int> Distance(n + 5, 1e9);
+    queue<int> q;
+    q.push(root);
+    Distance[root] = 0;
+    while (q.size()) {
+        int node = q.front();
+        q.pop();
+        for (auto i: graph[node]) {
+            if (Distance[node] + 1 < Distance[i]) {
+                Distance[i] = Distance[node] + 1;
+                q.push(i);
+            }
+        }
+    }
+    return Distance;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false), cin.tie(NULL), cout.tie(0);
+    int tests;
+    cin >> tests;
+    while (tests--) {
+        int n, a, b, da, db;
+        cin >> n >> a >> b >> da >> db;
+        vector<vector<int>> graph(n + 5);
+        for (int i = 1; i < n; i++) {
+            int u, v;
+            cin >> u >> v;
+            graph[u].push_back(v);
+            graph[v].push_back(u);
+        }
+        vector<int> DistanceFromA = BFS(a, n, graph);
+        if (DistanceFromA[b] <= da) {
+            cout << "Alice" << endl;
+            continue;
+        }
+    }
+}
+
+
+
+
+Now we need to check if there is a way to place Alice and Bob in two nodes such that, from these places, Alice can move after two moves only. So we can see that the best place for Alice is to just put him in the center of the tree, as from this node he can visit all nodes in the tree in one move. But what if there are nodes that have a distance from the new node that is greater than \(da\)? In this case, Alice can never win, as Bob will get a move cycle from them and keep it until all moves are done.
+
+So we need to first check if we can place Alice in a node that can visit all other nodes. We can make this happen by putting Alice in the center of the diameter of the tree, as this node can reach all other nodes in the minimum number of moves. But what if, after placing Alice in this node, there is still a node whose distance is greater than \(da\)? Then Alice cannot win. So we will first calculate the length of the tree diameter.
+
+This can be done by BFS, and a proof says that to get the tree diameter, you can pick any node, get the node with the maximum distance from it, then pick the new node and get the length of the maximum node from this new node, and this is the diameter length. So let's first code it.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> BFS(int &root, int &n, vector<vector<int>> &graph) {
+    vector<int> Distance(n + 5, 1e9);
+    queue<int> q;
+    q.push(root);
+    Distance[root] = 0;
+    while (q.size()) {
+        int node = q.front();
+        q.pop();
+        for (auto i: graph[node]) {
+            if (Distance[node] + 1 < Distance[i]) {
+                Distance[i] = Distance[node] + 1;
+                q.push(i);
+            }
+        }
+    }
+    return Distance;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false), cin.tie(NULL), cout.tie(0);
+    int tests;
+    cin >> tests;
+    while (tests--) {
+        int n, a, b, da, db;
+        cin >> n >> a >> b >> da >> db;
+        vector<vector<int>> graph(n + 5);
+        for (int i = 1; i < n; i++) {
+            int u, v;
+            cin >> u >> v;
+            graph[u].push_back(v);
+            graph[v].push_back(u);
+        }
+        vector<int> DistanceFromA = BFS(a, n, graph);
+        if (DistanceFromA[b] <= da) {
+            cout << "Alice" << endl;
+            continue;
+        }
+        int NewNode = 0;
+        int MaxLenght = 0;
+        for (int i = 1; i <= n; i++) {
+            if (DistanceFromA[i] > MaxLenght) {
+                MaxLenght = DistanceFromA[i];
+                NewNode = i;
+            }
+        }
+        //now get the maximum lenght from new node
+        DistanceFromA = BFS(NewNode, n, graph);
+        MaxLenght = 0;
+        for (int i = 1; i <= n; i++) {
+            if (DistanceFromA[i] > MaxLenght) {
+                MaxLenght = DistanceFromA[i];
+            }
+        }
+    }
+}
+
+
+
+
+Now we have our tree diameter, we need to check if the distance \(da\) is greater than half of it, as we know from the center node of the tree the maximum length will be half of the diameter length.
+Now, if we find that \(da \geq half\ of\ diameter\), so Alice will win.
+Otherwise, there is a case where Alice can win in it, what if \(da \geq half\ of\ db\)? In this case, Alice can get closest to Bob as possible, then she can move as if she moves with all \(db\); Alice can get him every time and also make the distance between them until she can catch him at some node.
+So all we need is to check if \(da\) is greater than half of the diameter or half of \(db\).
+So let's code it.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> BFS(int &root, int &n, vector<vector<int>> &graph) {
+    vector<int> Distance(n + 5, 1e9);
+    queue<int> q;
+    q.push(root);
+    Distance[root] = 0;
+    while (q.size()) {
+        int node = q.front();
+        q.pop();
+        for (auto i: graph[node]) {
+            if (Distance[node] + 1 < Distance[i]) {
+                Distance[i] = Distance[node] + 1;
+                q.push(i);
+            }
+        }
+    }
+    return Distance;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false), cin.tie(NULL), cout.tie(0);
+    int tests;
+    cin >> tests;
+    while (tests--) {
+        int n, a, b, da, db;
+        cin >> n >> a >> b >> da >> db;
+        vector<vector<int>> graph(n + 5);
+        for (int i = 1; i < n; i++) {
+            int u, v;
+            cin >> u >> v;
+            graph[u].push_back(v);
+            graph[v].push_back(u);
+        }
+        vector<int> DistanceFromA = BFS(a, n, graph);
+        if (DistanceFromA[b] <= da) {
+            cout << "Alice" << endl;
+            continue;
+        }
+        int NewNode = 0;
+        int MaxLenght = 0;
+        for (int i = 1; i <= n; i++) {
+            if (DistanceFromA[i] > MaxLenght) {
+                MaxLenght = DistanceFromA[i];
+                NewNode = i;
+            }
+        }
+        //now get the maximum lenght from new node
+        DistanceFromA = BFS(NewNode, n, graph);
+        MaxLenght = 0;
+        for (int i = 1; i <= n; i++) {
+            if (DistanceFromA[i] > MaxLenght) {
+                MaxLenght = DistanceFromA[i];
+            }
+        }
+        if (da * 2 >= MaxLenght || da * 2 >= db) {
+            cout << "Alice" << endl;
+        } else {
+            cout << "Bob" << endl;
+        }
+    }
+}
+
+
+
+
+It's correct, now we need to check a custom test.
+
+<b>Input</b>
+<code>
+1
+2 1 2 1 1
+1 2
+</code>
+
+The motivation for this test is to check if Alice can catch Bob in only one move.
+
+As we see that Alice is in node 1 and Bob is in node 2, and Alice can move to node 2 directly as the distance between them is equal to 1 and her \(da\) is also 1, so she can win. So, the answer is "Alice".
+<b>Expected Output</b>
+<code>
+Alice
+</code>
+
+
+
+
+1
+2 1 2 1 1
+1 2

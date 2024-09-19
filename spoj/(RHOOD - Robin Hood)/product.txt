@@ -1,0 +1,175 @@
+RHOOD - Robin Hood
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+I think all of you have seen the popular television series Robin Hood. You’ve heard about Robin Hood. He is a brave and kind-hearted man. He loves people very much. He wants to help the poor people. But he is working with Robin Hood team at this moment. So, he is too busy for shooting TV series. Although he’s a star and wants to help the poor, he is not rich as you think. Suddenly he took a decision about robbing a bank. He will rob the World Bank and distribute the money to poor countries. But the problem is how much money a country should be given. Some countries are developed, and some are developing. So, he sets a condition. Every country will be marked by a number (N) that represents countries’ ranks (if a rank is smaller that means those countries are developed or rich enough) and Robin Hood will take a number M randomly to calculate \(M^N\). Since \(M^N\) can be much bigger, so calculate (\(M^N\)) modulo 1000000007(\(10^9+7\)). And finally he will calculate the sum of divisor of that number. Then he will give the money to that country.
+
+Since Robin Hood is weak in programming. So, he asks for your help.
+
+Input
+The first line in the data set is an integer T (1 <= T <= 200) that represents the number of data collections that follow. Each data set contains two integers M, N (1 <= M, N <= 100)
+
+Output
+For each test case print the money that Robin Hood can give to the specific country. Since the power of \(M^N\) can be much bigger, (\(M^N\)) modulo 1000000007(\(10^9+7\)). But don’t modulo the final sum of divisor. See sample input and output for exact format.
+
+
+
+
+The problem involves calculating the sum of divisors of \(M^N \mod 10^9 + 7\).
+Since \(M\) and \(N\) are both less than or equal to 100, we can easily calculate \(M^N \mod (10^9 + 7)\) by simply multiplying \(M\) \(N\) times and applying the modulo \(10^9 + 7\) at each step.
+Let's denote \(M^N \mod (10^9 + 7)\) as \(x\).
+Since \(x\) is the modulo value of \(10^9 + 7\), the range of \(x\) will be \([0, 10^9 + 7)\), meaning \(x\) can be as large as \(10^9 + 6\).
+
+Now we need to calculate the sum of all divisors of \(x\). We could iterate all possible \(p\) from 1 to \(x\), adding \(p\) to the answer if \(x\) is divisible by \(p\). However, since \(x\) can be as large as \(10^9 + 7\), this naive approach would exceed the time limit.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int t;
+    cin >> t;
+    for(int i = 1; i <= t; i++) {
+        long long m, n;
+        cin >> m >> n;
+    }
+    return 0;
+}
+
+
+
+
+We should calculate \(M^N \mod (10^9 + 7)\) first.
+We'll use the property of modular arithmetic that \((a*b) \mod n = ((a \mod n) * (b \mod n)) \mod n\).
+Therefore, we can calculate \(M^N \mod (10^9 + 7)\) by iteratively multiplying \(M\) \(N\) times, taking the modulo at each step.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const long long MOD = 1e9 + 7;
+
+int main() {
+    int t;
+    cin >> t;
+    for(int i = 1; i <= t; i++) {
+        long long m, n;
+        cin >> m >> n;
+        long long result = 1;
+        for(int j = 1; j <= n; j++) {
+            result = (result * m) % MOD;
+        }
+    }
+    return 0;
+}
+
+
+
+
+We need to calculate the sum of all divisors of \(x\).
+Instead of iterating all possible \(p\) from 1 to \(x\), we can only iterate up to \(\sqrt{x}\) because a larger factor of \(x\) must be a multiple of a smaller factor that has already been accounted for.
+For each \(p\) that is a divisor of \(x\), we add both \(p\) and \(x/p\) to the sum. However, if \(p = x/p\), we only add \(p\) once.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const long long MOD = 1e9 + 7;
+
+int main() {
+    int t;
+    cin >> t;
+    for(int i = 1; i <= t; i++) {
+        long long m, n;
+        cin >> m >> n;
+        long long result = 1;
+        for(int j = 1; j <= n; j++) {
+            result = (result * m) % MOD;
+        }
+        long long sum = 0;
+        for(long long p = 1; p * p <= result; p++) {
+            if(result % p == 0) {
+                sum += p;
+                if(p * p != result) {
+                    sum += result / p;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+Finally, let's print the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const long long MOD = 1e9 + 7;
+
+int main() {
+    int t;
+    cin >> t;
+    for(int i = 1; i <= t; i++) {
+        long long m, n;
+        cin >> m >> n;
+        long long result = 1;
+        for(int j = 1; j <= n; j++) {
+            result = (result * m) % MOD;
+        }
+        long long sum = 0;
+        for(long long p = 1; p * p <= result; p++) {
+            if(result % p == 0) {
+                sum += p;
+                if(p * p != result) {
+                    sum += result / p;
+                }
+            }
+        }
+        cout << "Case " << i << ": " << sum << endl;
+    }
+    return 0;
+}
+
+
+
+
+3
+2 5
+14 11
+63 60
+
+
+
+
+Let's examine a custom corner case where \(T, M, N\) is at its minimum value: \(T = M = N = 1\).
+<code>
+1
+1 1
+</code>
+
+In this case, \(M^N \mod (10^9 + 7) = 1^1 \mod (10^9 + 7) = 1\). There is only one divisor, which is 1.
+Therefore, the sum of the divisors is simply 1.
+So the answer for this case will be: "Case 1: 1"
+
+
+
+
+1
+1 1

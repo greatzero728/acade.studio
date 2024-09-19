@@ -1,0 +1,129 @@
+B. File List
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Eudokimus, a system administrator is in trouble again. As a result of an error in some script, a list of names of very important files has been damaged. Since they were files in the BerFS file system, it is known that each file name has a form "name.ext", where:
+
+\(\bullet\) name is a string consisting of lowercase Latin letters, its length is from 1 to 8 characters;
+\(\bullet\) ext is a string consisting of lowercase Latin letters, its length is from 1 to 3 characters.
+
+For example, "read.me", "example.txt" and "b.cpp" are valid file names and "version.info", "ntldr" and "contestdata.zip" are not.
+
+Damage to the list meant that all the file names were recorded one after another, without any separators. So now Eudokimus has a single string.
+
+Eudokimus needs to set everything right as soon as possible. He should divide the resulting string into parts so that each part would be a valid file name in BerFS. Since Eudokimus has already proved that he is not good at programming, help him. The resulting file list can contain the same file names.
+
+Input
+The input data consists of a single string s, its length is from 1 to \(4·10^5\) characters. The string can contain only lowercase Latin letters ('a' - 'z') and periods ('.').
+
+Output
+In the first line print "YES" (without the quotes), if it is possible to divide s into parts as required. In this case, the following lines should contain the parts of the required partition, one per line in the order in which they appear in s. The required partition can contain the same file names. If there are multiple solutions, print any of them.
+
+If the solution does not exist, then print in a single line "NO" (without the quotes).
+
+
+
+
+We need to find a way to split the string into substrings that match the "name.ext" format.
+We can consider all possible ways to split the string.
+Let's denote the length of the given string as n. Here, n = |s|.
+There are n - 1 candidate borders of each neighboring substrings:
+{the border between \(s_1\) and \(s_2\), the border between \(s_2\) and \(s_3\), ..., the border between \(s_{n - 1}\) and \(s_n\)}
+We can consider all possible \(2^{n - 1}\) subsets of the above borders set.
+We determined the final borders, so this means we determined the split substrings.
+So iterating each substring, we only need to check if all substrings satisfiy the given requirement.
+To compute this naive algorithm, we have to perform \(2^{n - 1} \cdot n\) operations, and this approach will get the time limit exceed result, because n is up to \(4 \cdot 10 ^ 5\).
+
+
+
+
+To solve this problem, we need to find the positions where we can split the string into valid substrings that match the "name.ext" format.
+We will use a greedy algorithm to find these positions.
+We will iterate over the string and find the positions of the dots.
+If the number of characters between two dots is more than 11 or less than 2, we cannot split the string at that position.
+If the number of characters before the first dot is more than 8, we cannot split the string at that position.
+If the number of characters after the last dot is more than 3, we cannot split the string at that position.
+Otherwise, we can split the string at the position min(3, cnt-1), where cnt is the number of characters between two dots.
+We will use a vector to store the positions where we can split the string.
+We will then use these positions to split the string into substrings that match the "name.ext" format.
+If we can split the string into valid substrings, we will print "YES" and the substrings. Otherwise, we will print "NO".
+We will iterate over each character in the string, so this algorithm will take O(n) time, where n is the length of the string.
+
+
+
+
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+int main() {
+    string s;
+    cin >> s;
+    int n = s.size();
+    vector<int> splits;
+    for (int i = 0; i < n; i++) {
+        if (s[i] == '.') {
+            splits.push_back(i);
+        }
+    }
+    if (splits.size() == 0) {
+        cout << "NO" << endl;
+        return 0;
+    }
+    if (splits[0] > 8 || splits[0] < 1) {
+        cout << "NO" << endl;
+        return 0;
+    }
+    if (n - splits.back() - 1 > 3 || n - splits.back() - 1 < 1) {
+        cout << "NO" << endl;
+        return 0;
+    }
+    for (int i = 0; i < splits.size() - 1; i++) {
+        int cnt = splits[i + 1] - splits[i] - 1;
+        if (cnt > 11 || cnt < 2) {
+            cout << "NO" << endl;
+            return 0;
+        }
+    }
+    cout << "YES" << endl;
+    int start = 0;
+    for (int i = 0; i < splits.size(); i++) {
+        if (i == splits.size() - 1) {
+            cout << s.substr(start, n - start) << endl;
+            break;
+        }
+        int cnt = splits[i + 1] - splits[i] - 1;
+        cout << s.substr(start, splits[i] - start + min(3, cnt - 1) + 1) << endl;
+        start = splits[i] + min(3, cnt - 1) + 1;
+    }
+    return 0;
+}
+
+
+
+
+My answer is true, because of the following reason:
+"read.mee" is a valid file name.
+"xample.txt" is a valid file name.
+"b.cpp" is a valid file name.
+If we merge "read.mee", "xample.txt", "b.cpp", we can get the original string "read.meexample.txtb.cpp".
+This means my algorithm found out the valid split result.
+
+
+
+
+Let's check a custom corner case, where the length of s is its minimum value: |s| = 1.
+
+The valid file name is "name.ext" for mart.
+Here, name is a string consisting of lowercase Latin letters, its length is from 1 to 8 characters;
+And, ext is a string consisting of lowercase Latin letters, its length is from 1 to 3 characters.
+So the minimum valid file name can be 3.
+
+But in this case, the length of original string is just 1, so we can't split the original string into valid file names. So in this case, the answer should be "NO".
+
+
+
+
+
+.

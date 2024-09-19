@@ -1,0 +1,185 @@
+Problem Statement:
+<b>C. Yaroslav and Algorithm</b>
+<b>time limit per test: 2 seconds</b>
+<b>memory limit per test: 256 megabytes</b>
+Yaroslav likes algorithms. We'll describe one of his favorite algorithms.
+
+\(\bullet\) The algorithm receives a string as the input. We denote this input string as \(a\).
+\(\bullet\) The algorithm consists of some number of command. Сommand number \(i\) looks either as \(s_i\) >> \(w_i\), or as \(s_i\) <> \(w_i\), where \(s_i\) and \(w_i\) are some possibly empty strings of length at most \(7\), consisting of digits and characters "?''.
+\(\bullet\) At each iteration, the algorithm looks for a command with the minimum index \(i\), such that \(s_i\) occurs in \(a\) as a substring. If this command is not found the algorithm terminates.
+\(\bullet\) Let's denote the number of the found command as \(k\). In string \(a\) the first occurrence of the string \(s_k\) is replaced by string \(w_k\). If the found command at that had form \(s_k\) >> \(w_k\), then the algorithm continues its execution and proceeds to the next iteration. Otherwise, the algorithm terminates.
+\(\bullet\) The value of string \(a\) after algorithm termination is considered to be the output of the algorithm.
+
+Yaroslav has a set of \(n\) positive integers, he needs to come up with his favorite algorithm that will increase each of the given numbers by one. More formally, if we consider each number as a string representing the decimal representation of the number, then being run on each of these strings separately, the algorithm should receive the output string that is a recording of the corresponding number increased by one.
+
+Help Yaroslav.
+
+<b>Input</b>
+The first line contains integer \(n\) \((1 \le n \le 100)\) — the number of elements in the set. The next \(n\) lines contains one positive integer each. All the given numbers are less than \(10^{25}\).
+
+<b>Output</b>
+Print the algorithm which can individually increase each number of the set. In the \(i\)-th line print the command number \(i\) without spaces.
+
+Your algorithm will be launched for each of these numbers. The answer will be considered correct if:
+ 
+\(\bullet\) Each line will a correct algorithm command (see the description in the problem statement).
+\(\bullet\) The number of commands should not exceed \(50\).
+\(\bullet\) The algorithm will increase each of the given numbers by one.
+\(\bullet\) To get a respond, the algorithm will perform no more than \(200\) iterations for each number.
+
+
+
+
+The naive solution is to make the order \(s_i\) <> \(s_i + 1\) for all the elements we will get from the input. But this solution will not work because the number of elements in the input will reach \(100\) and the number of commands should not exceed \(50\).
+
+Let’s think about an algorithm to solve any element.
+
+We all know how we can increase the number by 1, we iterate from the left to right and increase the first element, but if there is a carry \((9)\) we will turn it to \(0\) and move to the second number. But how we will do this:
+
+\(\bullet\) use '?' as a tool to help with incrementing a number string by handling carries and adjustments.
+
+\(\bullet\) Place a single '?' before the number string. '?' serves as a temporary marker to help manage the incrementation process.
+
+\(\bullet\) Move the '?' from the start of the string to the end of the string. This prepares the string for the next step where '?' will be replaced by "??"
+
+\(\bullet\) Replace '?' with "??" and move "??" to the beginning of the string. This step prepares for handling carries, especially when dealing with '9's. The "??" will help in adjusting the string for increments.
+
+\(\bullet\) Move "??" through the string from the beginning. If "??" encounters 9, it handles the carry by converting 9 to 10 and moving the carry to the next significant digit.
+
+\(\bullet\) If "??" encounters a digit that is not 9, increment that digit by 1 and complete the process. This step handles straightforward increment operations where no further carries are needed.
+
+\(\bullet\) If "??" ends up at the very beginning of the string, replace "??" with 1 and adjust the rest of the string accordingly. This handles special cases where the number consists entirely of 9s, like 999, which should become 1000.
+
+
+
+
+The input do not affect anything because we make the algorithm for any number. So we do not need it in the code.
+
+
+
+
+
+We will make the steps what we said above.
+First, place a single '?' before the number string.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main(){
+    cout << ">>?";
+    return 0;
+}
+
+
+
+
+Move the '?' from the start of the string to the end of the string.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main(){
+    for(int i = 0; i <= 9; i++)
+        cout << "?" << i << ">>" << i << "?\n";
+    cout << ">>?";
+    return 0;
+}
+
+
+
+
+Replace '?' with "??" and move "??" to the beginning of the string.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main(){
+    for(int i = 0; i <= 9; i++)
+        cout << "?" << i << ">>" << i << "?\n";
+    cout << "?>>??\n";
+    cout << ">>?";
+    return 0;
+}
+
+
+
+
+Move "??" through the string from the beginning. If "??" encounters 9, it handles the carry by converting 9 to 10 and moving the carry to the next significant digit.
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main(){
+    cout << "9??>>??0\n";
+    for(int i = 0; i <= 9; i++)
+        cout << "?" << i << ">>" << i << "?\n";
+    cout << "?>>??\n";
+    cout << ">>?";
+    return 0;
+}
+
+
+
+
+If "??" encounters a digit that is not 9, increment that digit by 1 and complete the process. This step handles straightforward increment operations where no further carries are needed.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main(){
+    for(int i = 0; i < 9; i++)
+        cout << i << "??<>" << i + 1 << "\n";
+    cout << "9??>>??0\n";
+    for(int i = 0; i <= 9; i++)
+        cout << "?" << i << ">>" << i << "?\n";
+    cout << "?>>??\n";
+    cout << ">>?";
+    return 0;
+}
+
+
+
+
+If "??" ends up at the very beginning of the string, replace "??" with 1 and adjust the rest of the string accordingly. This handles special cases where the number consists entirely of 9s, like 999, which should become 1000.
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int main(){
+    for(int i = 0; i < 9; i++)
+        cout << i << "??<>" << i + 1 << "\n";
+    cout << "9??>>??0\n";
+    cout << "??<>1\n";
+    for(int i = 0; i <= 9; i++)
+        cout << "?" << i << ">>" << i << "?\n";
+    cout << "?>>??\n";
+    cout << ">>?";
+    return 0;
+}
+
+
+
+
+The output what we want. This algorithm is correct because the number of commands should not exceed 50. And it will iterate over every element at most 2 times so the number of iteration = \(26 * 2\) + 2 <b>(26 the maximum number of digit for the number we get from the input and +2 for the operation of '?')</b> no more than 200 iterations for each number.
+
+Note that we do not need any additional custom test because the output will be fixed. So we will submit now.

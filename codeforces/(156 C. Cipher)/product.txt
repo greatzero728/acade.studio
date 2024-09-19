@@ -1,0 +1,144 @@
+C. Cipher
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Sherlock Holmes found a mysterious correspondence of two VIPs and made up his mind to read it. But there is a problem! The correspondence turned out to be encrypted. The detective tried really hard to decipher the correspondence, but he couldn't understand anything.
+
+At last, after some thought, he thought of something. Let's say there is a word s, consisting of |s| lowercase Latin letters. Then for one operation you can choose a certain position p (1 ≤ p < |s|) and perform one of the following actions:
+
+\(\bull\) either replace letter \(s_p\) with the one that alphabetically follows it and replace letter \(s_{p + 1}\) with the one that alphabetically precedes it;
+\(\bull\) or replace letter \(s_p\) with the one that alphabetically precedes it and replace letter \(s_{p + 1}\) with the one that alphabetically follows it.
+
+Let us note that letter "z" doesn't have a defined following letter and letter "a" doesn't have a defined preceding letter. That's why the corresponding changes are not acceptable. If the operation requires performing at least one unacceptable change, then such operation cannot be performed.
+
+Two words coincide in their meaning if one of them can be transformed into the other one as a result of zero or more operations.
+
+Sherlock Holmes needs to learn to quickly determine the following for each word: how many words can exist that coincide in their meaning with the given word, but differs from the given word in at least one character? Count this number for him modulo 1000000007 (\(10^9 + 7\)).
+
+Input
+The input data contains several tests. The first line contains the only integer t (1 ≤ t ≤ \(10^4\)) — the number of tests.
+
+Next t lines contain the words, one per line. Each word consists of lowercase Latin letters and has length from 1 to 100, inclusive. Lengths of words can differ.
+
+Output
+For each word you should print the number of different other words that coincide with it in their meaning — not from the words listed in the input data, but from all possible words. As the sought number can be very large, print its value modulo 1000000007 (\(10^9 + 7\)).
+
+Note
+Some explanations about the operation:
+
+\(\bull\) Note that for each letter, we can clearly define the letter that follows it. Letter "b" alphabetically follows letter "a", letter "c" follows letter "b", ..., "z" follows letter "y".
+\(\bull\) Preceding letters are defined in the similar manner: letter "y" precedes letter "z", ..., "a" precedes letter "b".
+\(\bull\) Note that the operation never changes a word's length.
+
+In the first sample you can obtain the only other word "ba". In the second sample you cannot obtain any other word, so the correct answer is 0.
+
+Consider the third sample. One operation can transform word "klmbfxzb" into word "klmcexzb": we should choose p = 4, and replace the fourth letter with the following one ("b"  →  "c"), and the fifth one — with the preceding one ("f"  →  "e"). Also, we can obtain many other words from this one. An operation can transform word "ya" only into one other word "xb".
+
+Word "ya" coincides in its meaning with words "xb", "wc", "vd", ..., "ay" (overall there are 24 other words). The word "klmbfxzb has many more variants — there are 3320092814 other words that coincide with in the meaning. So the answer for the first word equals 24 and for the second one equals 320092793 — the number 3320092814 modulo \(10^9 + 7\)
+
+
+
+
+
+
+We can generating all possible strings by applying the allowed operations on each character pair in the word.
+This would require exploring \(2^{|s|}\) possible strings, where each character can be modified in the given two operations (if valid) for every pair of adjacent characters.
+Given that the maximum length of the string is 100, this results in an astronomical number of combinations (up to \(2^{99}\)), making it infeasible to compute within the given time limits.
+Additionally, storing and checking all these strings for uniqueness would exceed memory constraints.
+So we can't solve this problem with naive algorithm. We will get time limit exceed error and memory limit exceed error, if we use this algorithm.
+
+
+
+
+To solve this problem, we can start by analyzing the given operations and how they affect the characters in the string. The operations involve swapping adjacent characters, either incrementing the first character and decrementing the second, or vice versa. We can notice that these operations preserve the overall "sum" of the characters in the string, where the sum is calculated by assigning a value to each character based on its position in the alphabet (a=1, b=2, ..., z=26).
+
+We can utilize this observation to group strings into equivalence classes based on their sum. The number of strings in each equivalence class will be the number of ways to arrange the characters to achieve the same sum, which can be calculated using combinatorial methods.
+
+Next, we can precompute the number of strings in each equivalence class and store them in a table. Then, for each input string, we calculate its sum and look up the corresponding value in the table to find the number of equivalent strings.
+
+The key steps in this approach are calculating the sum of a string, precomputing the table of equivalence class sizes, and performing the lookup for each input string. We need to ensure that our solution handles strings of varying lengths and accounts for the modulo operation to avoid overflow.
+
+Let's proceed with implementing the initial code for reading input and calculating the sum of a string. 
+
+In the next step, I will implement the code for reading input and calculating the sum of a string.
+
+
+
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+const int MOD = 1000000007;
+const int ALPHABET_SIZE = 26;
+const int MAX_LENGTH = 100;
+
+int equivalenceClassSizes[MAX_LENGTH + 1][ALPHABET_SIZE * MAX_LENGTH + 1];
+
+int calculateSum(const string& str) {
+    int sum = 0;
+    for (char c : str) {
+        sum += c - 'a' + 1;
+    }
+    return sum;
+}
+
+void precomputeEquivalenceClassSizes() {
+    for (int length = 1; length <= MAX_LENGTH; ++length) {
+        for (int sum = length; sum <= ALPHABET_SIZE * length; ++sum) {
+            if (length == 1) {
+                equivalenceClassSizes[length][sum] = 1;
+            } else {
+                for (int i = 1; i <= ALPHABET_SIZE; ++i) {
+                    if (sum - i >= 0) {
+                        equivalenceClassSizes[length][sum] = (equivalenceClassSizes[length][sum] + equivalenceClassSizes[length - 1][sum - i]) % MOD;
+                    }
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    precomputeEquivalenceClassSizes();
+
+    int t;
+    cin >> t;
+    while (t--) {
+        string str;
+        cin >> str;
+        int sum = calculateSum(str);
+        int result = equivalenceClassSizes[str.length()][sum] - 1;
+        if (result < 0) {
+            result += MOD;
+        }
+        cout << result << '\n';
+    }
+
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case where \( n \) is at its minimum value: \( n = 1 \).
+<code>
+1
+a
+</code>
+
+In this case, the length of the given string is 1, so there are no neighboring pairs. Thus, we cannot perform any valid operations with this string.
+The only distinct word that coincides with the given string is "a" (the given string itself).
+
+Therefore, the number of different words that coincide with the given string is \( 1 - 1 = 0 \). The problem requires us to find the number of different \(\textcolor{red}{other}\) words that coincide with the given string. Hence, we must subtract by 1 (representing the given string) from 1 (representing the total number of distinct words that coincide with the given string).
+
+Thus, the answer is "0" for this test case.
+
+
+
+
+1
+a

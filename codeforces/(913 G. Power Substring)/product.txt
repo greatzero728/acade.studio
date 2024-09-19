@@ -1,0 +1,189 @@
+Problem Statement:
+<b>Power Substring</b>
+<b>time limit per test:</b> 2 seconds
+<b>memory limit per test:</b> 256 megabytes
+
+You are given \(n\) positive integers \(a_1, a_2, \ldots, a_n\).
+
+For every \(a_i\) you need to find a positive integer \(k_i\) such that the decimal notation of \(2^{k_i}\) contains the decimal notation of \(a_i\) as a substring among its last \(\min(100, \text{length}(2^{k_i}))\) digits. Here \(\text{length}(m)\) is the length of the decimal notation of \(m\).
+
+Note that you don't have to minimize \(k_i\). The decimal notations in this problem do not contain leading zeros.
+
+<b>Input</b>
+The first line contains a single integer \(n\) \((1 \leq n \leq 2000)\) — the number of integers \(a_i\).
+
+Each of the next \(n\) lines contains a positive integer \(a_i\) \((1 \leq a_i \leq 10^{11})\).
+
+<b>Output</b>
+Print \(n\) lines. The \(i\)-th of them should contain a positive integer \(k_i\) such that the last \(\min(100, \text{length}(2^{k_i}))\) digits of \(2^{k_i}\) contain the decimal notation of \(a_i\) as a substring. Integers \(k_i\) must satisfy \(1 \leq k_i \leq 10^{50}\).
+
+It can be shown that the answer always exists under the given constraints. If there are multiple answers, print any of them.
+
+
+
+
+
+An obvious approach to solving this problem might involve directly computing powers of 2 up to a very large number and checking each time if the decimal notation of \(a_i\) appears as a substring within the last few digits. This brute-force method would require calculating potentially massive numbers and checking each one, leading to substantial computational overhead. Given the constraints, this approach is impractical and inefficient due to the rapid growth of powers of 2 and the huge range of possible values for \(k_i\).
+
+
+So, what will be the correct approach? The approach I'm thinking of is to use properties of numbers and the behavior of powers of 2 to find a match efficiently. The provided solution uses a combination of incremental searching and pattern matching, focusing only on relevant powers of 2 and checking for the substring \(a_i\) in a controlled manner. It leverages modular arithmetic and specific checks to determine if the substring appears within the required number of digits without directly computing very large powers of 2. This method is efficient because it systematically narrows down the potential candidates for \(k_i\) by taking advantage of number patterns, significantly reducing the number of operations needed to find a valid solution.
+
+
+
+
+
+We start by including necessary libraries and define the main function to handle input and output. Then we read the number of test cases from the input, which will determine how many times we need to find a solution for the given problem.
+
+
+
+
+
+#include<iostream>
+using namespace std;
+
+int main(){
+    long long n; 
+    cin >> n;
+}
+
+
+
+
+
+For each test case, we initialize necessary variables to track the current state and read the input value and we compute the length of the input number to determine the range of digits we are interested in.
+
+
+
+
+
+#include<iostream>
+using namespace std;
+
+int main(){
+    long long n; 
+    cin >> n;
+    while(n--){
+        long long x, r = 1, l, k = 0;
+        cin >> x;
+        l = to_string(x).length();
+    }
+}
+
+
+
+
+
+Te start a loop to find the smallest power of two that contains the given number as a substring. We adjust the current value to ensure it aligns with our target and handles special cases to avoid certain conditions.
+
+
+
+
+
+#include<iostream>
+using namespace std;
+
+int main(){
+    long long n; 
+    cin >> n;
+    while(n--){
+        long long x, r = 1, l, k = 0;
+        cin >> x;
+        l = to_string(x).length();
+        while(1){
+            long long v = x, m = 1LL << (l + k);
+            if (v % m) v += m - v % m; 
+            if (v % 5 == 0) v += m;
+        }
+    }
+}
+
+
+
+
+
+If the current setting satisfies the requirements, we perform further calculations to determine the correct position where the number fits among the digits. This involves checking and adjusting through iterative computations.
+
+
+
+
+
+
+If conditions are not yet met, adjust the scaling factors and iterate to continue searching for the correct power. Repeat the process until the solution is found.
+
+
+
+
+
+#include<iostream>
+using namespace std;
+
+int main(){
+    long long n; 
+    cin >> n;
+    while(n--){
+        long long x, r = 1, l, k = 0;
+        cin >> x;
+        l = to_string(x).length();
+        while(1){
+            long long v = x, m = 1LL << (l + k);
+            if (v % m) v += m - v % m; 
+            if (v % 5 == 0) v += m;
+            if (v % m == 0 && v % 5 && v - x < r){
+                long long y = v >> (l + k), p, s = 5;
+                p = (y % 5 == 0) ? -1 : (y % 5 == 1) ? 0 : (y % 5 == 2) ? 1 : (y % 5 == 3) ? 3 : 2;
+                for(long long i = 1; i < l + k; i++){
+                    while(1){
+                        long long a = 1, b = 2, e = p, d = s * 5;
+                        while(e){
+                            if(e & 1){
+                                long long c = 0, f = a, g = b;
+                                while(g){if (g & 1) c = (c + f) % d; f = (f + f) % d; g >>= 1; }
+                                a = c;
+                            }
+                            long long h = 0, j = b;
+                            while(j){ if (j & 1) h = (h + b) % d; b = (b + b) % d; j >>= 1; }
+                            b = h; e >>= 1;
+                        }
+                        if(a == y % (s * 5)) break;
+                        p += s / 5 * 4;
+                    }
+                    s *= 5;
+                }
+                cout << p + l + k << endl;
+                break;
+            }
+            x *= 10; r *= 10; k++;
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+Now, I will add the following test case because I want to see if the code works correctly when the input consists of small numbers, requiring minimal computation to find the smallest power of 2 that contains each number as a substring among its last digits.
+
+<b>Input</b>
+<code>
+2
+1
+4
+</code>
+
+<b>Expected output:</b>
+<code>
+9
+2
+</code>
+
+Because, For the number 1, the smallest \(k_i\) where 1 appears as a substring among the last digits of \(2^{k_i}\) is 9 since \(2^9 = 512\), and 1 is part of 512 in the last three digits. For the number 4, the smallest \(k_i\) is 2 because \(2^2 = 4\), which directly contains 4 in its last digit. So, output should be 9 and 2.
+
+
+
+
+
+
+2
+1
+4

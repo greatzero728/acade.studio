@@ -1,0 +1,198 @@
+<b>E. Lust</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+A false witness that speaketh lies!
+
+You are given a sequence containing \(n\) integers. There is a variable \(res\) that is equal to 0 initially. The following process repeats \(k\) times.
+
+Choose an index from 1 to \(n\) uniformly at random. Name it \(x\). Add to \(res\) the multiply of all \(a_i\)'s such that \(1 ≤ i ≤ n\), but \(i ≠ x\). Then, subtract \(a_x\) by 1.
+
+You have to find expected value of \(res\) at the end of the process. It can be proved that the expected value of \(res\) can be represented as an irreducible fraction \( \frac{P}{Q} \). You have to find \(P \cdot Q^{-1} \mod 1000000007\).
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(k\) \((1 ≤ n ≤ 5000, 1 ≤ k ≤ 10^9)\) — the number of elements and parameter k that is specified in the statement.
+
+The second line contains n space separated integers \(a_1, a_2, ..., a_n (0 ≤ a_i ≤ 10^9)\).
+
+<b>Output</b>
+Output a single integer — the value \(P \cdot Q^{-1} \mod 1000000007\).
+
+
+
+
+If we think about a naive solution we have to directly simulate the process described. In this case we have to do \(k\) iterations. But the value of \(k\) can be maximum \(10^9\), hence this approach will not fit the given time limit.
+
+To solve this problem efficiently we will use dynamic programming and modular arithmetic to efficiently compute the expected value of the variable res after \(k\) random operations. Let the DP array \(dp\) which will store cumulative products of subsets of the given array \(a\) where each entry \(dp[i]\) will represent the product of all possible subsets of size \(i\). How will we update the \(dp\)? As each element is processed, \(dp\) will be updated to include the effect of the new element. This will be achieved by adjusting the existing products in \(dp\) to account for the new element.
+
+Since the number of operations \(k\) can be very large, modular arithmetic will be used to handle large numbers and prevent overflow as the problem requires. The modular inverse will be computed using Fermat's Little Theorem to facilitate division in modular arithmetic.
+
+After processing all elements, the final result will be computed using the updated \(dp\) values. The expected value will be calculated by considering the contribution of each subset size and adjusting for the number of operations.
+
+
+
+
+Let's read the inputs; define the variables, constants and array needed; and for each element in the array, update the \(dp\) array to account for the new element by adjusting the products of subsets. This will include multiplying the existing values and handling overlaps.
+
+For each element added to the array, the DP array will be updated to reflect the new product sums. This is done by: first, iterating from the end of the DP array to the beginning to avoid overwriting results from the current element. Then, adjusting each product sum based on the newly added element and the previously computed sums. Then the product sum of all elements, including the empty subset, is adjusted by multiplying with the new element and adding the effect of the new element to each subset sum.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+const ll MOD = 1e9 + 7;
+
+int main() {
+    ios_base::sync_with_stdio(0); cin.tie(NULL); cout.tie(NULL);
+    
+    ll n, k;
+    cin >> n >> k;
+
+    vector<ll> a(n + 1);
+    vector<ll> dp(n + 1, 0);
+
+    dp[0] = 1;  
+    
+    for (ll i = 1; i <= n; i++) {
+        cin >> a[i];
+        for (ll j = i; j > 0; j--) {
+            dp[j] = (dp[j] * a[i] % MOD - dp[j - 1] + MOD) % MOD;
+        }
+        dp[0] = dp[0] * a[i] % MOD;
+    }
+    return 0;
+}
+
+
+
+
+Now, we will create a function to compute \( x^y \mod (10^9+7)\) efficiently, which will be required for modular arithmetic. This is called binary exponentiation which will compute the power in \(O(\log y)\) time by squaring the base and reducing the exponent.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+const ll MOD = 1e9 + 7;
+
+ll powerMod(ll base, ll exp) {
+    base %= MOD;
+    ll result = 1;
+    while (exp > 0) {
+        if (exp & 1) 
+            result = result * base % MOD;
+        base = base * base % MOD;
+        exp >>= 1;
+    }
+    return result % MOD;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0); cin.tie(NULL); cout.tie(NULL);
+    
+    ll n, k;
+    cin >> n >> k;
+
+    vector<ll> a(n + 1);
+    vector<ll> dp(n + 1, 0);
+
+    dp[0] = 1;  
+    
+    for (ll i = 1; i <= n; i++) {
+        cin >> a[i];
+        for (ll j = i; j > 0; j--) {
+            dp[j] = (dp[j] * a[i] % MOD - dp[j - 1] + MOD) % MOD;
+        }
+        dp[0] = dp[0] * a[i] % MOD;
+    }
+    return 0;
+}
+
+
+
+
+Now, we will initialize the variable to store the final result, and a variable to track the multiplier for the expected value calculation. Then we will calculate the modular inverse of \(n\) using Fermat's Little Theorem to handle divisions in modular arithmetic.
+
+Now let's do the expected value calculation. The final expected value is computed using modular arithmetic to handle large numbers and avoid overflow. The inverse modulo of \(n\) is used to adjust the probability for each subset size after the \(k\) operations. The result will combine these adjustments to get the expected value of the sum modulo \(10^9 + 7\).
+
+FInally, we will compute the result using the sum of all DP values scaled by powers of \(\frac{n-i}{n}\) to adjust for the random selection over \(k\) operations:
+
+\(\text{result} = (dp[0] - \text{sum of adjusted products} + MOD) \mod MOD\)
+
+where \(MOD\) is \(10^9+7\)
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+const ll MOD = 1e9 + 7;
+
+ll powerMod(ll base, ll exp) {
+    base %= MOD;
+    ll result = 1;
+    while (exp > 0) {
+        if (exp & 1) 
+            result = result * base % MOD;
+        base = base * base % MOD;
+        exp >>= 1;
+    }
+    return result % MOD;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0); cin.tie(NULL); cout.tie(NULL);
+    
+    ll n, k;
+    cin >> n >> k;
+
+    vector<ll> a(n + 1);
+    vector<ll> dp(n + 1, 0);
+
+    dp[0] = 1;  
+    
+    for (ll i = 1; i <= n; i++) {
+        cin >> a[i];
+        for (ll j = i; j > 0; j--) {
+            dp[j] = (dp[j] * a[i] % MOD - dp[j - 1] + MOD) % MOD;
+        }
+        dp[0] = dp[0] * a[i] % MOD;
+    }
+    
+    ll result = 0;
+    ll multiplier = 1;
+    ll inv_n = powerMod(n, MOD - 2);
+    
+    for (ll i = 0; i <= n; i++) {
+        result = (result + dp[i] * multiplier % MOD) % MOD;
+        multiplier = multiplier * (k - i) % MOD * inv_n % MOD;
+    }
+    
+    cout << (dp[0] - result + MOD) % MOD << endl;
+    return 0;
+}
+
+
+
+
+Now, we will create a custom case with the minimal value of inputs to check the correctness of the solution.
+
+<b>Custom Input</b>
+1 1
+0
+
+The output will be 1 because there is only one element, so no matter how many times you decrement it (even though it’s zero), the result will always be 1 due to the modular arithmetic involved.
+
+
+
+
+1 1
+0

@@ -1,0 +1,305 @@
+<b>E. Colorings and Dominoes</b>
+time limit per test: 3 seconds
+memory limit per test: 512 megabytes
+
+You have a large rectangular board which is divided into \(n×m\) cells (the board has \(n\) rows and \(m\) columns). Each cell is either white or black.
+
+You paint each white cell either red or blue. Obviously, the number of different ways to paint them is \(2^w\), where \(w\) is the number of white cells.
+
+After painting the white cells of the board, you want to place the maximum number of dominoes on it, according to the following rules:
+
+\(\bullet\) each domino covers two adjacent cells;
+\(\bullet\) each cell is covered by at most one domino;
+\(\bullet\) if a domino is placed horizontally (it covers two adjacent cells in one of the rows), it should cover only red cells;
+\(\bullet\) if a domino is placed vertically (it covers two adjacent cells in one of the columns), it should cover only blue cells.
+
+Let the value of the board be the maximum number of dominoes you can place. Calculate the sum of values of the board over all \(2^w\) possible ways to paint it. Since it can be huge, print it modulo \(\text{998 244 353}\).
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(m (1≤n,m≤3⋅10^5; nm≤3⋅10^5)\) — the number of rows and columns, respectively.
+
+Then n\) lines follow, each line contains a string of m characters. The \(j\)-th character in the \(i\)-th string is * if the \(j\)-th cell in the \(i\)-th row is black; otherwise, that character is o.
+
+<b>Output</b>
+Print one integer — the sum of values of the board over all \(2^w\) possible ways to paint it, taken modulo 998244353.
+
+
+
+
+Let's think about how to place the dominos in the final grid that all white colors changed red or blue.
+The horizontal dominos should cover only red cells, and the vertical dominos should cover only blue cells, so red and blue dominos are independent from each other. So we only need to consider the set of horizontal consecutive red cells, and the set of vertical consecutive blue cells. If the length of consecutive cells that we are thinking is \(len\), we can place \(\lfloor \frac{\text{len}}{2} \rfloor
+\) dominos to that consecutive cells.
+
+\(\bullet\) We can iterate all \(2^w\) ways, and for each final colored grid collect the set of above mentioned consecutive cells, and can add the number of dominos that have to place in that cells. But the number of white cells in the original grid: \(w\), can be \(3 \cdot 10^5\), so we can't iterate all possible \(2^w\) ways. So with this naive approach, we will get time limit exceed error.
+
+\(\bullet\)
+As the red and blue color dominos are independent, so without loss of generality, we can only consider about red dominos here. (The blue dominos are similar with red dominos.)
+
+The given grid can be considers the set of horizontal consecutive white cells. Each consecutive white cells are also independent from each other, we can only consider about one consecutive white cells.
+Let's assume that the length of that consecutive white cells are \(len\).
+There are \(2 ^ {len}\) possible ways to color these cells into red or blue.
+Let's denote \(dp[len]\), the sum of maximum red dominos about all \(2 ^ {len}\) possible ways.
+Then, for this consecutive white cells, we can add \(dp[len] \times 2 ^ {w - len}\) to the answer. This is because the current consecutive white cells, and the other cells in the original grid, are independent from each other. I mean, for every method to color \(w - len\) white cells, we should add \(dp[len]\) to the answer.
+
+So we only need to calculate \(dp[len]\).
+It's obviously that \(dp[0] = dp[1] = 0\), because we can't place any dominos if the number of consecutive white cells are less than 2.
+Let's calculate \(dp[len]\), from previous calculated \(dp[i]\). (\(i < len\))
+
+There are three possible cases:
+
+\(\cdot\) the case, where \(len\)-th cell colored to blue.
+In this case, the \(len\)-th call can't effect the number of maximum red dominos because it's blue colored cell, so we should add \(dp[len - 1]\) to \(dp[len]\).
+\(dp[len] += dp[len - 1]\)
+
+\(\cdot\) the case, where \((len-1)\)-the cell colored to blue and \(len\)-th cell colored to red.
+This case is similar with the above case, so we should add \(dp[len - 2]\) to \(dp[len]\).
+\(dp[len] += dp[len - 2]\)
+
+\(\cdot\) the case, where \((len-1)\)-th cell and \(len\)-th cell colored to red.
+We can add \(dp[len - 2]\) to \(dp[len]\), but in this case, the 1 new red domino appears: \((len - 1)\)-th and \(len\)-th cells.
+This new red domino counts for all \(1\)-st, \(2\)-nd, ..., \((len - 2)\)-th cells, so we should add \(2 ^ {len - 2} \times 1\)  to \(dp[len]\).
+\(dp[len] += dp[len - 2] + 2 ^ {len - 2}\)
+
+So, \(dp[len] = dp[len - 1] + 2 \times dp[len - 2] + 2 ^ {len - 2}\).
+
+The time complexity of this algorithm is \(O(n \times m)\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 303030;
+
+char s[NN];
+
+int main() {
+
+	int n, m; scanf("%d %d", &n, &m);
+	bool a[n + 1][m + 1];
+	
+	for(int i = 0; i < n; i++) {
+		scanf("%s", s);
+		for(int j = m; j--; ) a[i][j] = s[j] == 'o';
+	}
+	
+	return 0;
+}
+
+
+
+
+Let's count the total number of white cells in the original grid.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 303030;
+
+char s[NN];
+
+int main() {
+
+	int n, m; scanf("%d %d", &n, &m);
+	bool a[n + 1][m + 1];
+	
+	int sum = 0;
+	for(int i = 0; i < n; i++) {
+		scanf("%s", s);
+		for(int j = m; j--; ) sum += a[i][j] = s[j] == 'o';
+	}
+	
+	return 0;
+}
+
+
+
+
+We have to calculate \(dp[len] = dp[len - 1] + 2 \times dp[len - 2] + 2 ^ {len - 2}\), so let's calculate all possible required \(2^i\) first.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 303030, mod = 998244353;
+
+char s[NN];
+int f[NN] = {1};
+
+int main() {
+
+	int n, m; scanf("%d %d", &n, &m);
+	bool a[n + 1][m + 1];
+	
+	int sum = 0;
+	for(int i = 0; i < n; i++) {
+		scanf("%s", s);
+		for(int j = m; j--; ) sum += a[i][j] = s[j] == 'o';
+	}
+	
+	for(int i = 1; i < NN; i++) f[i] = (f[i - 1] << 1) % mod;
+	return 0;
+}
+
+
+
+
+Now, let's calculate all possible \(dp[len]\) with the following formula:
+\(dp[len] = dp[len - 1] + 2 \times dp[len - 2] + 2 ^ {len - 2}\)
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 303030, mod = 998244353;
+
+char s[NN];
+int f[NN] = {1}, dp[NN];
+
+int main() {
+
+	int n, m; scanf("%d %d", &n, &m);
+	bool a[n + 1][m + 1];
+	
+	int sum = 0;
+	for(int i = 0; i < n; i++) {
+		scanf("%s", s);
+		for(int j = m; j--; ) sum += a[i][j] = s[j] == 'o';
+	}
+	
+	for(int i = 1; i < NN; i++) f[i] = (f[i - 1] << 1) % mod;
+	for(int i = 2; i < NN; i++) {
+		dp[i] = (dp[i] + dp[i - 1]) % mod; //?0
+		dp[i] = (dp[i] + dp[i - 2]) % mod; //01
+		dp[i] = (dp[i] + dp[i - 2]) % mod; //11 (left)
+		dp[i] = (dp[i] + f[i - 2]) % mod; //11 (right)
+	}
+	
+	return 0;
+}
+
+
+
+
+For each consecutive horizontal white cells, let's add \(dp[len] \times 2 ^ {w - len}\) to the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 303030, mod = 998244353;
+
+char s[NN];
+int f[NN] = {1}, dp[NN];
+
+int main() {
+
+	int n, m; scanf("%d %d", &n, &m);
+	bool a[n + 1][m + 1];
+	
+	int sum = 0;
+	for(int i = 0; i < n; i++) {
+		scanf("%s", s);
+		for(int j = m; j--; ) sum += a[i][j] = s[j] == 'o';
+	}
+	
+	for(int i = 1; i < NN; i++) f[i] = (f[i - 1] << 1) % mod;
+	for(int i = 2; i < NN; i++) {
+		dp[i] = (dp[i] + dp[i - 1]) % mod; //?0
+		dp[i] = (dp[i] + dp[i - 2]) % mod; //01
+		dp[i] = (dp[i] + dp[i - 2]) % mod; //11 (left)
+		dp[i] = (dp[i] + f[i - 2]) % mod; //11 (right)
+	}
+	
+	int ans = 0;
+	for(int I = n; I--; ) {
+		for(int i = 0, j = 0; i < m; i = j) {
+			for(; j < m && a[I][i] == a[I][j]; j++);
+			if(a[I][i]) ans = (ans + (INT)dp[j - i] * f[sum - (j - i)]) % mod;
+		}
+	}
+	printf("%d\n", ans);
+	return 0;
+}
+
+
+
+
+For each consecutive vertical white cells, let's add \(dp[len] \times 2 ^ {w - len}\) to the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 303030, mod = 998244353;
+
+char s[NN];
+int f[NN] = {1}, dp[NN];
+
+int main() {
+
+	int n, m; scanf("%d %d", &n, &m);
+	bool a[n + 1][m + 1];
+	
+	int sum = 0;
+	for(int i = 0; i < n; i++) {
+		scanf("%s", s);
+		for(int j = m; j--; ) sum += a[i][j] = s[j] == 'o';
+	}
+	
+	for(int i = 1; i < NN; i++) f[i] = (f[i - 1] << 1) % mod;
+	for(int i = 2; i < NN; i++) {
+		dp[i] = (dp[i] + dp[i - 1]) % mod; //?0
+		dp[i] = (dp[i] + dp[i - 2]) % mod; //01
+		dp[i] = (dp[i] + dp[i - 2]) % mod; //11 (left)
+		dp[i] = (dp[i] + f[i - 2]) % mod; //11 (right)
+	}
+	
+	int ans = 0;
+	for(int I = n; I--; ) {
+		for(int i = 0, j = 0; i < m; i = j) {
+			for(; j < m && a[I][i] == a[I][j]; j++);
+			if(a[I][i]) ans = (ans + (INT)dp[j - i] * f[sum - (j - i)]) % mod;
+		}
+	}
+	for(int J = m; J--; ) {
+		for(int i = 0, j = 0; i < n; i = j) {
+			for(; j < n && a[i][J] == a[j][J]; j++);
+			if(a[i][J]) ans = (ans + (INT)dp[j - i] * f[sum - (j - i)]) % mod;
+		}
+	}
+	printf("%d\n", ans);
+	return 0;
+}
+
+
+
+
+Let's check a custom corner case, where \(n\) and \(m\) are their minimum value: \(n = m = 1\).
+In this case, no domino can be picked because the grid size is \(1 \times 1\) regardless of the shape of the given grid. Therefore, if \(n = 1\) and \(m = 1\), the answer will be 0.
+
+
+
+
+1 1
+o

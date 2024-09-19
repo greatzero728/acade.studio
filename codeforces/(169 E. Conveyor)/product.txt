@@ -1,0 +1,317 @@
+E. Conveyor
+time limit per test:1 second
+memory limit per test: 256 megabytes
+
+Anton came to a chocolate factory. There he found a working conveyor and decided to run on it from the beginning to the end.
+
+The conveyor is a looped belt with a total length of \(2l\) meters, of which \(l\) meters are located on the surface and are arranged in a straight line. The part of the belt which turns at any moment (the part which emerges from under the floor to the surface and returns from the surface under the floor) is assumed to be negligibly short.
+
+The belt is moving uniformly at speed \(v_1\) meters per second. Anton will be moving on it in the same direction at the constant speed of \(v_2\) meters per second, so his speed relatively to the floor will be \(v_1 + v_2\) meters per second. Anton will neither stop nor change the speed or the direction of movement.
+
+Here and there there are chocolates stuck to the belt (\(n\) chocolates). They move together with the belt, and do not come off it. Anton is keen on the chocolates, but he is more keen to move forward. So he will pick up all the chocolates he will pass by, but nothing more. If a chocolate is at the beginning of the belt at the moment when Anton starts running, he will take it, and if a chocolate is at the end of the belt at the moment when Anton comes off the belt, he will leave it.
+
+<img p1>
+The figure shows an example with two chocolates. One is located in the position \(a_1 = l - d\), and is now on the top half of the belt, the second one is in the position \(a_2 = 2l - d\), and is now on the bottom half of the belt.
+
+You are given the positions of the chocolates relative to the initial start position of the belt \(0 ≤ a_1 < a_2 < ... < a_n < 2l\). The positions on the belt from \(0\) to \(l\) correspond to the top, and from \(l\) to \(2l\) — to the the bottom half of the belt (see example). All coordinates are given in meters.
+
+Anton begins to run along the belt at a random moment of time. This means that all possible positions of the belt at the moment he starts running are equiprobable. For each \(i\) from \(0\) to \(n\) calculate the probability that Anton will pick up exactly \(i\) chocolates.
+
+<b>Input</b>
+The first line contains space-separated integers \(n, l, v_1\) and \(v_2 (1 ≤ n ≤ 10^5, 1 ≤ l, v_1, v_2 ≤ 10^9)\) — the number of the chocolates, the length of the conveyor's visible part, the conveyor's speed and Anton's speed.
+
+The second line contains a sequence of space-separated integers \(a_1, a_2, ..., a_n (0 ≤ a_1 < a_2 < ... < a_n < 2l)\) — the coordinates of the chocolates.
+
+<b>Output</b>
+Print \(n + 1\) numbers (one per line): the probabilities that Anton picks up exactly \(i\) chocolates, for each \(i\) from \(0\) (the first line) to \(n\) (the last line). The answer will be considered correct if each number will have absolute or relative error of at most than \(10 ^{- 9}\).
+
+<b>Note</b>
+In the first sample test Anton can pick up a chocolate if by the moment he starts running its coordinate is less than \(0.5\); but if by the moment the boy starts running the chocolate's coordinate is greater than or equal to \(0.5\), then Anton won't be able to pick it up. As all positions of the belt are equiprobable, the probability of picking up the chocolate equals \(0.5/2 = 0.25\) , and the probability of not picking it up equals \(1.5/2 = 0.75\).
+
+
+
+
+
+Let's start by understanding how far Anton can "reach" on the belt during his run. The visible \(l\) meters of the conveyor are static, but Anton's relative speed means he effectively covers part of the total \(2l\) meters.
+
+To calculate this distance, let's denote it as \(D\). First, assume the belt isn't moving and Anton is running at a speed of \(v_1+v_2\) speed of Anton plus speed of the belt​.
+The time it takes Anton to cover the visible \(l\) meters would be: \(t= \frac{l}{v_1 + v_2}\) .
+using Formula for Velocity \(v= \frac{d}{t}\) .
+
+Now, to find the actual distance Anton covers from the full \(2l\) meters (since the belt is moving), we need to consider Anton's own speed \(v_2\)​. During the time \(t\), the conveyor moves, and Anton covers an additional distance relative to the floor, which can be calculated as:
+\(D=v_2*t \) = \( \frac{l*v2}{v_1 + v_2}\) — the The distance Anton will cover during time 𝑡 while moving at his speed \(v_2\).
+using Formula for Velocity \(v= \frac{d}{t}\) .
+This gives us the effective distance Anton covers on the belt.
+
+
+
+
+So now the naive solution is to start moving from points \(0\) to \(2l-1\), travel a distance 𝐷, and check how many chocolates I collect, then increment the frequency for the chocolates collected.
+Then determine the likelihood of collecting each possible number of chocolates by dividing the frequency of each outcome by the total number of possible scenarios.
+
+However, this approach lacks efficiency as it potentially iterates through \(2l\) positions, where \(l\) could be as large as \(10^9\).
+Given this scale, we need to devise a more optimized solution that avoids exhaustive iteration.
+
+
+
+
+We can approach this problem using a greedy strategy. Assume there's a chocolate at position \(5\) and \(D = 3\). To determine where I can start to collect this chocolate, I consider the range of positions from which it can be reached. I can start from any position between \([3, 4, 5]\), which is from position \((5 - D)+1\) to \(5\). Therefore, starting from any point between \(3\) and \(5\) allows me to collect this chocolate. In this case, I can reach \(1\) chocolate in
+\((5 - (5 - D)) = 3\) ways.
+
+we can apply the same approach. For each chocolate at position \(a_i\)​, I know that I can start collecting it from position \((a_i - D)+1\), and from \(a_i+1\)​, I can no longer collect it. So, I can store these boundaries in an array let say \(w\).
+
+You're essentially eating all the chocolates within a window of size \(D\) that moves along the belt. The array \(w[i]\) represents points where a chocolate either enters or exits the window. Between any two points in the array, no chocolate enters or exits the window, so the number of chocolates within the window stays the same.
+
+For example, if we are at positions \(w[i−1]\) and \(w[i]\), the number of chocolates in the window remains constant for the positions in the interval \([w[i−1],w[i])\), since no chocolates enter the window during this interval. Likewise, since no chocolates are entering, none are exiting either in the interval \([w[i−1]+D,w[i]+D)\), so the number of chocolates remains the same.
+
+We can determine the current number of chocolates using a method similar to the Difference Array technique. When we add the point \(a_i\)​ and \( a_i-D\)​ to the array \(w\), we also associate a value of \(1\) or \(-1\) with it. if the value is \(1\), it means that when we reach this position, the chocolate enters the window; if it's \(-1\), the chocolate leaves the window.
+
+
+First, let's take the input and compute 𝐷:
+
+Using these equations as explained earlier
+1- \(t= \frac{l}{v_1 + v_2}\) .
+2- \(D=v_2*t\)
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define double long double
+
+int main() {
+    int n, l, v1, v2;
+    cin >> n >> l >> v1 >> v2;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+    double d = (double)(v2 * l) / (double)(v1 + v2);
+    return 0;
+}
+
+
+
+
+let's create array \(w\) and then add the point \(a_i\)​ and \( a_i-D\)​ to the array \(w\), we also associate a value of \(1\) or \(-1\) with it, then sort it.
+• \(a_i - D\) will be associated with \(1\) because after this position, chocolate \(i\) will enter the window.
+• \(a_i\) will be associated with \(-1\) because after this position, chocolate \(i\) will leave the window.
+
+And if \(a_i​−D<0\), I will add \(2l\) to it since it's a circular arrangement.
+And include the boundaries(\(0, 2l)\) of the belt itself, associating them with zero since they won't affect the number of chocolates within the window, This leaves out the ranges from \(0\) to \(x[0]\), and from \(x[x.size()-1]\) to \(2L\) So even though the count doesn't generally change at \(0\) and \(2L\), they're added so that these ranges are accounted for.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define double long double
+int main() {
+    int n, l, v1, v2;
+    cin >> n >> l >> v1 >> v2;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    double d = (double)(v2) / (double)(v1 + v2)*l;
+
+    vector<pair<double, int>> w;
+    w.push_back({0, 0});
+    for (int i = 0; i < n; i++) {
+        if (a[i] - d < 0) {
+            w.push_back({2ll*l + a[i] - d, 1});
+        }
+        else w.push_back({a[i] - d, 1});
+        w.push_back({a[i], -1});
+    }
+    w.push_back({2ll*l, 0});
+    sort(w.begin(), w.end());
+
+    return 0;
+
+}
+
+
+
+
+but I can't start with a chocolate count of zero because the window may have already collected chocolates before reaching zero. Instead, I can initialize the chocolate count with the number of chocolates where \(a_i​−D<0\) this ensures that the difference between them and zero is less than or equal to \(D\), which is the size of the window.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define double long double
+int main() {
+    int n, l, v1, v2;
+    cin >> n >> l >> v1 >> v2;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    double d = (double)(v2) / (double)(v1 + v2)*l;
+
+    vector<pair<double, int>> w;
+    w.push_back({0, 0});
+    int num_of_chocolates=0;
+    for (int i = 0; i < n; i++) {
+        if (a[i] - d < 0) {
+            w.push_back({2ll*l + a[i] - d, 1});
+            num_of_chocolates++;
+        }
+        else w.push_back({a[i] - d, 1});
+        w.push_back({a[i], -1});
+    }
+    w.push_back({2ll*l, 0});
+    sort(w.begin(), w.end());
+    
+    return 0;
+    
+}
+
+
+
+
+I will iterate over all \(i\) from \(1\) to \(n\) with \(w[i−1]\) and \(w[i]\), then calculate the distance as the difference between \(w[i]\) and \(w[i-1]\). This indicates that the number of chocolates will remain constant over this distance.
+Then,
+• I will update the frequencies of this number of chocolates based on this distance.
+• I will update the num_of_chocolates based on \(w[i].\) it will enter the window or leave from it.
+
+First, I will start with \(w[0]\) and \(w[1]\) which means I have encountered \(0\), so I need to update the number of chocolates before entering the loop and adjust it based on \(w[0]\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define double long double
+int main() {
+    int n, l, v1, v2;
+    cin >> n >> l >> v1 >> v2;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    double d = (double)(v2) / (double)(v1 + v2)*l;
+
+    vector<pair<double, int>> w;
+    w.push_back({0, 0});
+    int num_of_chocolates=0;
+    for (int i = 0; i < n; i++) {
+        if (a[i] - d < 0) {
+            w.push_back({2ll*l + a[i] - d, 1});
+            num_of_chocolates++;
+        }
+        else w.push_back({a[i] - d, 1});
+        w.push_back({a[i], -1});
+    }
+    w.push_back({2ll*l, 0});
+    sort(w.begin(), w.end());
+
+    vector<double> ans(n + 1,0);
+    num_of_chocolates += w[0].second;
+    for (int i = 1; i < w.size(); i++) {
+        ans[num_of_chocolates] += w[i].first - w[i - 1].first;
+        num_of_chocolates += w[i].second;
+    }
+
+   return 0;
+    
+}
+
+
+
+
+let's print the likelihood of collecting each possible number of chocolates by dividing the frequency of each outcome by the total number of possible scenarios (\(2l\)).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+#define double long double
+int main() {
+    int n, l, v1, v2;
+    cin >> n >> l >> v1 >> v2;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    double d = (double)(v2) / (double)(v1 + v2)*l;
+
+    vector<pair<double, int>> w;
+    w.push_back({0, 0});
+    int num_of_chocolates=0;
+    for (int i = 0; i < n; i++) {
+        if (a[i] - d < 0) {
+            w.push_back({2ll*l + a[i] - d, 1});
+            num_of_chocolates++;
+        }
+        else w.push_back({a[i] - d, 1});
+        w.push_back({a[i], -1});
+    }
+    w.push_back({2ll*l, 0});
+    sort(w.begin(), w.end());
+
+    vector<double> ans(n + 1,0);
+    num_of_chocolates += w[0].second;
+    for (int i = 1; i < w.size(); i++) {
+        ans[num_of_chocolates] += w[i].first - w[i - 1].first;
+        num_of_chocolates += w[i].second;
+    }
+
+    for (int i = 0; i <= n; i++) {
+        cout << fixed << setprecision(10) << ans[i] / (2ll * l) << '\n';
+    }
+    
+    return 0;
+}
+
+
+
+
+1 1 1 1
+0
+
+
+
+
+2 3 1 2
+2 5
+
+
+
+
+Let's create a test case where the effective distance \(D=1\). In this case, the number of times \(1\) chocolate is collected should equal the total number of chocolates \(n\), the number of times \(0\) chocolates are collected will be \(2l−n\), and the number of times more than \(1\) chocolate is collected will be zero.
+
+<b>Input</b>
+3 6 5 1
+0 1 2
+<b>Output</b>
+0.7500000000
+0.2500000000
+0.0000000000
+0.0000000000
+
+
+\(D= \frac{l*v2}{v_1 + v_2}=\frac{6*1}{1 + 5}=1\) .
+
+So, I can only collect the chocolates that are at my initial position, and I cannot move beyond that. This means I can collect each chocolate only at its position, resulting in the number of times \(1\) chocolate is collected being \(n=3\). Since I can't move beyond my initial position, I can't collect more than \(1\) chocolate at a time, so the number of times more than \(1\) chocolate is collected will be zero. The number of times \(0\) chocolates are collected will be the rest \(2l−n=12−3=9\).
+
+the total number of possible scenarios (\(2l\)) = \(2*6 = 12 \).
+Thus, the probabilities will be:
+For \(0\) chocolates: \(9/12=0.7500000000\)
+For \(1\) chocolate: \(3/12=0.2500000000\)
+For \(2\) chocolates: \(0/12=0.0000000000\)
+For \(3\) chocolates: \(0/12=0.0000000000\)
+
+
+
+
+3 6 5 1
+0 1 2

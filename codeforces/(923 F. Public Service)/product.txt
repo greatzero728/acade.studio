@@ -1,0 +1,356 @@
+<b>Title:</b> Public Service
+<b>Time limit per test:</b> 4 seconds
+<b>Memory limit per test:</b> 256 megabytes
+
+There are \( N \) cities in Bob's country connected by roads. Some pairs of cities are connected by public transport. There are two competing transport companies —<b> Boblines</b> operating buses and <b>Bobrail</b> running trains. When traveling from \( A \) to \( B \), a passenger always first selects the mode of transport (either bus or train), and then embarks on a journey. For every pair of cities, there are exactly two ways of how to travel between them without visiting any city more than once — one using only bus routes, and the second using only train routes. Furthermore, there is no pair of cities that is directly connected by both a bus route and a train route.
+
+You obtained the plans of each of the networks. Unfortunately, each of the companies uses different names for the same cities. More precisely, the bus company numbers the cities using integers from \( 1 \) to \( N \), while the train company uses integers between \( N + 1 \) and \( 2N \). Find one possible mapping between those two numbering schemes, such that no pair of cities is connected directly by both a bus route and a train route. Note that this mapping has to map different cities to different cities.
+
+<b>Input</b>
+
+The first line contains an integer \( N \) (\( 2 \leq N \leq 10000 \)), the number of cities.
+
+\( N - 1 \) lines follow, representing the network plan of Boblines. Each contains two integers \( u \) and \( v \) (\( 1 \leq u, v \leq N \)), meaning that there is a bus route between cities \( u \) and \( v \).
+
+\( N - 1 \) lines follow, representing the network plan of Bobrail. Each contains two integers \( u \) and \( v \) (\( N + 1 \leq u, v \leq 2N \)), meaning that there is a train route between cities \( u \) and \( v \).
+
+<b>Output</b>
+
+If there is no solution, output a single line with the word "No".
+
+If a solution exists, output two lines. On the first line, there should be the word "Yes". On the second line, there should be \( N \) integers \( P_1, P_2, ..., P_N \) (\( N + 1 \leq P_i \leq 2N \)) — the mapping between the two numbering schemes. More precisely, for \( i \neq j \), it should be \( P_i \neq P_j \), and for every direct bus route \( (i, j) \), there is no direct train route between \( (P_i, P_j) \).
+
+If there are multiple solutions, you may print any of them.
+
+<b>Note</b>
+
+The first sample (bus lines in red and rail lines in blue):
+
+<img im>
+
+
+
+
+
+The naive approach would be to try all possible mappings between cities in the bus and train networks and check if any direct bus connections conflict with direct train connections. This doesn't work because it involves checking \( N! \) (factorial) possible mappings, which is computationally infeasible for \( N \) as large as 10,000 due to its exponential time complexity.
+
+
+
+
+The problem is solved efficiently by leveraging the properties of tree structures and using a randomized algorithm to find a valid mapping through multiple trials. Since both networks are trees with \( N-1 \) edges connecting \( N \) nodes, there is a unique path between any two nodes in each tree, which simplifies distance calculations. By considering the degrees (number of connections) of nodes in both networks, matching nodes with similar degrees increases the chances of finding a valid mapping without conflicts.
+
+The randomized matching approach avoids exhaustive permutation checks by conducting multiple randomized trials, allowing different possibilities to be explored without computational infeasibility. BFS is employed to traverse the networks starting from selected root nodes, assigning mappings layer by layer while avoiding direct conflicts between connected cities in the bus and train networks.
+
+To avoid conflicts during the assignment process, adjacency lists are checked, ensuring that no two directly connected cities in the bus network are mapped to directly connected cities in the train network. The uniqueness of paths in a tree guarantees that avoiding conflicts at each step prevents indirect conflicts due to cycles, which do not exist in trees. Mapping leaf nodes to other leaf nodes helps reduce potential conflicts due to their limited connections.
+
+Degrees of nodes are considered during the mapping process. The node with the maximum degree in the bus network is selected as the root for BFS, and a node with a matching degree is sought in the train network. During multiple trials, roots are randomly selected in the train network, increasing the chances of finding a conflict-free mapping. Randomization is crucial as it avoids deterministic patterns that could lead to failures.
+
+BFS traversal begins from the root of both networks, ensuring that nodes at the same depth are considered simultaneously. Nodes are mapped as the traversal progresses, maintaining a conflict-checking mechanism that ensures adjacent nodes in the bus network are not assigned to adjacent nodes in the train network. A queue is used for this process, and before assigning a node, adjacency is checked to prevent conflicts.
+
+To handle conflicts efficiently, a list of "blocked" nodes is maintained in the train network. These are nodes that cannot be assigned due to potential conflicts with neighbors already mapped from the bus network. Train nodes are selected randomly from unblocked nodes, ensuring flexibility in finding valid assignments when multiple options are available.
+
+We begin by reading the input.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    
+    int N;
+    cin >> N;
+    
+    for(int i = 0; i < 2; i++) {
+        for(int j = 0; j < N-1; j++) {
+            int u, v;
+            cin >> u >> v;
+			
+			
+			
+			
+			We will store each network using adjacency lists, and we will also track the degree of each node to help in later stages when we select roots.
+We will create two adjacency lists \( \text{network}[0] \) and \( \text{network}[1] \) to represent the bus and train networks respectively.
+We will initialize degree arrays \( \text{degree}[0] \) and \( \text{degree}[1] \) to store the number of connections for each node in both networks.
+The bus network cities are numbered from \( 1 \) to \( N \), and the train network cities are numbered from \( N+1 \) to \( 2N \). We will adjust the indices accordingly when reading the train network.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    
+    int N;
+    cin >> N;
+
+    vector<vector<int>> network[2];
+    vector<int> degree[2], max_degree_root(2);
+
+    for(int i = 0; i < 2; i++) {
+        network[i].resize(N);
+        degree[i].resize(N, 0);
+        for(int j = 0; j < N-1; j++) {
+            int u, v;
+            cin >> u >> v;
+            if(i == 1) {
+                u -= N;
+                v -= N;
+            }
+            network[i][--u].push_back(--v);
+            network[i][v].push_back(u);
+            degree[i][u]++;
+            degree[i][v]++;
+        }
+
+        max_degree_root[i] = 0;
+        for(int j = 0; j < N; j++) {
+            if(degree[i][j] > degree[i][max_degree_root[i]]) 
+                max_degree_root[i] = j;
+        }
+    }
+}
+
+
+
+
+We now proceed with the matching attempts. Since the problem doesn't guarantee a unique solution, we will perform multiple trials, each time attempting to find a valid mapping between the bus and train networks using randomized selection of root nodes as we discussed.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    
+    int N;
+    cin >> N;
+
+    vector<vector<int>> network[2];
+    vector<int> degree[2], max_degree_root(2);
+
+    for(int i = 0; i < 2; i++) {
+        network[i].resize(N);
+        degree[i].resize(N, 0);
+        for(int j = 0; j < N-1; j++) {
+            int u, v;
+            cin >> u >> v;
+            if(i == 1) {
+                u -= N;
+                v -= N;
+            }
+            network[i][--u].push_back(--v);
+            network[i][v].push_back(u);
+            degree[i][u]++;
+            degree[i][v]++;
+        }
+
+        max_degree_root[i] = 0;
+        for(int j = 0; j < N; j++) {
+            if(degree[i][j] > degree[i][max_degree_root[i]]) 
+                max_degree_root[i] = j;
+        }
+    }
+    
+    int trials = 100;
+    srand(23479 + N);
+
+    for(int trial = 0; trial < trials; trial++) {
+        int network_choice = rand() % 2;
+        vector<int> available_roots;
+
+        for(int i = 0; i < N; i++) {
+            if(N - 1 - degree[1 - network_choice][i] >= degree[network_choice][max_degree_root[network_choice]])
+                available_roots.push_back(i);
+        }
+        
+        if(available_roots.empty()) continue;
+
+        int selected_root = available_roots[rand() % available_roots.size()];
+        vector<int> final_mapping[2];
+
+        for(int i = 0; i < 2; i++)
+            final_mapping[i].resize(N);
+
+        bool success = attempt_match(max_degree_root[network_choice], selected_root, network[network_choice], network[1 - network_choice], final_mapping[network_choice]);
+
+        if(success) {
+            cout << "Yes\n";
+            for(int i = 0; i < N; i++) 
+                final_mapping[1 - network_choice][final_mapping[network_choice][i]] = i;
+            
+            for(int i = 0; i < N; i++) 
+                cout << N + 1 + final_mapping[0][i] << (i == N - 1 ? "\n" : " ");
+            
+            return 0;
+        }
+    }
+}
+
+
+
+
+We will now define the core function attempt_match which will attempt to match nodes between the bus and train networks. This function will use a breadth-first search (BFS) traversal to ensure that nodes are assigned without conflicts as we discussed.
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+bool attempt_match(int rootA, int rootB, vector<vector<int>>& netA, vector<vector<int>>& netB, vector<int>& assigned) {
+    int n = netA.size();
+    fill(assigned.begin(), assigned.end(), -1);
+    assigned[rootA] = rootB;
+    
+    vector<int> free_nodes;
+    vector<int> blocked_in_B(n, -1);
+    blocked_in_B[rootB] = rootB;
+
+    for(int i = 0; i < n; i++) 
+        if(assigned[i] == -1) free_nodes.push_back(i);
+    
+    vector<bool> visited_A(n, false);
+    queue<int> q;
+    q.push(rootA);
+
+    while(!q.empty()) {
+        int nodeA = q.front(), nodeB = assigned[nodeA];
+        
+        for(int adjA : netA[nodeA])
+            visited_A[adjA] = true;
+
+        for(int adjB : netB[nodeB]) {
+            if(blocked_in_B[adjB] == -1) {
+                blocked_in_B[adjB] = nodeA;
+                
+                int free_match = -1;
+                for(int i = 0; i < (int)netA[nodeA].size() + 3; i++) {
+                    int random_index = rand() % free_nodes.size();
+                    if(!visited_A[free_nodes[random_index]]) {
+                        free_match = free_nodes[random_index];
+                        swap(free_nodes[random_index], free_nodes.back());
+                        free_nodes.pop_back();
+                        break;
+                    }
+                }
+
+                if(free_match == -1) return false;
+
+                assigned[free_match] = adjB;
+                q.push(free_match);
+            }
+        }
+
+        for(int adjA : netA[nodeA])
+            visited_A[adjA] = false;
+
+        q.pop();
+    }
+    return true;
+}
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    
+    int N;
+    cin >> N;
+
+    vector<vector<int>> network[2];
+    vector<int> degree[2], max_degree_root(2);
+
+    for(int i = 0; i < 2; i++) {
+        network[i].resize(N);
+        degree[i].resize(N, 0);
+        for(int j = 0; j < N-1; j++) {
+            int u, v;
+            cin >> u >> v;
+            if(i == 1) {
+                u -= N;
+                v -= N;
+            }
+            network[i][--u].push_back(--v);
+            network[i][v].push_back(u);
+            degree[i][u]++;
+            degree[i][v]++;
+        }
+
+        max_degree_root[i] = 0;
+        for(int j = 0; j < N; j++) {
+            if(degree[i][j] > degree[i][max_degree_root[i]]) 
+                max_degree_root[i] = j;
+        }
+    }
+
+    int trials = 100;
+    srand(23479 + N);
+
+    for(int trial = 0; trial < trials; trial++) {
+        int network_choice = rand() % 2;
+        vector<int> available_roots;
+
+        for(int i = 0; i < N; i++) {
+            if(N - 1 - degree[1 - network_choice][i] >= degree[network_choice][max_degree_root[network_choice]])
+                available_roots.push_back(i);
+        }
+        
+        if(available_roots.empty()) continue;
+
+        int selected_root = available_roots[rand() % available_roots.size()];
+        vector<int> final_mapping[2];
+
+        for(int i = 0; i < 2; i++)
+            final_mapping[i].resize(N);
+
+        bool success = attempt_match(max_degree_root[network_choice], selected_root, network[network_choice], network[1 - network_choice], final_mapping[network_choice]);
+
+        if(success) {
+            cout << "Yes\n";
+            for(int i = 0; i < N; i++) 
+                final_mapping[1 - network_choice][final_mapping[network_choice][i]] = i;
+            
+            for(int i = 0; i < N; i++) 
+                cout << N + 1 + final_mapping[0][i] << (i == N - 1 ? "\n" : " ");
+            
+            return 0;
+        }
+    }
+
+    cout << "No\n";
+}
+
+
+
+
+The output for the third sample test is different but, it only differs in order and the problem statement states that we may output any correct solution.
+
+
+
+
+Now let's test one of the smallest possible cases to make sure no corner cases are not handled:
+
+<code>
+2
+1 2
+3 4
+</code>
+
+The output should be "No" because both bus cities (1 and 2) are directly connected, and both train cities (3 and 4) are also directly connected. Since it's impossible to map bus cities 1 and 2 to train cities 3 and 4 without creating a conflict, a valid mapping does not exist.
+
+
+
+
+
+2
+1 2
+3 4

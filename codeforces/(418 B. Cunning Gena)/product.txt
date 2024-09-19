@@ -1,0 +1,312 @@
+<b>D. Cunning Gena</b>
+
+<b>time limit per test</b> \(1 \, \text{second}\)
+<b>memory limit per test</b> \(256 \, \text{megabytes}\)
+
+A boy named Gena really wants to get to the "Russian Code Cup" finals, or at least get a t-shirt. But the offered problems are too complex, so he made an arrangement with his \(n\) friends that they will solve the problems for him.
+
+The participants are offered \(m\) problems in the contest. For each friend, Gena knows what problems he can solve. But Gena's friends won't agree to help Gena for nothing: the \(i\)-th friend asks Gena \(x_i\) rubles for his help in solving all the problems he can. Also, the friend agreed to write a code for Gena only if Gena's computer is connected to at least \(k_i\) monitors, each monitor costs \(b\) rubles.
+
+Gena is careful with money, so he wants to spend as little money as possible to solve all the problems. Help Gena by telling him how to spend the smallest possible amount of money. Initially, there are no monitors connected to Gena's computer.
+
+<b>Input</b>
+The first line contains three integers \(n\), \(m\), and \(b\) \((1 \leq n \leq 100; 1 \leq m \leq 20; 1 \leq b \leq 10^9)\) — the number of Gena's friends, the number of problems, and the cost of a single monitor.
+
+The following \(2n\) lines describe the friends. The line number \(2i\) and \((2i + 1)\) contain the information about the \(i\)-th friend. The \(2i\)-th line contains three integers \(x_i\), \(k_i\), and \(m_i\) \((1 \leq x_i \leq 10^9; 1 \leq k_i \leq 10^9; 1 \leq m_i \leq m)\) — the desired amount of money, the number of monitors, and the number of problems the friend can solve. The \((2i + 1)\)-th line contains \(m_i\) distinct positive integers — the numbers of problems that the \(i\)-th friend can solve. The problems are numbered from 1 to \(m\).
+
+<b>Output</b>
+Print the minimum amount of money Gena needs to spend to solve all the problems. Or print \(-1\) if this cannot be achieved.
+
+
+
+
+The naive solution would be to backtrack over which friends to use and minimize the answer but that would be too slow because the time complexity would be \(O(2^n)\) which is very huge at the worst case.
+
+There are atmost \(20\) problems, so we could represent the problems in the array \(msk\) such that \(msk_i\) has a bitmask such that the \(j\)-th bit is turned on if the \(i\)-th friend can solve the \(j\)-th problem.
+
+Now, lets consider a dp solution.
+Let \(dp_{i, j, k} = \) minimum cost to solve the problems that correspond to the bitmask \(j\) if we have atmost \(l\) monitors using the first \(i\) friends.
+The dp transitions that correspond to this solution would be:
+\(dp_{i, j | msk_i, l} = \min(dp_{i-1, j | msk_i, l}, dp_{i-1, j, l} + x_i)\) if \(k_i \leq l\).
+The base case of this solution would be:
+\(dp_{0,0,l} = b \cdot l \), which corresponds to buying \(l\) monitors at the beginning.
+
+The time complexity would be \(O(n^2\cdot 2^m)\) if we only consider the \(n\) different number of monitors each friend requires. That time complexity is much better then the naive solution but we need to further improve it.
+
+The only thing about this solution that could be improved is how we consider the number of monitors. What if we completly ignore the number of monitors when we calculate the answer?
+
+Lets sort the friends by the number of monitors they want in descending order. Now we know that the \(i\)-th friend is the last friend to solve some problems, we will buy exactly \(k_i\) monitors.
+So now our dp will have 2 states instead:
+\(dp_{i, j} = \) minimum cost to solve the problems that correspond to the bitmask \(j\) using the first \(i\) friends.
+The dp transitions will be very similar:
+\(dp_{i, j | msk_i} = \min(dp_{i-1, j | msk_i}, dp_{i-1, j} + x_i)\).
+The base case would be simply: \(dp_{0, 0} = 0\)
+and We'll calculate the answer by looping over each index \(i\) then minimizing the following formula \(dp_{i, 2^m - 1} + k_i\cdot b\).
+
+The time complexity of this solution would be \(O(n\cdot 2^m)\) which is good enough to fit into the time constraint, but the space complexity is \(O(n\cdot 2^m)\) which is too large for the given constraint. We can remove the \(n\) in the memory constraint by storing the dp array only for the previous index instead of storing the whole dp array.
+
+The dp transitions after this optimization will be:
+\(dp_{j | msk_i} = \min(dp_{j | msk_i}, dp_{j} + x_i)\).
+And the base case will be: \(dp_0 = 0\).
+After each iteration over the masks we'll simply minimize \(dp_{2^m - 1} + k_i\cdot b\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+    }
+}
+
+
+
+
+Now, for each friend, lets compute the mask the problems they can solve corresponds to.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+        a[i][2] = 0;
+        for (int j = 0; j < x; ++j) {
+            int y;
+            cin >> y;
+            y--;
+            a[i][2] |= (1 << y);
+        }
+    }
+}
+
+
+
+
+Then, we'll sort the friends by the number of monitors they want.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+        a[i][2] = 0;
+        for (int j = 0; j < x; ++j) {
+            int y;
+            cin >> y;
+            y--;
+            a[i][2] |= (1 << y);
+        }
+    }
+    sort(a, a + n, [](auto a, auto b) { return a[1] < b[1]; });
+}
+
+
+
+
+Lets initialize the dp array.
+Our whole dp array must be filled with a very large integer value, we can put \(2^{62}\) directly.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+        a[i][2] = 0;
+        for (int j = 0; j < x; ++j) {
+            int y;
+            cin >> y;
+            y--;
+            a[i][2] |= (1 << y);
+        }
+    }
+    sort(a, a + n, [](auto a, auto b) { return a[1] < b[1]; });
+    
+    const ll INF = (1LL << 62);
+    ll dp[1 << (m + 1)];
+    fill(dp, dp + (1 << m), INF);
+}
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+        a[i][2] = 0;
+        for (int j = 0; j < x; ++j) {
+            int y;
+            cin >> y;
+            y--;
+            a[i][2] |= (1 << y);
+        }
+    }
+    sort(a, a + n, [](auto a, auto b) { return a[1] < b[1]; });
+    
+    const ll INF = (1LL << 62);
+    ll dp[1 << (m + 1)];
+    fill(dp, dp + (1 << m), INF);
+}
+
+
+
+
+
+Finally, lets calculate the dp array using the given dp formula. We shouldn't forget the base case.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+        a[i][2] = 0;
+        for (int j = 0; j < x; ++j) {
+            int y;
+            cin >> y;
+            y--;
+            a[i][2] |= (1 << y);
+        }
+    }
+    sort(a, a + n, [](auto a, auto b) { return a[1] < b[1]; });
+    
+    const ll INF = (1LL << 62);
+    ll dp[1 << (m + 1)];
+    fill(dp, dp + (1 << m), INF);
+    
+    dp[0] = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < 1 << m; ++j) {
+            dp[j | a[i][2]] = min(dp[j | a[i][2]], dp[j] + a[i][0]);
+        }
+    }
+}
+
+
+
+
+Now, we want to calculate the answer. Lets initialize it with a really large number then simply check if we found an answer, if so we'll print that answer, otherwise we'll print -1.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+using namespace std;
+
+int main() {
+    ll n, m, b;
+    cin >> n >> m >> b;
+    array<ll, 3> a[n];
+    for (int i = 0; i < n; ++i) {
+        int x;
+        cin >> a[i][0] >> a[i][1] >> x;
+        a[i][2] = 0;
+        for (int j = 0; j < x; ++j) {
+            int y;
+            cin >> y;
+            y--;
+            a[i][2] |= (1 << y);
+        }
+    }
+    sort(a, a + n, [](auto a, auto b) { return a[1] < b[1]; });
+
+    const ll INF = (1LL << 62);
+    ll dp[1 << (m + 1)];
+    fill(dp, dp + (1 << m), INF);
+
+    ll ans = INF;
+    dp[0] = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < 1 << m; ++j) {
+            dp[j | a[i][2]] = min(dp[j | a[i][2]], dp[j] + a[i][0]);
+        }
+        ans = min(ans, dp[(1 << m) - 1] + a[i][1] * b);
+    }
+    if (ans == INF)
+        cout << -1 << endl;
+    else
+        cout << ans << endl;
+}
+
+
+
+
+Lets try a test with the maximum possible costs to check for overflows.
+Test:
+1 1 1000000000
+1000000000 1000000000 1
+1
+Expected: Any non negative number
+Reason: It is sufficient to make sure we're printing a positive number to check for overflows.
+
+
+
+
+1 1 1000000000
+1000000000 1000000000 1
+1

@@ -1,0 +1,279 @@
+<b>Title:</b> Dr. Evil Underscores
+<b>Time limit per test:</b> 1 second
+<b>Memory limit per test:</b> 256 megabytes
+
+Today, as a friendship gift, Bakry gave Badawy \( n \) integers \( a_1, a_2, \dots, a_n \) and challenged him to choose an integer \( X \) such that the value \( \displaystyle \max_{1 \leq i \leq n}(a_i \oplus X) \) is minimum possible, where \( \oplus \) denotes the bitwise XOR operation.
+
+As always, Badawy is too lazy, so you decided to help him and find the minimum possible value of \( \displaystyle \max_{1 \leq i \leq n}(a_i \oplus X) \).
+
+<b>Input</b>
+
+The first line contains the integer \( n \) (\(1 \leq n \leq 10^5\)).
+
+The second line contains \( n \) integers \( a_1, a_2, \dots, a_n \) (\(0 \leq a_i \leq 2^{30} - 1\)).
+
+<b>Output</b>
+
+Print one integer — the minimum possible value of \(\displaystyle \max_{1 \leq i \leq n}(a_i \oplus X) \).
+
+<b>Note</b>
+
+In the first sample, we can choose \( X = 3 \).
+
+In the second sample, we can choose \( X = 5 \).
+
+
+
+
+
+A naive approach for this problem would be to try all possible values of \( X \), from \( 0 \) to the largest value in the input array (which could be as large as \( 2^{30} - 1 \)). For each \( X \), we would calculate \( a_i \oplus X \) for all elements \( a_i \) in the array, then determine the maximum value of these XOR results, and choose the \( X \) that minimizes this maximum value.
+this solution is too slow.
+
+
+
+
+
+The solution for minimizing the maximum XOR result between \( X \) and a set of numbers is based on a divide-and-conquer strategy applied to the binary representation of the numbers. The key idea is to handle each bit independently, starting with the most significant bit (MSB), and recursively process the numbers based on the values of the current bit, ensuring that the differences contributing to larger XOR values are minimized first.
+
+For each bit, starting from bit 29 (since the numbers are less than \( 2^{30} \)), we split the set of numbers into two groups:
+
+- Group 1 contains the numbers where the current bit is 1.
+- Group 2 contains the numbers where the current bit is 0.
+
+This division is crucial because when XORing numbers from different groups, the current bit contributes to the result as 1, thus increasing the XOR value. The goal is to minimize the maximum XOR result, which is why focusing on the most significant bits first is essential.
+
+If all numbers in the current group share the same value for the current bit (i.e., one of the groups is empty), then this bit does not contribute to the XOR result. In such cases, the algorithm moves on to the next lower bit, ignoring this bit's contribution. This is because no differences exist in this bit, so it cannot affect the XOR result.
+
+However, when both groups are non-empty, the XOR between numbers in Group 1 and Group 2 will differ in the current bit, contributing 1 to the XOR result for this bit. To minimize the overall XOR, the algorithm recursively solves the problem for both groups at the next lower bit. After that, it chooses the smaller result between the two recursive calls and adds \( 1 \ll \text{bit} \) to account for the contribution of the current bit.
+
+The recursive function \( f(\text{nums}, \text{bit}) \) can be expressed as follows:
+
+\(
+f(\text{nums}, \text{bit}) = \begin{cases}
+0 & \text{if } \text{bit} < 0 \text{ or nums is empty} \\
+\min(f(\text{Group 1}, \text{bit} - 1), f(\text{Group 2}, \text{bit} - 1)) + (1 \ll \text{bit}) & \text{if both groups are non-empty} \\
+f(\text{non-empty group}, \text{bit} - 1) & \text{if only one group is non-empty}
+\end{cases}
+\)
+
+The decision to choose the smaller result when both groups are non-empty is based on minimizing the XOR contribution from the current bit. The reasoning behind this is that the current bit can differ between Group 1 and Group 2. When XORing numbers from different groups, this bit will be set to 1, contributing to the maximum XOR value. To minimize this, the strategy is to assign the current bit in \( X \) based on the group where the majority of numbers have the same value at this bit.
+
+By setting the current bit in \( X \) to match the larger group, the XOR results with numbers from that group will be smaller. This ensures that the largest XOR value at this bit is minimized. In essence, the algorithm seeks to minimize the maximum XOR at each step by balancing the contributions from both groups. Specifically, the contribution from the current bit is minimized by aligning \( X \) with the larger group of numbers, ensuring that the maximum XOR value is as small as possible.
+
+This approach works because it processes each bit greedily, focusing on minimizing the contribution of the most significant bits first. Since the MSBs have the largest impact on the XOR result, reducing their contributions early in the process ensures that the overall XOR result is minimized. The recursive nature of the algorithm ensures that each bit is handled optimally, with the contributions from lower bits being minimized step by step.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    // Fast input-output optimization
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n;
+    cin >> n;
+    
+    vector<int> a(n);
+    for (int &num : a) {
+        cin >> num;
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+Now that we have the input, we need to compute the minimum possible value of \( \max(a_i \oplus X) \). For this, we will call the recursive function \( \text{find\_min\_xor} \), starting from the most significant bit (bit 29). This function is responsible for dividing the numbers based on their bits and recursively solving the problem.
+
+We will call the recursive function \( \text{find\_min\_xor} \) and pass the vector \( a \) (which contains the input integers) and the starting bit position 29. This is the highest bit we care about since the maximum number \( a_i \) is less than \( 2^{30} \). The function will compute the minimum XOR based on the logic explained earlier, and the result will be printed.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    // Fast input-output optimization
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n;
+    cin >> n;
+    
+    vector<int> a(n);
+    for (int &num : a) {
+        cin >> num;
+    }
+
+    // Start solving from the 29th bit (since a_i <= 2^30 - 1)
+    cout << find_min_xor(a, 29) << "\n";
+
+    return 0;
+}
+
+
+
+
+
+We will now use the function \( \text{find\_min\_xor} \) to recursively divide the input numbers based on their bits. The core idea is to check each bit starting from the most significant one, and split the numbers into two groups:
+- Group 1: Numbers where the current bit is set (1).
+- Group 2: Numbers where the current bit is unset (0).
+
+We will start by checking the base case of the recursion. If the list of numbers is empty or we have processed all bits (i.e., \( \text{bit} < 0 \)), we return 0. This means there's nothing more to process, and no further contribution to the XOR result.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+// Function to solve the problem recursively by dividing the numbers based on bits
+int find_min_xor(vector<int> &nums, int bit) {
+    if (nums.empty() || bit < 0) return 0;
+}
+
+int main() {
+    // Fast input-output optimization
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n;
+    cin >> n;
+    
+    vector<int> a(n);
+    for (int &num : a) {
+        cin >> num;
+    }
+
+    // Start solving from the 29th bit (since a_i <= 2^30 - 1)
+    cout << find_min_xor(a, 29) << "\n";
+
+    return 0;
+}
+
+
+
+
+
+Next, we will divide the numbers based on whether the current bit is 1 or 0.
+
+We will create two groups: group_with_bit and group_without_bit. These groups will hold the numbers depending on whether the bit-th bit in the binary representation of each number is set (1) or not (0).
+Using a for loop, we will iterate through each number in nums, check if the bit-th bit is set (using num & (1 << bit)), and then add the number to the corresponding group.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+// Function to solve the problem recursively by dividing the numbers based on bits
+int find_min_xor(vector<int> &nums, int bit) {
+    if (nums.empty() || bit < 0) return 0;
+
+    // Divide the numbers into two groups: those with the current bit set and those without
+    vector<int> group_with_bit, group_without_bit;
+    for (int num : nums) {
+        if (num & (1 << bit)) {
+            group_with_bit.push_back(num);
+        } else {
+            group_without_bit.push_back(num);
+        }
+    }
+}
+
+int main() {
+    // Fast input-output optimization
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n;
+    cin >> n;
+    
+    vector<int> a(n);
+    for (int &num : a) {
+        cin >> num;
+    }
+
+    // Start solving from the 29th bit (since a_i <= 2^30 - 1)
+    cout << find_min_xor(a, 29) << "\n";
+
+    return 0;
+}
+
+
+
+
+
+After splitting the numbers into two groups, we need to decide what to do next:
+
+- If one of the groups is empty, we can ignore this bit and recursively solve for the other group.
+- If both groups are non-empty, we must combine the results from both groups. The XOR between numbers from different groups will have the \( \text{bit-th} \) bit set to 1, so we add \( 1 \ll bit \) to the result.
+
+We will check if either \( \text{group\_with\_bit} \) or \( \text{group\_without\_bit} \) is empty. If one of them is empty, we can ignore this bit and recursively solve for the non-empty group by moving to the next lower bit \( (\text{bit} - 1) \).
+If both groups are non-empty, we need to recursively solve for both groups, take the minimum of the two results, and add \( 1 \ll bit \). This ensures that we account for the XOR contribution of the current bit (since numbers from different groups will have this bit set in their XOR result).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+// Function to solve the problem recursively by dividing the numbers based on bits
+int find_min_xor(vector<int> &nums, int bit) {
+    if (nums.empty() || bit < 0) return 0;
+
+    // Divide the numbers into two groups: those with the current bit set and those without
+    vector<int> group_with_bit, group_without_bit;
+    for (int num : nums) {
+        if (num & (1 << bit)) {
+            group_with_bit.push_back(num);
+        } else {
+            group_without_bit.push_back(num);
+        }
+    }
+
+    // If one group is empty, we can safely ignore this bit and continue with the non-empty group
+    if (group_with_bit.empty()) return find_min_xor(group_without_bit, bit - 1);
+    if (group_without_bit.empty()) return find_min_xor(group_with_bit, bit - 1);
+
+    // If both groups are non-empty, solve recursively for both groups and add the current bit's influence
+    return min(find_min_xor(group_with_bit, bit - 1), find_min_xor(group_without_bit, bit - 1)) + (1 << bit);
+}
+
+int main() {
+    // Fast input-output optimization
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n;
+    cin >> n;
+    
+    vector<int> a(n);
+    for (int &num : a) {
+        cin >> num;
+    }
+
+    // Start solving from the 29th bit (since a_i <= 2^30 - 1)
+    cout << find_min_xor(a, 29) << "\n";
+
+    return 0;
+}
+
+
+
+
+Now let's test the smallest possible case to make sure no corner cases are not handled:
+
+<code>
+1
+0
+</code>
+

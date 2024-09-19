@@ -1,0 +1,70 @@
+A. Good Number
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Let's call a number k-good if it contains all digits not exceeding k (0, ..., k). You've got a number k and an array a containing n numbers. Find out how many k-good numbers are in a (count each number every time it occurs in array a).
+
+Input
+The first line contains integers n and k (1 ≤ n ≤ 100, 0 ≤ k ≤ 9). The i-th of the following n lines contains integer \(a_i\) without leading zeroes (\(1 ≤ a_i ≤ 10^9\)).
+
+Output
+Print a single integer — the number of k-good numbers in a.
+
+
+
+
+In this problem, we iterate through all \(a_i\), and for each \(a_i\), if it is a k-good number, we increment the answer by 1.
+To determine if a certain integer \(x\) is a k-good number, we check if all digits from 0 to \(k\) are present in the base-10 representation of \(x\).
+
+The time complexity is \(O(n \cdot k \cdot s)\).
+Here, \(n\) accounts for iterating over each \(a_i\), \(k\) represents the number of digits that a k-good number must contain, and \(s\) is the maximum length of \(a_i\). In the worst case, checking if a certain digit is included in \(a_i\) will involve scanning the entire length of \(a_i\).
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int n, k;
+    cin >> n >> k;
+    vector<string> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+    int ans = 0;
+    for (int i = 0; i < n; ++i) {
+        bool good = true;
+        for (int j = 0; j <= k; ++j) {
+            char c = '0' + j;
+            if (a[i].find(c) == string::npos) {
+                good = false;
+                break;
+            }
+        }
+        if (good) ++ans;
+    }
+    cout << ans << endl;
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case, where \(n, k, a_i\) are their minimum values: \(n = a_i = 1, k = 0\)
+<code>
+1 0
+1
+</code>
+0 is not included in the base-10 representation of 1, so 1 is not 0-good number.
+There are 0 0-good numbers in a. So, the answer for this case will be 0.
+
+
+
+
+1 0
+1

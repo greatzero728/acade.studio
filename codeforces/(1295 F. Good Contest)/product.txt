@@ -1,0 +1,17 @@
+The problem requires us to calculate the probability that there will be no inversions in the problem order. To do this, we need to consider the number of possible ways to arrange the problems such that there are no inversions.
+
+Let's denote the number of problems as \(n\), and the minimum and maximum number of accepted solutions for the \(i^{th}\) problem as \(l_i\) and \(r_i\) respectively.
+
+We can start by considering the first problem. Since there are no previous problems, there are no inversions to consider. The number of possible ways to arrange the first problem is simply \(r_1 - l_1 + 1\).
+
+Now, let's consider the second problem. For each possible arrangement of the first problem, there are \(r_2 - l_2 + 1\) possible ways to arrange the second problem such that there are no inversions. However, we need to consider the case where the number of accepted solutions for the second problem is greater than the number of accepted solutions for the first problem. In this case, we need to subtract the number of arrangements where the second problem has more accepted solutions than the first problem.
+
+We can continue this process for each subsequent problem, considering the number of possible ways to arrange each problem such that there are no inversions, and subtracting the number of arrangements where a later problem has more accepted solutions than an earlier problem.
+
+The final probability will be the product of the number of possible ways to arrange each problem, divided by the total number of possible arrangements.
+
+We will need to use modular arithmetic to avoid overflow, and to calculate the modular inverse of the denominator.
+
+The time complexity of this approach will be \(O(n)\), where \(n\) is the number of problems.
+
+Next step will be to write a boilerplate code for reading the input and initializing variables.

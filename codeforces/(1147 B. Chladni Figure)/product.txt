@@ -1,0 +1,175 @@
+<b>B. Chladni Figure</b>
+time limit per test: 3 seconds
+memory limit per test: 256 megabytes
+
+Inaka has a disc, the circumference of which is \(n\) units. The circumference is equally divided by \(n\) points numbered clockwise from 1 to \(n\), such that points \(i\) and \(i+1 (1≤i<n)\) are adjacent, and so are points \(n\) and 1.
+
+There are \(m\) straight segments on the disc, the endpoints of which are all among the aforementioned \(n\) points.
+
+Inaka wants to know if her image is rotationally symmetrical, i.e. if there is an integer \(k (1≤k<n)\), such that if all segments are rotated clockwise around the center of the circle by \(k\) units, the new image will be the same as the original one.
+
+<b>Input</b>
+The first line contains two space-separated integers \(n\) and \(m (2≤n≤100 000, 1≤m≤200 000)\) — the number of points and the number of segments, respectively.
+
+The \(i\)-th of the following \(m\) lines contains two space-separated integers \(a_i\) and \(b_i (1≤a_i,b_i≤n, a_i≠b_i)\) that describe a segment connecting points \(a_i\) and \(b_i\).
+
+It is guaranteed that no segments coincide.
+
+<b>Output</b>
+Output one line — "Yes" if the image is rotationally symmetrical, and "No" otherwise (both excluding quotation marks).
+
+You can output each letter in any case (upper or lower).
+
+<b>Note</b>
+The first two examples are illustrated below. Both images become the same as their respective original ones after a clockwise rotation of 120 degrees around the center.
+<img 1>
+
+
+
+
+
+
+We can examine all possible values of \(k\) to check all segments are rotated clockwise around the center of the circle by \(k\) units. For each value of \(k\), we must check all \(m\) segments, resulting in a time complexity of \(O(n \cdot m)\) for this naive algorithm. Thus, with this approach, we may encounter a time limit exceeded error.
+
+Let's consider the case where we fixed value \(k\). Then, we have to check \((a, b), (a + k, b + k), (a + 2 \cdot k, b + 2 \cdot k), (a + 3 \cdot k, b + 3 \cdot k), ...\)  are all present in the given segments.
+\((a, b), (a + k, b + k), (a + 2 \cdot k, b + 2 \cdot k), (a + 3 \cdot k, b + 3 \cdot k), ...\) are equal to \((a, b), (a + gcd(n, k), b + gcd(n, k)), (a + 2 \cdot gcd(n, k), b + 2 \cdot gcd(n, k)), (a + 3 \cdot gcd(n, k), b + 3 \cdot gcd(n, k)), ...\), so we only need to check all divisors of \(n\), and then time complexity reduces into \(O(n \times log(n))\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+int main() {
+    cin >> n >> m;
+
+    for (int i = 0; i < m; ++i) {
+        int a, b;
+        cin >> a >> b;
+        a -= 1;
+        b -= 1;
+    }
+
+    
+    return 0;
+}
+
+
+
+
+
+
+Let's store the segments in a set structure to make it easier to determine if a certain segment is included in the given segments.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+bool check(int k, const set<pair<int, int>>& g) {
+    
+}
+
+int main() {
+    cin >> n >> m;
+    set<pair<int, int>> g;
+
+    for (int i = 0; i < m; ++i) {
+        int a, b;
+        cin >> a >> b;
+        a -= 1;
+        b -= 1;
+        g.insert(make_pair(min(a, b), max(a, b)));
+    }
+
+    for (int i = 1; i < n; ++i) {
+        if (n % i == 0) {
+            if (!check(i, g)) {
+                continue;
+            }
+            cout << "Yes" << endl;
+            return 0;
+        }
+    }
+
+    cout << "No" << endl;
+    return 0;
+}
+
+
+
+
+
+
+After determine value \(k\), we can check if all segments are rotated clockwise around the center of the circle by \(k\) units, in time complexity \(O(n)\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+bool check(int k, const set<pair<int, int>>& g) {
+    for (auto i : g) {
+        int a = (i.first + k) % n;
+        int b = (i.second + k) % n;
+        if (g.find(make_pair(min(a, b), max(a, b))) == g.end()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int main() {
+    cin >> n >> m;
+    set<pair<int, int>> g;
+
+    for (int i = 0; i < m; ++i) {
+        int a, b;
+        cin >> a >> b;
+        a -= 1;
+        b -= 1;
+        g.insert(make_pair(min(a, b), max(a, b)));
+    }
+
+    for (int i = 1; i < n; ++i) {
+        if (n % i == 0) {
+            if (!check(i, g)) {
+                continue;
+            }
+            cout << "Yes" << endl;
+            return 0;
+        }
+    }
+
+    cout << "No" << endl;
+    return 0;
+}
+
+
+
+
+
+
+Let's check custom corner case, where \(n\) and \(m\) are their minimum values: \(n = 2, m = 1\).
+It's obviously that all segments are rotated clockwise around the center of the circle, because there is only one segment. So in this case, the answer will be "Yes".
+
+
+
+
+
+2 1
+1 2

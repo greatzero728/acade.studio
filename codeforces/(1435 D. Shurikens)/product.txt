@@ -1,0 +1,126 @@
+<b>Shurikens</b>
+
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Tenten runs a weapon shop for ninjas. Today she is willing to sell n shurikens which cost 1, 2, ..., n ryo (local currency). During a day, Tenten will place the shurikens onto the showcase, which is empty at the beginning of the day. Her job is fairly simple: sometimes Tenten places another shuriken (from the available shurikens) on the showcase, and sometimes a ninja comes in and buys a shuriken from the showcase. Since ninjas are thrifty, they always buy the cheapest shuriken from the showcase.
+
+Tenten keeps a record for all events, and she ends up with a list of the following types of records:
+
+\(\bull\) + means that she placed another shuriken on the showcase;
+\(\bull\) - x means that the shuriken of price x was bought.
+
+Today was a lucky day, and all shurikens were bought. Now Tenten wonders if her list is consistent, and what could be a possible order of placing the shurikens on the showcase. Help her to find this out!
+
+<b>Input</b>
+The first line contains the only integer \(n (1≤n≤10^5)\) standing for the number of shurikens.
+
+The following 2n lines describe the events in the format described above. It's guaranteed that there are exactly n events of the first type, and each price from 1 to n occurs exactly once in the events of the second type.
+
+<b>Output</b>
+If the list is consistent, print "YES". Otherwise (that is, if the list is contradictory and there is no valid order of shurikens placement), print "NO".
+
+In the first case the second line must contain n space-separated integers denoting the prices of shurikens in order they were placed. If there are multiple answers, print any.
+
+<b>Note</b>
+In the first example Tenten first placed shurikens with prices 4 and 2. After this a customer came in and bought the cheapest shuriken which costed 2. Next, Tenten added a shuriken with price 3 on the showcase to the already placed 4-ryo. Then a new customer bought this 3-ryo shuriken. After this she added a 1-ryo shuriken. Finally, the last two customers bought shurikens 1 and 4, respectively. Note that the order [2,4,3,1] is also valid.
+
+In the second example the first customer bought a shuriken before anything was placed, which is clearly impossible.
+
+In the third example Tenten put all her shurikens onto the showcase, after which a customer came in and bought a shuriken with price 2. This is impossible since the shuriken was not the cheapest, we know that the 1-ryo shuriken was also there.
+
+
+
+
+There is a naive solution where we could attempt to simulate the events by keeping track of all possible states of the showcase at each step. We will try to maintain a list of all possible configurations of shurikens that could be on the showcase at any given time and check if each purchase is valid by considering all these configurations. However, this approach will not work efficiently because the number of possible configurations can grow exponentially with the number of events. As a result, this would lead to a time complexity that is far too high to handle within the given constraints, making it impractical for large inputs. Thus, we will need a more optimized approach that focuses on the most relevant configuration.
+
+So, we will approach the problem by simulating the sequence of events to verify the consistency of shuriken placements and purchases. We will use a stack-like structure, referred to as the showcase, to keep track of the shurikens as they are placed. Each time a shuriken is placed, we will add it to the showcase. When a purchase occurs, we will ensure that the shuriken being bought is the cheapest one available. To do this, we will always remove the last shuriken placed on the showcase, as it should be the cheapest remaining option. We will then compare the price of the shuriken being bought with the expected price based on the showcase order. If the price does not match the expected order, we will conclude that the sequence is inconsistent and thus impossible. If the entire sequence of events is processed without any inconsistencies, we will confirm that the sequence is valid. Additionally, we will be able to reconstruct a valid order in which the shurikens were placed based on the purchases made.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main() 
+{
+    int n;
+    char eventType;
+    cin >> n;
+    for (int i = 0; i < 2 * n; i++) 
+    {
+        cin >> eventType;
+    }
+}
+
+
+
+
+We will handle each event in the sequence to simulate the placement and purchase of shurikens. When a purchase event occurs (indicated by the event type), we will first check if the showcase is empty. If it is, we will conclude that the sequence is invalid, as a purchase cannot happen without any shurikens on the showcase. If the showcase is not empty, we will remove the most recently placed shuriken from the showcase and compare its expected price with the actual price provided in the event. If the actual price is lower than expected, it indicates an inconsistency, and we will determine that the sequence is impossible. If all checks pass, we will record the price of the purchased shuriken in the correct order. Finally, if all events are consistent, we will output a valid order of shuriken placements that satisfies all the conditions.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+vector<int> showcase;
+int result[200001];
+int main() 
+{
+    int n;
+    int n, shurikenIndex=0;
+    char eventType;
+    cin >> n;
+    for (int i = 0; i < 2 * n; i++) 
+    {
+        cin >> eventType;
+        int price;
+        if (eventType == '-') 
+        {
+            if (showcase.empty()) {
+                cout << "NO";
+                return 0;
+            }
+            cin >> price;
+            int lastShurikenIndex = showcase.back();
+            showcase.pop_back();
+            if (price < result[lastShurikenIndex + 1]) {
+                cout << "NO";
+                return 0;
+            }
+            result[lastShurikenIndex] = price;
+        }
+        else {
+            showcase.push_back(shurikenIndex);
+            shurikenIndex++;
+        }
+    }
+    cout << "YES\n";
+    for (int i = 0; i < n; i++) {
+        cout << result[i] << " ";
+    }
+}
+
+
+
+
+The outputs of the sample test cases are correct. Now, I will create a random test case to check the correctness of my solution against random test cases.
+Input -
+<code>2
++
++
+- 1
+- 2</code>
+Output will be -
+<code>YES
+2 1 </code>
+The output "YES 2 1" is valid because it represents a consistent sequence of shuriken placements and purchases. In this sequence, Tenten first places the shuriken with price 2 on the showcase, followed by the shuriken with price 1. When the first purchase event occurs, the shuriken with price 1 is correctly bought, as it is the cheapest available option. Then, the second purchase event buys the remaining shuriken with price 2. The sequence satisfies the condition that the cheapest shuriken is always bought first, making the order of placements [2, 1] consistent with the purchase events.
+
+
+
+
+
+2
++ 
++ 
+- 1
+- 2

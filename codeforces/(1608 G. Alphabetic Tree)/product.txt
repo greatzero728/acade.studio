@@ -1,0 +1,21 @@
+G. Alphabetic Tree
+time limit per test3 seconds
+memory limit per test256 megabytes
+
+You are given m strings and a tree on n nodes. Each edge has some letter written on it.
+
+You have to answer q queries. Each query is described by 4 integers u, v, l and r. The answer to the query is the total number of occurrences of str(u,v) in strings with indices from l to r. str(u,v) is defined as the string that is made by concatenating letters written on the edges on the shortest path from u to v (in order that they are traversed).
+
+Input
+The first line of the input contains three integers n, m and q (2≤n≤105, 1≤m,q≤105).
+
+The i-th of the following n−1 lines contains two integers ui,vi and a lowercase Latin letter ci (1≤ui,vi≤n, ui≠vi), denoting the edge between nodes ui,vi with a character ci on it.
+
+It's guaranteed that these edges form a tree.
+
+The following m lines contain the strings consisting of lowercase Latin letters. The total length of those strings does not exceed 105.
+
+Then q lines follow, each containing four integers u, v, l and r (1≤u,v≤n, u≠v, 1≤l≤r≤m), denoting the queries.
+
+Output
+For each query print a single integer — the answer to the query.

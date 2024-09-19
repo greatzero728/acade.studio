@@ -1,0 +1,119 @@
+<b>B. Timofey and cubes</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Young Timofey has a birthday today! He got kit of \(n\) cubes as a birthday present from his parents. Every cube has a number \(a_i\), which is written on it. Timofey put all the cubes in a row and went to unpack other presents.
+
+In this time, Timofey's elder brother, Dima reordered the cubes using the following rule. Suppose the cubes are numbered from 1 to \(n\) in their order. Dima performs several steps, on step \(i\) he reverses the segment of cubes from \(i\)-th to \((n - i + 1)\)-th. He does this while \(i ≤ n - i + 1\).
+
+After performing the operations Dima went away, being very proud of himself. When Timofey returned to his cubes, he understood that their order was changed. Help Timofey as fast as you can and save the holiday — restore the initial order of the cubes using information of their current location.
+
+<b>Input</b>
+The first line contains single integer \(n (1 ≤ n ≤ 2·10^5)\) — the number of cubes.
+
+The second line contains \(n\) integers \(a_1, a_2, ..., a_n ( - 10^9 ≤ a_i ≤ 10^9)\), where \(a_i\) is the number written on the \(i\)-th cube after Dima has changed their order.
+
+<b>Output</b>
+Print \(n\) integers, separated by spaces — the numbers written on the cubes in their initial order.
+
+It can be shown that the answer is unique.
+
+<b>Note</b>
+Consider the first sample.
+
+At the begining row was [2, 3, 9, 6, 7, 1, 4].
+After first operation row was [4, 1, 7, 6, 9, 3, 2].
+After second operation row was [4, 3, 9, 6, 7, 1, 2].
+After third operation row was [4, 3, 7, 6, 9, 1, 2].
+At fourth operation we reverse just middle element, so nothing has changed. The final row is [4, 3, 7, 6, 9, 1, 2]. So the answer for this case is row [2, 3, 9, 6, 7, 1, 4].
+
+
+
+
+
+
+Given the array, we have to restore the original array. As the operation is just reverse operation, so to get the original array, we can implement the operations from the last one to the first one.
+Every time, we perform operation, we can just simply reverse the current array in \(O(n)\). And there are \(n\) operations, so finally the time complexity of this naive algorithm is \(O(n ^ 2)\). As \(n \leq 2 \cdot 10^5\), we will get time limit exceed error with this naive approach.
+
+
+
+
+As the naive approach will exceed the time limit, we need to improve it. Let's think about the problem from another perspective. Instead of reversing the array in each operation, we can try to find the final position of each element after all operations.
+
+Let's consider the middle element first. The middle element will not change its position after any operation, so its final position is the same as its initial position.
+
+Now, let's consider the elements on the left side of the middle element. After the first operation, the first element will move to the last position, the second element will move to the second last position, and so on. After the second operation, the first element will move to the second last position, the second element will move to the third last position, and so on. We can see that the elements on the left side of the middle element will move to the right side of the middle element in reverse order.
+
+Similarly, the elements on the right side of the middle element will move to the left side of the middle element in reverse order.
+
+So, we can conclude that the final position of each element is determined by its initial position and the number of operations.
+
+Let's denote the initial position of an element as \(i\) and the number of operations as \(n\). We can calculate the final position of the element as follows:
+
+- If \(i\) is odd, the final position is \(n - i + 1\).
+- If \(i\) is even, the final position is \(i\).
+
+We can use this formula to calculate the final position of each element and restore the original array.
+
+The time complexity of this approach is \(O(n)\), which is much faster than the naive approach.
+
+Now, let's implement this approach in code.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    int a[n];
+    for (int i = 0; i < n; ++i) cin >> a[i];
+}
+
+
+
+
+We can use two pointers, one at the start and one at the end of the array, to restore the original array. We can move the pointers towards each other, swapping the elements at the current positions of the pointers if necessary.
+
+We need to handle the case when the length of the array is odd separately, as the middle element will not be swapped.
+
+We can implement this approach in code, using a simple loop to iterate over the array and swap the elements as necessary.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    int a[n];
+    for (int i = 0; i < n; ++i) cin >> a[i];
+
+    for (int i = 0; i < n / 2; i++) {
+        if (i % 2 == 0) swap(a[i], a[n - i - 1]);
+    }
+
+    for (int i = 0; i < n; ++i) cout << a[i] << " ";
+}
+
+
+
+
+Let's check a custom corner case, where \(n\) is its minimum value: \(n = 1\).
+<b>Input</b>
+<code>
+1
+7
+</code>
+In this case, the size of array is just 1, so after the reverse operation, the array remains the same.
+In this case the original array should be same as the final array, so the answer will be 7.
+
+
+
+
+1
+7

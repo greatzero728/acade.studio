@@ -1,0 +1,120 @@
+YAPP - Yet Another Permutations Problem
+Time limit:	1.690s
+Source limit:	50000B
+Memory limit:	1536MB
+
+How many permutations of the first N numbers exist such that the maximum element between the indices [i..j] is either present at index i, or at index j ?
+
+Input
+
+The first line contains the number of test cases T. Each of the next T lines contains an integer N
+
+Output
+
+Output T lines containing the required answer for the corresponding test case. Since the answers can get really big, output the result modulo 1000000007.
+
+Constraints
+
+1 <= T <= 10000
+
+1 <= N <= 1000000000
+
+
+
+
+If N is given, we need to determine the number of permutations of {1, 2, ..., N} such that for every i and j (1 ≤ i ≤ j ≤ N), the maximum element between the indices [i..j] is either present at index i or at index j, modulo 1000000007.
+
+\(\bullet\) There are N! possible permutations, so we can iterate all of them and can calculate the number of permutations that meet the above requirement.
+To check if the current permutation meets the above requirement, we need to iterate all possible i, j in \(O(N^2))\) and calculate the position of maximum element between the indices [i..j] in \(O(N)\) and can check if maximum element is either present at index i, or at index j.
+We have to perform this approach for all T test cases.
+Overall, the time complexity of this naive algorithm will be \(O(T \cdot N! \cdot N^3)\). However, since N can be as large as \(10^9\), this algorithm may exceed the time limit.
+
+
+
+
+The time complexity of the naive algorithm is too high. We need to find a more efficient algorithm to solve this problem. 
+
+Let's try to use dynamic programming. For each i, we can calculate the number of permutations that meet the requirement for the subarray [1..i]. 
+
+We can define a function f(i) to represent the number of permutations that meet the requirement for the subarray [1..i]. 
+
+We can then calculate f(i+1) based on f(i) by considering the possible positions of the maximum element in the subarray [1..i+1]. 
+
+If the maximum element is at position i+1, then the permutation of the subarray [1..i] can be any valid permutation, so there are f(i) possibilities. 
+
+If the maximum element is at position 1, then the permutation of the subarray [2..i+1] can be any valid permutation, so there are f(i) possibilities. 
+
+For other positions of the maximum element, we cannot get a valid permutation, so there are no possibilities. 
+
+Therefore, we can calculate f(i+1) as 2f(i), with the base case f(1) = 1. 
+
+We can then use this recurrence relation to calculate f(N), which is the answer to the problem. 
+
+To handle the modulo operation, we can take the modulo at each step of the calculation. 
+
+The time complexity of this algorithm is O(N), which is much better than the naive algorithm.
+
+
+
+
+Above approach is correct approach.
+So f(1) = 1, f(i + 1) = 2f(i).
+This means, f(N) = \(2 ^ {N - 1}\).
+Since \(1 \leq N \leq 1,000,000,000\), we cannot calculate \(f(N)\) by multiplying 2 \(N\) times.
+
+
+
+
+
+
+We can calculate \(f(N) = 2 ^ {N - 1}\) modulo 1000000007 using exponentiation by squaring. 
+
+Exponentiation by squaring is a method for fast computation of powers in modular arithmetic. It is based on the fact that \(a^{2n} = (a^n)^2\) and \(a^{2n+1} = a \cdot (a^n)^2\).
+
+We can use this method to calculate \(2 ^ {N - 1}\) modulo 1000000007 in \(O(\log N)\) time.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define MOD 1000000007
+
+long long exp(long long base, long long power, long long mod) {
+    long long result = 1;
+    base = base % mod;
+    while (power > 0) {
+        if (power & 1)
+            result = (result * base) % mod;
+        base = (base * base) % mod;
+        power = power >> 1;
+    }
+    return result;
+}
+
+int main() {
+    int t;
+    cin >> t;
+    while (t--) {
+        int n;
+        cin >> n;
+        cout << exp(2, n - 1, MOD) << endl;
+    }
+    return 0;
+}
+
+
+
+
+Let's check a custom corner case, where N is its minimum value: N = 1.
+1
+1
+In this case, as f(N) = \(2 ^ {N - 1}\), so the answer will be f(1) = \(2 ^ 0\) = 1.
+
+
+
+
+1
+1

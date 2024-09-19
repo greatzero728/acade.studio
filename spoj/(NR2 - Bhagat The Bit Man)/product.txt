@@ -1,0 +1,111 @@
+<b>NR2 - Bhagat The Bit Man
+Time limit: 1s
+Source limit: 50000B
+Memory limit: 1536MB </b>
+
+Bhagat is student of CSE at ISM Dhanbad. In mid-semester exam somehow he was able to score full marks in Boolean algebra. So his profs doubt how can he score full marks. So profs decided to check his ability. They gave Bhagat a list student’s admission number and ask him to find total kaptiness (K) of list.
+
+Kaptiness is defined as or operation on every dukkerness(\(d_i\)) value. Dukkerness value is xor operation on every pair of number in list. As we all know Bhagat is not good in Boolean algebra. Can you help him to prove his profs that he can score full out of full in boolean algebra.
+
+Example:-
+
+If list contain three number 10, 15 and 17. Then there will be total 3 pairs.
+
+\(d_1\) = 10 ^ 15 = 5;
+
+\(d_2\) = 10 ^ 17 = 27;
+
+\(d_3\) = 17 ^ 15 = 30;
+
+k = \(d_1\) | \( d_2\) | \(d_3\) ;
+
+K = 31;
+Input
+First line of input contain \(N (2 <= N <= 10^6). N\) is total number of admission number (\(a_i\)) in list.
+
+Then following N line will contain admission number. \((0 <= a_i <=10^{18})\)
+
+Output
+Output only one line containing K.
+
+NOTE: Large input data.
+
+
+
+
+<b>naive solution </b>
+just do what problem say for every pair in the array take there xoring value and store this in a list and at the end just the answer is the oring of the elements of this list.
+but this slow because number of pairs in list which has a size \(n\) equal to \(n \cdot (n - 1) \over 2\)
+in this problem \(n\) is up to \(10^6\) which we can't solve the problem using this way because it won't fit in constraints.
+
+<b>optimized approach</b>
+instead of doing what the problem says we can observe that the final output number has small number of bits \(60\) so we can calculate for each bit whether it's set to \(1\) in the final answer or not.
+
+which take us to a point when this point is set to \(1\) only if there is exist 2 numbers in the list on of them has this bit on and the other has it off.
+why this is correct? because when you xoring these pair of numbers this bit will be one because this is how xoring work if the 2 bits are different it set it into the res and because our final operator to calculate the result is oring \(|\) so if a bit once set to \(1\) then it stays \(1\).
+
+so summary for the solution: decide for each bit whether it's in the final output or not. just like that
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+int main() {
+    int n;cin>>n;
+    ll ans = 0;
+    vector<ll>v(n);
+    for(auto &val:v)cin>>val;
+}
+
+
+
+
+now let's decide for each bit whether it's set to 1 or not as we explained in thinking block [1]
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+bool can(int i , vector<ll>&v) {
+    bool c1 = false , c2 = false;
+    for(auto &val:v) {
+        if(!(val & (1LL<<i)))c1 = true;
+        else c2 = true;
+    }
+    return c1 && c2;
+}
+int main() {
+    int n;cin>>n;
+    ll ans = 0;
+    vector<ll>v(n);
+    for(auto &val:v)cin>>val;
+    for(int i = 0;i < 63;i++) {
+        if(can(i , v)) {
+            ans |= (1LL<<i);
+        }
+    }
+    cout<<ans<<endl;
+}
+
+
+
+
+Let's use custom test which stress on minimal constraints and same numbers to check if our code handle this corner case
+
+2
+1
+1
+output should be 0.
+because 1 ^ 1 = 0 then oring will be 0
+
+
+
+
+2
+1
+1

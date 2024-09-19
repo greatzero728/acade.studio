@@ -1,0 +1,177 @@
+<b> Diane </b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+You are given an integer \(n\). Find any string \(s\) of length \(n\) consisting only of English lowercase letters such that each non-empty substring of \(s\) occurs in \(s\) an odd number of times. If there are multiple such strings, output any. It can be shown that such string always exists under the given constraints.
+
+A string \(a\) is a substring of a string \(b\) if \(a\) can be obtained from \(b\) by deletion of several (possibly, zero or all) characters from the beginning and several (possibly, zero or all) characters from the end.
+
+<b> Input </b>
+The first line contains a single integer \(t\) (\(1 \le t \le 500\)) --- the number of test cases.
+
+The first line of each test case contains a single integer \(n\) (\(1 \le n \le 10^5\)).
+
+It is guaranteed that the sum of \(n\) over all test cases doesn't exceed \(3 \cdot 10^5\).
+
+<b> Output </b>
+For each test case, print a single line containing the string \(s\). If there are multiple such strings, output any. It can be shown that such string always exists under the given constraints.
+
+<b> Note </b>
+In the first test case, each substring of "abc'' occurs exactly once.
+
+In the third test case, each substring of "bbcaabbba'' occurs an odd number of times. In particular, "b'' occurs \(5\) times, "a'' and "bb'' occur \(3\) times each, and each of the remaining substrings occurs exactly once.
+
+
+
+
+
+The naive solution to this problem would be to try to get every possible string with length n and then find every substring in it and keep their frequency and see in the end if it satisfies the condition but this solution would be extremely time consuming and would exceed the limit of the problem.
+
+
+
+
+There is another idea.
+Let's imageing if the string is only 'a' characters , then ofcourse there is some substring that have even frequencies.
+
+now what if we added a character 'a' to the previous string.
+then the frequency of every substring would be increased by one.
+count of 'a' would increase by 1
+count of 'aa' would increase by 1
+etc
+
+then the substrings which had odd frequency would turn into even and the substring which had even frequency would turn into odd.
+
+okay, how can this help?
+
+we all know that the sum of even and odd is odd
+
+So, why don't we just concatenate both strings and separate them with a character 'b' or any other character.
+Thats how we solve all of our problems!
+
+but the string length would exceed n. so wo will just make every string of them of size (n-2)/2 and the other of size
+(n-2)/2 + 1 and separate them with 'b' to make the final size n and to prevent their intersection together.
+
+and if n is odd then we will separate them with "bc" to make the total size n.
+
+
+
+
+First, we will read the input and solve the simple case when n = 1 then the answer is simply "a".
+
+
+
+
+Let's prepare our strings one of size (n-2)/2 full of "a" and the other is the same as the previous one but has an additional "a".
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std ;
+
+
+int main(){
+    int t;
+    cin >> t;
+    while(t--){
+        int n;
+        cin >> n;
+
+        if(n == 1) {
+            cout << "a" << endl;
+            continue;
+        }
+
+        string s = "";
+        for(int i = 0; i < (n-2)/2; i++){
+            s += 'a';
+        }
+        string s_plus_a = s + "a";
+
+      
+    }
+
+
+}
+
+
+
+
+when n is odd our answer will be the two strings separated by "bc" to make the final length n and to separate both to prevent their intersection.
+
+If n is even the only difference is that we will separate them with "b" only to make the length n.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std ;
+
+
+int main(){
+    int t;
+    cin >> t;
+    while(t--){
+        int n;
+        cin >> n;
+
+        if(n == 1) {
+            cout << "a" << endl;
+            continue;
+        }
+
+        string s = "";
+        for(int i = 0; i < (n-2)/2; i++){
+            s += 'a';
+        }
+        string s_plus_a = s + "a";
+        
+          if(n%2){
+            cout << s << "bc" << s_plus_a << endl;
+        } else {
+            cout << s << "b" << s_plus_a  << endl;
+        }
+
+      
+    }
+
+
+}
+
+
+
+
+The problem gives the possibilty of multiple answers and our answer is different from the original answer.
+
+the first test it's obvious that every character is unique and every substring is only repeated once.
+
+the second has "a" repeated 3 times, "b", "c","bc", "aa" one time
+
+the third test case has "a" 7 times, "b", "c", "bc", "aaaa", one time.
+"aa" 3 times.
+
+the fourth test case has "a" 17 times, "b", "c", "aaaaaaaaa" one time and every other possibility of "a" repeated odd number of times.
+
+
+
+
+
+We can try the corner case when n = 1 and check if it's correct.
+
+<code>
+1
+1
+</code>
+the answer should be
+
+<code>
+a
+</code>
+as it has only one character which is repeated only once.
+
+
+
+
+1
+1

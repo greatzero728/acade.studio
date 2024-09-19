@@ -1,0 +1,101 @@
+<b>A. Sereja and Mugs</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Sereja showed an interesting game to his friends. The game goes like that. Initially, there is a table with an empty cup and \(n\) water mugs on it. Then all players take turns to move. During a move, a player takes a non-empty mug of water and pours all water from it into the cup. If the cup overfills, then we assume that this player lost.
+
+As soon as Sereja's friends heard of the game, they wanted to play it. Sereja, on the other hand, wanted to find out whether his friends can play the game in such a way that there are no losers. You are given the volumes of all mugs and the cup. Also, you know that Sereja has \((n - 1)\) friends. Determine if Sereja's friends can play the game so that nobody loses.
+
+<b>Input</b>
+The first line contains integers \(n\) and \(s (2 ≤ n ≤ 100; 1 ≤ s ≤ 1000)\) — the number of mugs and the volume of the cup. The next line contains n integers \(a_1, a_2, ..., a_n (1 ≤ a_i ≤ 10)\). Number \(a_i\) means the volume of the \(i\)-th mug.
+
+<b>Output</b>
+In a single line, print "YES" (without the quotes) if his friends can play in the described manner, and "NO" (without the quotes) otherwise.
+
+
+
+
+
+In this problem, \(n - 1\) friends must pick different water mugs, and they pour all the water from them into a cup with a volume of \(s\). If this is possible, we should print "YES"; otherwise, we print "NO".
+
+It's obvious that to save the remaining volume of \(s\), all \(n - 1\) friends must pick small-volume water mugs. We can sort the given volumes of water mugs and select the smallest \(n - 1\) mugs. Then, we only need to check if the sum of these smaller mugs is less than or equal to \(s\). The time complexity of this algorithm is \(O(n \cdot \log(n))\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, s; scanf("%d %d", &n, &s);
+    vector<int> a(n, 0);
+    for(int i = 0; i < n; i++) scanf("%d", &a[i]);
+}
+
+
+
+
+
+Let's sort the "volume of water mugs" array.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, s; scanf("%d %d", &n, &s);
+    vector<int> a(n, 0);
+    for(int i = 0; i < n; i++) scanf("%d", &a[i]);
+    sort(a.begin(), a.end());
+}
+
+
+
+
+
+Let's calculate the sum of the smallest \(n - 1\) mugs, and check if this sum is less than or equal to \(s\).
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, s; scanf("%d %d", &n, &s);
+    vector<int> a(n, 0);
+    for(int i = 0; i < n; i++) scanf("%d", &a[i]);
+    sort(a.begin(), a.end());
+    
+    int sum = 0;
+    for(int i = 0; i < a.size() - 1; i++) sum += a[i];
+    if(sum <= s) puts("YES");
+    else puts("NO");
+}
+
+
+
+
+
+Let's check a custom corner case where \(n, s, a_i\) are at their minimum values: \(n = 2, s = 1, a_i = 1\).
+<b>Input</b>
+<code>
+2 1
+1 1
+</code>
+In this case, the sum of the volumes of \(n - 1\) water mugs is 1, which is equal to the given \(s = 1\). Therefore, the answer will be "YES".
+
+
+
+
+
+2 1
+1 1

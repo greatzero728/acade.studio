@@ -1,0 +1,5 @@
+We can calculate \(f(N) = 2 ^ {N - 1}\) modulo 1000000007 using exponentiation by squaring. 
+
+Exponentiation by squaring is a method for fast computation of powers in modular arithmetic. It is based on the fact that \(a^{2n} = (a^n)^2\) and \(a^{2n+1} = a \cdot (a^n)^2\).
+
+We can use this method to calculate \(2 ^ {N - 1}\) modulo 1000000007 in \(O(\log N)\) time.

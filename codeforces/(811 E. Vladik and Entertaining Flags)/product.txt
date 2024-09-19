@@ -1,0 +1,195 @@
+E. Vladik and Entertaining Flags
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+In his spare time Vladik estimates beauty of the flags.
+
+Every flag could be represented as the matrix n × m which consists of positive integers.
+
+Let's define the beauty of the flag as number of components in its matrix. We call component a set of cells with same numbers and between any pair of cells from that set there exists a path through adjacent cells from same component. Here is the example of the partitioning some flag matrix into components:
+<img 1>
+
+But this time he decided to change something in the process. Now he wants to estimate not the entire flag, but some segment. Segment of flag can be described as a submatrix of the flag matrix with opposite corners at (1, l) and (n, r), where conditions 1 ≤ l ≤ r ≤ m are satisfied.
+
+Help Vladik to calculate the beauty for some segments of the given flag.
+
+Input
+First line contains three space-separated integers n, m, q (1 ≤ n ≤ 10, 1 ≤ m, q ≤ \(10^5\)) — dimensions of flag matrix and number of segments respectively.
+
+Each of next n lines contains m space-separated integers — description of flag matrix. All elements of flag matrix is positive integers not exceeding \(10^6\).
+
+Each of next q lines contains two space-separated integers l, r (1 ≤ l ≤ r ≤ m) — borders of segment which beauty Vladik wants to know.
+
+Output
+For each segment print the result on the corresponding line.
+
+Note
+Partitioning on components for every segment from first test case:
+
+<img 2>
+
+
+
+
+For each query l, r, we can consider all elements that are located in a rectangle that has (1, l) as the top-left corner and (n, r) as the bottom-right corner and can calculate the number of components.
+This can be done using the depth-first search algorithm by only checking the neighboring elements that have the same color as the current element. But the time complexity of one query is \(O(n \cdot m)\) as the algorithm is just a depth first search. So overall the total time complexity over the whole queries, the time complexity of this naive algorithm will be \(O(n \cdot m \cdot q)\). (Here, \(n \leq 10, m, q \leq 10 ^ 5\))
+So if we solve this problem with this naive approach, then we will get a time limit exceed error result.
+
+Because \(n \leq 10, m \leq 10^5\), so for each query, it will be allowed to use \(O(n)\) or \(O(n \log(m)\) for this problem.
+Actually it's difficult to manage the one query in \(O(n)\) time complexity, so we can consider about the interval tree which is working in \(O(n \log(m))\).
+Let's think about if we can introduce interval tree algorithm for this problem.
+
+
+
+
+Let's denote the interval tree structure as \( T \). In each vertex \( v \) of \( T \), we will maintain two arrays \( left \) and \( right \) of length \( n \), where \( left[i] \) and \( right[i] \) represent the component number of the cell at row \( i \) in the left and right profile of the interval corresponding to vertex \( v \).
+
+When merging two vertices, we need to iterate over the splice of the two vertices and unite the components if two adjacent cells have the same color. Then, we recalculate the components of the left and right profile of the new structure.
+
+The time complexity of this approach is \( O(n \log m) \) for building the interval tree and \( O(n \log m) \) for each query.
+
+Let's use the following variables:
+
+*   \( a \) to represent the input matrix
+*   \( pre \) to represent the preprocessed arrays for each column
+*   \( tree \) to represent the interval tree structure
+*   \( fa \) to represent the union-find array
+*   \( rem \) to represent the remaining components after merging
+
+Now, let's start coding!
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int maxn = 1e5 + 10;
+const int maxm = 4 * maxn;
+const int inf = 1e18;
+
+int n, m, q;
+int a[11][maxn];
+
+struct node {
+    int f[21];
+    int l, r, cnt;
+};
+
+int fa[41], rem[41];
+node pre[maxn];
+
+int find(int i) {
+    return fa[i] == i ? fa[i] : fa[i] = find(fa[i]);
+}
+
+node merge(node x, node y) {
+    node z;
+    z.l = x.l, z.r = y.r, z.cnt = x.cnt + y.cnt;
+
+    for (int i = 1; i <= 4 * n; i++) {
+        fa[i] = i, rem[i] = 0;
+    }
+
+    for (int i = 1; i <= 2 * n; i++) {
+        y.f[i] += 2 * n;
+    }
+
+    for (int i = 1; i <= n; i++) {
+        if (a[i][x.r] == a[i][y.l]) {
+            int X = find(x.f[i + n]), Y = find(y.f[i]);
+            if (X != Y) {
+                fa[X] = Y, z.cnt--;
+            }
+        }
+    }
+
+    int cnt = 0;
+    for (int i = 1; i <= n; i++) {
+        int P;
+        P = find(x.f[i]);
+        if (!rem[P]) {
+            rem[P] = ++cnt;
+        }
+        z.f[i] = rem[P];
+
+        P = find(y.f[i + n]);
+        if (!rem[P]) {
+            rem[P] = ++cnt;
+        }
+        z.f[i + n] = rem[P];
+    }
+
+    return z;
+}
+
+struct sgt {
+    node f[maxm];
+
+    void build(int i, int l, int r) {
+        if (l == r) {
+            f[i] = pre[l];
+            return;
+        }
+        build(i * 2, l, (l + r) / 2);
+        build(i * 2 + 1, (l + r) / 2 + 1, r);
+        f[i] = merge(f[i * 2], f[i * 2 + 1]);
+    }
+
+    node qry(int i, int l, int r, int ql, int qr) {
+        if (ql <= l && r <= qr) {
+            return f[i];
+        }
+        if (qr <= (l + r) / 2) {
+            return qry(i * 2, l, (l + r) / 2, ql, qr);
+        }
+        if (ql > (l + r) / 2) {
+            return qry(i * 2 + 1, (l + r) / 2 + 1, r, ql, qr);
+        }
+        return merge(qry(i * 2, l, (l + r) / 2, ql, qr), qry(i * 2 + 1, (l + r) / 2 + 1, r, ql, qr));
+    }
+} tree;
+
+signed main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0), cout.tie(0);
+
+    cin >> n >> m >> q;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            cin >> a[i][j];
+        }
+    }
+
+    for (int j = 1; j <= m; j++) {
+        pre[j].l = pre[j].r = j;
+        for (int i = 1; i <= n; i++) {
+            pre[j].f[i] = pre[j].f[i + n] = (a[i][j] == a[i - 1][j]) ? pre[j].f[i - 1] : pre[j].f[i - 1] + 1;
+        }
+        pre[j].cnt = pre[j].f[n];
+    }
+
+    tree.build(1, 1, m);
+
+    while (q--) {
+        int l, r;
+        cin >> l >> r;
+        cout << tree.qry(1, 1, m, l, r).cnt << "\n";
+    }
+
+    return 0;
+}
+
+
+
+
+Let's check a custom corner case, where is n, m, q are their minimum values: n = m = q = 1.
+Because the number of all elements in the matrix is just 1, so it's obviously that there will be only one component. So in this case the answer will be 1.
+
+
+
+
+1 1 1
+1
+1 1

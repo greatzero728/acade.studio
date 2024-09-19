@@ -1,0 +1,263 @@
+<b>F. Elongated Matrix
+time limit per test: 4 seconds
+memory limit per test: 256 megabytes
+</b>
+
+You are given a matrix \(a\), consisting of \(n\) rows and \(m\) columns. Each cell contains an integer in it.
+
+You can change the order of rows arbitrarily (including leaving the initial order), but you can't change the order of cells in a row. After you pick some order of rows, you traverse the whole matrix the following way: firstly, visit all cells of the first column from the top row to the bottom one, then the same for the second column and so on. During the traversal, you write down the sequence of the numbers on the cells in the same order you visited them. Let that sequence be \(s_1, s_2, \dots, s_{nm}\).
+
+The traversal is \(k\)-acceptable if for all \(i\) (\(1 \le i \le nm - 1\)) \(|s_i - s_{i + 1}| \ge k\).
+
+Find the maximum integer \(k\) such that there exists some order of rows of matrix \(a\) that it produces a \(k\)-acceptable traversal.
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(m\) (\(1 \le n \le 16\), \(1 \le m \le 10^4\), \(2 \le nm\)) --- the number of rows and the number of columns, respectively.
+
+Each of the next \(n\) lines contains \(m\) integers (\(1 \le a_{i, j} \le 10^9\)) --- the description of the matrix.
+
+<b>Output</b>
+Print a single integer \(k\) --- the maximum number such that there exists some order of rows of matrix \(a\) that it produces a \(k\)-acceptable traversal.
+
+<b>Note</b>
+In the first example, you can rearrange rows as follows to get the \(5\)-acceptable traversal:
+
+5 3
+10 8
+4 3
+9 9
+
+Then the sequence \(s\) will be \([5, 10, 4, 9, 3, 8, 3, 9]\). Each pair of neighbouring elements have at least \(k = 5\) difference between them.
+
+In the second example, the maximum \(k = 0\), any order is \(0\)-acceptable.
+
+In the third example, the given order is already \(3\)-acceptable, you can leave it as it is.
+
+
+
+
+<b>the naive solution</b>
+we can try all possible solutions using recursion but this is bad because it's very slow and we will get TLE (time limit exceeded)
+
+
+we can optimize this solution using dynamic programming (dp on mask) why we can use dp?
+In dynamic programming (DP), overlapping subproblems refer to situations where the solution to a larger problem involves solving the same smaller subproblems multiple times. Instead of recalculating these subproblems each time, we store their solutions and reuse them. This prevents redundant computations, which is what makes DP efficient for certain types of problems.
+
+we are trying to find the best order of rows to maximize
+k, the minimum(why minimum we will know later) acceptable difference between consecutive elements during the traversal. The problem involves recursively exploring different row orders and transitions, but many of these orders share common subproblems.
+Subproblem Definition
+The main problem can be broken down into smaller subproblems, where the goal is:
+Given a set of rows, find the maximum
+k such that traversing the matrix column by column from these rows satisfies the condition \(|s_i - s_{i + 1}| \ge k\)
+Let’s say we are building a sequence of rows step-by-step. For any subset of rows, we may ask the question:
+Subproblem: What is the best way to traverse a certain subset of rows, ensuring that the sequence has a difference of at least
+k between consecutive elements?
+Now, as we add more rows to this sequence, we may revisit similar subproblems.
+let's explain example of overlapping subproblems and explain our main idea in next blocks
+
+
+
+
+
+<b>The Main Idea</b>
+
+Let's first give an example of overlapping subproblems:
+
+Let's consider a smaller example with 3 rows (A, B, C):
+
+Initial Sequence:
+Suppose you start by building a sequence with row A, then transition to row B. The problem becomes:
+Subproblem 1: What is the maximum k for the sequence formed by rows A → B?
+Exploring Different Sequences:
+Now, suppose you instead started with row B and transition to row A:
+Subproblem 2: What is the maximum k for the sequence formed by rows B → A?
+Overlapping:
+
+Both of these subproblems share a common smaller subproblem:
+Smaller Subproblem: What is the maximum k for row A or row B alone?
+Both Subproblem 1 and Subproblem 2 depend on the solution for the smaller subproblem of row A or row B.
+
+Adding More Rows:
+
+If we then add row C to these sequences, you may ask the question:
+Subproblem 3: What is the best sequence A → B → C?
+Subproblem 4: What is the best sequence B → A → C?
+Both subproblems share the same smaller subproblems, A → B or B → A, which are already solved. We can memorize solutions for subproblems using DP.
+
+Let's move into our idea; because the maximum value of n is 16, we solve this problem using DP on (masks) but how?
+
+Let's break down each part of the DP state:
+dp[firstRow][b4Row][mask]
+firstRow: This represents the first row in the current sequence or traversal. It is important because when you complete the traversal (i.e., when all rows are used), you will need to check the difference between the last row and the first row (which is used to handle the wrap-around when returning to the start).
+
+b4Row: This represents the last row (i.e., the row just before the current one) in the traversal so far. In other words, the most recently added row in the current sequence. We need this because the difference between the last row and the newly added row is critical in determining whether a given traversal is valid for a specific k.
+
+mask: This is a bitmask representing which rows have been included in the current sequence. Each bit in the integer mask corresponds to a row in the matrix, where a 1 means the row is already used, and a 0 means the row is still available. For example:
+If n = 3 and mask = 011 (binary), it means rows 1 and 2 have been used, but row 0 has not.
+If mask = 111 (binary), it means all three rows have been used in the traversal.
+What does dp[firstRow][b4Row][mask] represent?
+The value stored in dp[firstRow][b4Row][mask] is the maximum value of k such that:
+The sequence of rows defined by the bitmask mask is a valid traversal.
+The traversal starts at firstRow and ends at b4Row.
+The difference between consecutive elements in the traversal sequence satisfies the condition \(|s_i - s_{i + 1}| \ge k\).
+
+Now let's explain the transition and rest of details in blocks of code.
+
+
+
+
+let's read the input and explain the idea of (calc_for_two_rows) matrix and (last_row_to_first) matrix which we will use in our solution
+
+The matrices calc_for_two_rows and last_row_to_first play a crucial role in capturing the differences between rows, which are central to determining the maximum k (minimum acceptable difference) for the traversal in the "Elongated Matrix" problem.
+
+calc_for_two_rows Matrix
+This matrix stores the minimum absolute difference between elements in corresponding positions of two rows. It helps track the minimum difference between any two rows when traversing them column by column.
+Definition: calc_for_two_rows[i][j] stores the minimum absolute difference between the elements of row i and row j when comparing each element in the same column This ensures that when we transition from row i to row j during the traversal, the difference between the elements in the same column is at least calc_for_two_rows[i][j] , we will explain the transition of dp later
+
+
+last_row_to_first Matrix
+This matrix stores the minimum absolute difference between adjacent elements in consecutive columns when transitioning from the last element of one row to the first element of the next row. It handles the edge case where the traversal wraps from one column to the next.
+Definition: last_row_to_first[i][j] stores the minimum absolute difference between the last element of row i in one column and the first element of row j in the next column
+
+
+now let's move to explain our dp how it works in next blocks?
+
+
+
+
+
+#include "bits/stdc++.h"
+using namespace std;
+
+const int N = 5000 + 5;
+int calc_for_two_rows[22][22];
+int last_row_to_first[22][22];
+int arr[22][10005];
+int n, m;
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    cin >> n >> m;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            cin >> arr[i][j] ;
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            calc_for_two_rows[i][j] = last_row_to_first[i][j] = INT_MAX;
+            for (int k = 0; k < m; k++) {
+                calc_for_two_rows[i][j] = min(calc_for_two_rows[i][j], abs(arr[i][k] - arr[j][k]));
+            }
+            for (int k = 0; k < m - 1; k++) {
+                last_row_to_first[i][j] = min(last_row_to_first[i][j], abs(arr[i][k] - arr[j][k + 1]));
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+<b>Explanation of dp transition and base case</b>
+Let's understand the base cases and then move into the transition between DP states.
+If all the rows have been rearranged (which means the mask = (1 << n) - 1), we should consider the last row and the first one that's stored as I mentioned in last_row_to_first[b4Row][firstRow].
+because if we create the sequence the element on last row on first column will be followed by the element in first row in second column .... and so on
+And a second base case: if we have already solved this subproblem before, just return its answer (which is the idea of DP), .. that answer we have memorized it.
+
+The transition is very easy: we just take any row that has not been taken yet, and consider the answer for adding this row which is the minimum absolute difference between it and the previous one. Why? Because every element on the previous (if we make the sequence by traversing column by column) will be the previous element of the element of the row in the same column, we just added and mark this row as taken and this row will be our last row taken.... Why our DP returns is the minimum difference; it's clear if k is okay with it, then it's okay for others and just maximize our answer with this value
+
+We just loop over rows and suppose we take this as the first row and begin our DP. Before this , we should fill DP with unused values like -1 in this problem to know if this state has been calculated or not.
+
+finally print our answer
+
+
+
+
+#include "bits/stdc++.h"
+using namespace std;
+
+const int N = 5000 + 5;
+int calc_for_two_rows[22][22];
+int last_row_to_first[22][22];
+int arr[22][10005];
+int n, m;
+int dp[22][22][1<<16];
+int solve(int firstRow, int b4Row, int mask) {
+    if (mask == (1 << n) - 1)
+        return last_row_to_first[b4Row][firstRow];
+
+    int &ret = dp[firstRow][b4Row][mask];
+    if (~ret)
+        return ret;
+
+    for (int j = 0; j < n; j++) {
+        if (!(mask >> j & 1)) {
+            ret = max(ret, min(calc_for_two_rows[b4Row][j], solve(firstRow, j, mask | (1 << j))));
+        }
+    }
+    return ret;
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    cin >> n >> m;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            cin >> arr[i][j] ;
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            calc_for_two_rows[i][j] = last_row_to_first[i][j] = INT_MAX;
+            for (int k = 0; k < m; k++) {
+                calc_for_two_rows[i][j] = min(calc_for_two_rows[i][j], abs(arr[i][k] - arr[j][k]));
+            }
+            for (int k = 0; k < m - 1; k++) {
+                last_row_to_first[i][j] = min(last_row_to_first[i][j], abs(arr[i][k] - arr[j][k + 1]));
+            }
+        }
+    }
+
+    memset(dp, -1, sizeof dp);
+    int ans = 0;
+    for (int i = 0; i < n; i++) {
+        ans = max(ans, solve(i, i, 1 << i));
+    }
+
+    cout << ans << '\n';
+    return 0;
+}
+
+
+
+
+
+<b> Add Custom Test </b>
+<b>Input</b>
+<code>
+1 3
+5 2 8
+</code>
+<b>Expected Output</b>
+<code>
+3
+</code>
+The motivation is to try with minimal n.
+
+Explanation: since this is in one row, the only way to rearrange is itself. And if we traverse column by column, we will get 5 2 8, which has a minimum absolute difference = 3.
+
+
+
+
+1 3
+5 2 8

@@ -1,0 +1,326 @@
+<b>Problem name : Santa's Gift
+time limit per test : 4 seconds
+memory limit per test : 512 megabytes</b>
+Santa has an infinite number of candies for each of \(m\) flavours. You are given a rooted tree with \(n\) vertices. The root of the tree is the vertex \(1\). Each vertex contains exactly one candy. The \(i\)-th vertex has a candy of flavour \(f_i\).
+
+Sometimes Santa fears that candies of flavour \(k\) have melted. He chooses any vertex \(x\) randomly and sends the subtree of \(x\) to the Bakers for a replacement. In a replacement, all the candies with flavour \(k\) are replaced with a new candy of the same flavour. The candies which are not of flavour \(k\) are left unchanged. After the replacement, the tree is restored.
+
+The actual cost of replacing one candy of flavour \(k\) is \(c_k\) (given for each \(k\)). The Baker keeps the price fixed in order to make calculation simple. Every time when a subtree comes for a replacement, the Baker charges \(C\), no matter which subtree it is and which flavour it is.
+
+Suppose that for a given flavour \(k\) the probability that Santa chooses a vertex for replacement is same for all the vertices. You need to find out the expected value of error in calculating the cost of replacement of flavour \(k\). The error in calculating the cost is defined as follows.
+<b>\(\quad \quad \quad Error\ E(k) = (ActualCost - Price \ charged \ by \ the \ Backers)^2.\)</b>
+
+Note that the actual cost is the cost of replacement of one candy of the flavour \(k\) multiplied by the number of candies in the subtree.
+
+Also, sometimes Santa may wish to replace a candy at vertex \(x\) with a candy of some flavour from his pocket.
+
+You need to handle two types of operations:
+
+• Change the flavour of the candy at vertex \(x\) to \(w\).
+• Calculate the expected value of error in calculating the cost of replacement for a given flavour \(k\).
+
+<b>Input </b>
+
+The first line of the input contains four integers \(n (2 ⩽ n ⩽ 5⋅10^4), m, q, C (1 ⩽ m,q ⩽ 5⋅10^4, 0⩽C⩽10^6)\) — the number of nodes, total number of different flavours of candies, the number of queries and the price charged by the Bakers for replacement, respectively.
+
+The second line contains \(n\) integers \(f_1,f_2,…,f_n (1⩽f_i⩽m)\), where \(f_i\) is the initial flavour of the candy in the \(i\)-th node.
+
+The third line contains \(n−1\) integers \(p_2,p_3,…,p_n (1⩽p_i⩽n)\), where \(p_i\) is the parent of the \(i\)-th node.
+
+The next line contains \(m\) integers \(c_1,c_2,…c_m (1⩽c_i⩽10^2)\), where \(c_i\) is the cost of replacing one candy of flavour \(i\).
+
+The next \(q\) lines describe the queries. Each line starts with an integer \(t (1 ⩽ t ⩽ 2)\) — the type of the query.
+
+If \(t = 1\), then the line describes a query of the first type. Two integers \(x\) and \(w\) follow \((1 ⩽ x⩽ n, 1⩽ w⩽ m)\), it means that Santa replaces the candy at vertex \(x\) with flavour \(w\).
+
+Otherwise, if \(t=2\), the line describes a query of the second type and an integer \(k (1 ⩽ k ⩽ m)\) follows, it means that you should print the expected value of the error in calculating the cost of replacement for a given flavour \(k\).
+
+The vertices are indexed from \(1\) to \(n\). Vertex \(1\) is the root.
+
+<b>Output</b>
+
+Output the answer to each query of the second type in a separate line.
+
+Your answer is considered correct if its absolute or relative error does not exceed \(10^{−6}\).
+
+Formally, let your answer be \(a\), and the jury's answer be \(b\). The checker program considers your answer correct if and only if \(\frac{|a-b|}{max(1,b)}\leq 10^{-6}.\)
+
+<b>Note</b>
+
+For \(1\)-st query, the error in calculating the cost of replacement for flavour \(1\) if vertex \(1, 2\) or \(3\) is chosen are \(66^2, 66^2\) and \((−7)^2\) respectively. Since the probability of choosing any vertex is same, therefore the expected value of error is \(\frac{66^2+66^2+(-7)^2}{3}.\)
+
+Similarly, for \(2\)-nd query the expected value of error is \(\frac{41^2+(-7)^2+(-7)^2}{3}.\)
+
+
+After \(3\)-rd query, the flavour at vertex \(2\) changes from \(1\) to \(3\).
+
+For \(4\)-th query, the expected value of error is \(\frac{(-7)^2+(-7)^2+(-7)^2}{3}.\)
+
+Similarly, for \(5\)-th query, the expected value of error is \(\frac{89^2+41^2+(-7)^2}{3}.\)
+
+
+
+
+The naive solution to this problem that we can break down the operations and queries in a direct way without worrying about optimization. This approach recalculates the entire subtree for each query, so it works in \(O(n^2)\) for \(q\) queries, making it inefficient for larger inputs, So these solution will not work.
+
+
+
+
+To solve these problem we need to manage subtree queries and updates while minimizing the recalculations for each query. We can use Heavy -light Decomposition in which the tree is decomposed into a set of heavy and light paths theis allows the tree to be represented in a linear structure so that operations like updating a subtree or querying a path can be preformed efficiently So we have:
+Heavy path : Which is a path in a tree consists of edges that are connected to the largest subtree of a node. This allows us to focus on the "heaviest" parts of the tree, making updates and queries easier.
+Light edges : The remaining edges are treated separately, but the heavy path structure allows us to reduce the overall complexity.
+After making the tree linear we can use segment tree to maintain the sums of values (such as candy flavour counts) over the heavy-light paths. This helps efficiently handle range queries and updates. To handle flavour change process We know that each node stores a candy with a particular flavour of a candy at a node is changed the corresponding segment tree representing the subtree rooted at that node needs to be updated and at the end i will calculate the error. So lets first try to get the input.
+
+
+
+
+#include<bits/stdc++.h>
+#define MAX 50005
+#define ll long long
+#define maxn 5000005
+using namespace std;
+int n,m,q;
+ll C,c[MAX];
+int a[MAX],fa[MAX];
+vector<int> e[MAX];
+int main(){
+    scanf("%d%d%d%lld",&n,&m,&q,&C);
+    for(int i=1;i<=n;i++) scanf("%d",&a[i]);
+    for(int i=2;i<=n;i++) scanf("%d",&fa[i]),e[fa[i]].push_back(i);
+    for(int i=1;i<=m;i++) scanf("%lld",&c[i]);
+}
+
+
+
+
+Then lets try to use heavy light decomposition we can do these by using \(dfs\) and store the depth-first number for each node which will help map the tree to a linear array for the segment tree and use a counter to \(dfs\) traversal incremented to assign \(dfn\) values then we store the size of the subtree rooted at each node and then stores the heavy child of each node which is the child is the largest subtree and store the top node of the heavy-light decomposition chain for each node. and we will use another \(dfs\) call to perform assigns a depth first number to each node and sets the top node for each node in its heavy light chain and If the node has a heavy child, that child continues the same chain (dfs2(son[now], tp)), while light children start new chains (dfs2(to, to)).
+
+
+
+
+#include<bits/stdc++.h>
+#define MAX 50005
+#define ll long long
+#define maxn 5000005
+using namespace std;
+int n,m,q;
+ll C,c[MAX];
+int a[MAX],fa[MAX];
+vector<int> e[MAX];
+int dfn[MAX], cnt, sz[MAX], son[MAX], top[MAX];
+void dfs(int now) {
+    sz[now] = 1;
+    for (auto to : e[now]) {
+        dfs(to);
+        sz[now] += sz[to];
+        if (sz[to] > sz[son[now]]) son[now] = to;
+    }
+}
+void dfs2(int now, int tp) {
+    dfn[now] = ++cnt;
+    top[now] = tp;
+    if (son[now]) dfs2(son[now], tp);
+    for (auto to : e[now]) if (to != son[now]) dfs2(to, to);
+}
+int main(){
+    scanf("%d%d%d%lld",&n,&m,&q,&C);
+    for(int i=1;i<=n;i++) scanf("%d",&a[i]);
+    for(int i=2;i<=n;i++) scanf("%d",&fa[i]),e[fa[i]].push_back(i);
+    for(int i=1;i<=m;i++) scanf("%lld",&c[i]);
+    dfs(1);dfs2(1,1);
+}
+
+
+
+
+The segment tree is used to store and manage aggregate data (sum and sum of squares) for candy counts in subtrees. The goal is to efficiently handle updates (flavour changes) and queries (expected error calculations) without recalculating everything from scratch. and we use \(s1\) so store the sum of the number of candies of a certain flavour in the subtree. and we use \(s2\) to store the sum of the squares of candy counts this is needed to calculate the error squared. The we can use lazy propagation to manage large updates efficiently (e.g., changing all candies in a subtree to a new flavour), we use a lazy propagation technique. Instead of applying changes immediately, we mark parts of the tree with a "tag" and only apply changes when necessary (i.e., when a query is made, and to initialize the segment tree with the correct candy flavour counts for each node we use our \(insert\) fucntion
+
+
+
+
+
+
+#include<bits/stdc++.h>
+#define MAX 50005
+#define ll long long
+#define maxn 5000005
+using namespace std;
+int n,m,q;
+ll C,c[MAX];
+int a[MAX],fa[MAX];
+vector<int> e[MAX];
+int dfn[MAX], cnt, sz[MAX], son[MAX], top[MAX];
+void dfs(int now) {
+    sz[now] = 1;
+    for (auto to : e[now]) {
+        dfs(to);
+        sz[now] += sz[to];
+        if (sz[to] > sz[son[now]]) son[now] = to;
+    }
+}
+void dfs2(int now, int tp) {
+    dfn[now] = ++cnt;
+    top[now] = tp;
+    if (son[now]) dfs2(son[now], tp);
+    for (auto to : e[now]) if (to != son[now]) dfs2(to, to);
+}
+int ls[maxn],rs[maxn],tot;
+ll s1[maxn],s2[maxn],tag[maxn];
+void ch(int &i,ll tg,int len){
+    if(!i) i=++tot;
+    s2[i]+=s1[i]*tg+tg*tg*len;
+    s1[i]+=2*tg*len;tag[i]+=tg;
+}
+void pushdown(int i,int l,int r){
+    if(tag[i]){
+        int mid=(l+r)>>1;
+        ch(ls[i],tag[i],mid-l+1);
+        ch(rs[i],tag[i],r-mid);
+        tag[i]=0;
+    }
+}
+void pushup(int i){
+    s1[i]=s1[ls[i]]+s1[rs[i]];
+    s2[i]=s2[ls[i]]+s2[rs[i]];
+}
+void add(int &i,int l,int r,int L,int R,ll tg){
+    if(!i) i=++tot;
+    if(L<=l&&r<=R){
+        ch(i,tg,r-l+1);return;
+    }pushdown(i,l,r);int mid=(l+r)>>1;
+    if(L<=mid) add(ls[i],l,mid,L,R,tg);
+    if(mid<R) add(rs[i],mid+1,r,L,R,tg);
+    pushup(i);
+}
+int rt[MAX];
+void insert(int i,int x,ll tg){
+    while(top[i]){
+        add(rt[x],1,n,dfn[top[i]],dfn[i],tg);
+        i=fa[top[i]];
+    }
+}
+int main(){
+    scanf("%d%d%d%lld",&n,&m,&q,&C);
+    for(int i=1;i<=n;i++) scanf("%d",&a[i]);
+    for(int i=2;i<=n;i++) scanf("%d",&fa[i]),e[fa[i]].push_back(i);
+    for(int i=1;i<=m;i++) scanf("%lld",&c[i]);
+    dfs(1);dfs2(1,1);
+    for(int i=1;i<=n;i++) insert(i,a[i],1);
+}
+
+
+
+
+After performing the Heavy-Light Decomposition and creating the segment tree, the next step is to handle the queries and updates. We first initialize the segment tree with the initial candy flavors and then process the queries.
+
+For each query of type 1, we update the segment tree by inserting or removing the candy flavor at the specified node.
+
+For each query of type 2, we calculate the expected error by querying the segment tree for the sum of counts and sum of squares of counts for the specified flavor.
+
+The expected error is calculated using the formula:
+
+\(E(k) = \frac{1}{n} \sum_{i=1}^{n} (c_k \cdot cnt_i - C)^2\)
+
+where \(c_k\) is the cost of replacing a candy of flavor \(k\), \(cnt_i\) is the count of candies of flavor \(k\) in the subtree rooted at node \(i\), and \(C\) is the price charged by the Bakers.
+
+The final answer is then printed to the output.
+
+Let's try to write the code for handling the queries and updates.
+
+
+
+
+#include<bits/stdc++.h>
+#define MAX 50005
+#define ll long long
+#define maxn 5000005
+using namespace std;
+int n,m,q;
+ll C,c[MAX];
+int a[MAX],fa[MAX];
+vector<int> e[MAX];
+int dfn[MAX], cnt, sz[MAX], son[MAX], top[MAX];
+void dfs(int now) {
+    sz[now] = 1;
+    for (auto to : e[now]) {
+        dfs(to);
+        sz[now] += sz[to];
+        if (sz[to] > sz[son[now]]) son[now] = to;
+    }
+}
+void dfs2(int now, int tp) {
+    dfn[now] = ++cnt;
+    top[now] = tp;
+    if (son[now]) dfs2(son[now], tp);
+    for (auto to : e[now]) if (to != son[now]) dfs2(to, to);
+}
+int ls[maxn],rs[maxn],tot;
+ll s1[maxn],s2[maxn],tag[maxn];
+void ch(int &i,ll tg,int len){
+    if(!i) i=++tot;
+    s2[i]+=s1[i]*tg+tg*tg*len;
+    s1[i]+=2*tg*len;tag[i]+=tg;
+}
+void pushdown(int i,int l,int r){
+    if(tag[i]){
+        int mid=(l+r)>>1;
+        ch(ls[i],tag[i],mid-l+1);
+        ch(rs[i],tag[i],r-mid);
+        tag[i]=0;
+    }
+}
+void pushup(int i){
+    s1[i]=s1[ls[i]]+s1[rs[i]];
+    s2[i]=s2[ls[i]]+s2[rs[i]];
+}
+void add(int &i,int l,int r,int L,int R,ll tg){
+    if(!i) i=++tot;
+    if(L<=l&&r<=R){
+        ch(i,tg,r-l+1);return;
+    }pushdown(i,l,r);int mid=(l+r)>>1;
+    if(L<=mid) add(ls[i],l,mid,L,R,tg);
+    if(mid<R) add(rs[i],mid+1,r,L,R,tg);
+    pushup(i);
+}
+int rt[MAX];
+void insert(int i,int x,ll tg){
+    while(top[i]){
+        add(rt[x],1,n,dfn[top[i]],dfn[i],tg);
+        i=fa[top[i]];
+    }
+}
+ll get(int col,ll sm){
+    return n*C*C-sm*C*s1[rt[col]]+sm*sm*s2[rt[col]];
+}
+int main(){
+    scanf("%d%d%d%lld",&n,&m,&q,&C);
+    for(int i=1;i<=n;i++) scanf("%d",&a[i]);
+    for(int i=2;i<=n;i++) scanf("%d",&fa[i]),e[fa[i]].push_back(i);
+    for(int i=1;i<=m;i++) scanf("%lld",&c[i]);
+    dfs(1);dfs2(1,1);
+    for(int i=1;i<=n;i++) insert(i,a[i],1);
+    for(int i=1,opt,x,y;i<=q;i++){
+        scanf("%d%d",&opt,&x);
+        if(opt==1){
+            scanf("%d",&y);
+            insert(x,a[x],-1);a[x]=y;
+            insert(x,a[x],1);
+        }else printf("%.9Lf\n",1.0L*get(x,c[x])/n);
+    }
+}
+
+
+
+
+(motivation is missing)
+Lets try to add a custom test to test our code for example:
+<b>
+2 1 1 1
+1 1
+1
+1
+2 1</b>
+We expect the output will be :
+\(0.5000000\)
+<b>Explanation</b>
+We have two node and both nodes have flavour \(1\) and the cost to replace one candy is \(1\) and we need to calculate the expected error for the flavour \(1\) and we can see the the cose of node \(1\) = 2 and the cost of node \(2\) is \(1\) so the error for node \(1\) is \((2-1)^2 = 1 \) and the error of node \(2\) is \((1-11)^2 =0 \) so the expected error will be \(\frac{1+0}{2}=0.500000000\).

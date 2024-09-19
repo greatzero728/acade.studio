@@ -1,0 +1,518 @@
+G. Yet Another DAG Problem
+time limit per test: 2 seconds
+memory limit per test: 1024 megabytes
+
+You are given a directed acyclic graph (a directed graph that does not contain cycles) of \(n\) vertices and \(m\) arcs. The \(i\)-th arc leads from the vertex \(x_i\) to the vertex \(y_i\) and has the weight \(w_i\).
+
+Your task is to select an integer \(a_v\) for each vertex \(v\), and then write a number \(b_i\) on each arcs i such that \(b_i=a_{x_i}−a_{y_i}\). You must select the numbers so that:
+
+\(\bull\) all \(b_i\) are positive;
+\(\bull\) the value of the expression \(\sum \limits_{i = 1}^{m} w_i b_i\) is the lowest possible.
+
+It can be shown that for any directed acyclic graph with non-negative \(w_i\), such a way to choose numbers exists.
+
+Input
+The first line contains two integers \(n\) and \(m\) (\(2≤n≤18; 0≤m≤\frac{n(n−1)}{2}\)).
+
+Then \(m\) lines follow, the \(i\)-th of them contains three integers \(x_i\), \(y_i\) and \(w_i\) (\(1≤x_i,y_i≤n, 1≤w_i≤10^5, x_i≠y_i\)) — the description of the \(i\)-th arc.
+
+It is guaranteed that the lines describe \(m\) arcs of a directed acyclic graph without multiple arcs between the same pair of vertices.
+
+Output
+Print \(n\) integers \(a_1, a_2, ..., a_n (0≤a_v≤10^9)\), which must be written on the vertices so that all \(b_i\) are positive, and the value of the expression \(\sum \limits_{i = 1}^{m} w_i b_i\) is the lowest possible. If there are several answers, print any of them. It can be shown that the answer always exists, and at least one of the optimal answers satisfies the constraints \(0≤a_v≤10^9\).
+
+
+
+
+\(\bull\) naive algtorithm:
+This is the part of the output:
+It can be shown that the answer always exists, and at least one of the optimal answers satisfies the constraints \(0≤a_v≤10^9\).
+To find a valid array \(\{a_v\}\), we can explore all possible assignments of \(a_v\) to \(v\).
+With up to 18 nodes and the constraint \(0 \leq a_v \leq 10^9\), checking all possibilities requires evaluating a maximum of \(\left(10^9 + 1\right)^{18}\) options, which will likely exceed the time limit.
+
+
+
+
+Let's write the given expression again:
+\(\sum \limits_{i=1}^m w_i b_i = \sum \limits_{i = 1}^m w_i(a_{x_i} - a_{y_i})\)
+The above works because for each \(edge(x_i, y_i, w_i)\), the condition \(b_i = a_{x_i} - a_{y_i}\) is satisfied. Therefore, for every \(edge: (x_i, y_i, w_i)\), we need to add \(w_i \cdot a_{x_i}\) and subtract \(w_i \cdot a_{y_i}\) from the answer. Our goal is to minimize the value of this answer.
+
+Above, we considered this based on the edges. Now, let's consider the expression based on the nodes.
+For every \(node: v\):
+\(\bull\) The outgoing edges contribute positively (since for outgoing edges from \(v\), \(w_i \cdot a_{x_i}\) appears with a positive coefficient).
+\(\bull\) The incoming edges contribute negatively (since for outgoing edges to \(v\), \(w_i \cdot a_{y_i}\) appears with a negative coefficient).
+
+So if we define \(\text{cost}_v = \text{out\_sum}(v) - \text{in\_sum}(v)\), where:
+- \(\text{out\_sum}(v)\) is the sum of the weights of all outgoing edges from node \(v\),
+- \(\text{in\_sum}(v)\) is the sum of the weights of all incoming edges to node \(v\).
+
+Then, the total contribution to the answer for each node \(v\) is:
+\(\sum \limits_{v=1}^{n} a_v \cdot \text{cost}_v\)
+
+So we need to minimize \(\sum \limits_{v=1}^{n} a_v \cdot cost_v\).
+
+Regarding the above formula, we can observe that \(\sum \limits_{v=1}^{n} a_v \cdot \text{cost}_v\) decreases as \(a_v\) becomes smaller.
+The given graph is a DAG, so a topological sort is possible.
+Additionally, \(a_v\) should be as small as possible, so we can assign \(a_v\) from the leaf nodes to the root nodes in the order of 0, 1, 2, and so on.
+If we assign \(a_v\) this way, then for every \(edge(x_i, y_i, w_i)\), \(y_i\) should already be assigned a smaller value when assigning \(a_v\) to \(x_i\). Therefore, \(b_i = a_{x_i} - a_{y_i} > 0\) is always satisfied.
+
+
+
+
+Let's solve the problem using dynamic programming to assign the values \( a_v \) as described in the previous block, minimizing the expression.
+Let denote \( dp[mask] \) as the minimum possible sum of \( \sum a_v \cdot \text{cost}_v \) for the vertices included in the bitmask \( mask \). The bitmask represents a set of vertices to which we have already assigned values until now.
+
+\(\bull\) Initialize \( dp[0] = 0 \) because an empty set has no sum.
+\(\bull\) For each possible subset of bitmask, calculate the best possible value we can get by adding one more node to the subset.
+If current subset is \( mask \), and we are going to add a vertex \( v \) that can be added to the current mask.
+\(dp[new\_mask] = \min(dp[new\_mask], dp[mask] + a_v \cdot \text{cost}_v)\), where \( new\_mask = mask \cup \{v\} \), \(a_v\) is the value assigned to the new vertex \(v\).
+When adding a vertex \(v\) to the current mask, ensure that all vertices that \(v\) depends on (i.e., all vertices \(u\) such that there is an edge \(u \to v\)) have already been assigned values. This guarantees that the assignment of \(a_v\) is valid and maintains the condition \(b_i > 0\).
+\(\bull\) After processing all subsets, the value of \(dp[2^n - 1]\) is the minimum value of \( \sum a_v \cdot \text{cost}_v \). (Here, bitmask \(\left(2^n - 1\right)\) represents all vertices)
+
+We already calculated the all possible \(dp[mask]\), we only need to insert the following logic to print the array \(\{a_v\}\).
+Every time \(dp[mask]\) updated, we save which \(submask\) effected to current \(mask\).
+By saving this information, we can restore all \(a_v\) from \(dp[2^n - 1]\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, m;
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+    }
+    return 0;
+}
+
+
+
+
+
+Let's store the edges of the DAG in the \(\text{prv}\) and \(\text{nxt}\) arrays. Since \(n \leq 18\), we can save the adjacency information using a bitmask.
+Let's calculate \(\text{cost}_v = \text{out\_sum}(v) - \text{in\_sum}(v)\) that mentioned in block 1.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int NN = 18;
+
+int n, m;
+int cost[NN];     // cost[v] = outgoing_sum(v) - incoming_sum(v)
+int nxt[NN];      // nxt[v] - bitmask of vertices reachable from v
+int prv[NN];      // prv[v] - bitmask of vertices that can reach v
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+        u--; v--; // 0-indexed
+        nxt[u] |= (1 << v); // v is reachable from u
+        prv[v] |= (1 << u); // u can reach v
+        cost[u] += w;       // out-sum for u
+        cost[v] -= w;       // in-sum for v
+    }
+    return 0;
+}
+
+
+
+
+
+Let's calculate the sum of \(\text{cost}_v\) for each subset of vertices.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int NN = 18;
+
+int n, m;
+int sum[1 << NN]; // sum[mask] - sum of cost[v] for vertices in the mask
+int cost[NN];     // cost[v] = outgoing_sum(v) - incoming_sum(v)
+int nxt[NN];      // nxt[v] - bitmask of vertices reachable from v
+int prv[NN];      // prv[v] - bitmask of vertices that can reach v
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+        u--; v--; // 0-indexed
+        nxt[u] |= (1 << v); // v is reachable from u
+        prv[v] |= (1 << u); // u can reach v
+        cost[u] += w;       // out-sum for u
+        cost[v] -= w;       // in-sum for v
+    }
+
+    // Precompute sum for each subset of vertices (bitmask)
+    for (int mask = 0; mask < 1 << n; mask++) {
+        sum[mask] = 0;
+        for (int i = 0; i < n; i++) {
+			if (mask & (1 << i)) sum[mask] += cost[i];
+        }
+    }
+    
+    return 0;
+}
+
+
+
+
+
+\(\bull\) Initialize \( dp[0] = 0 \) because an empty set has no sum.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int NN = 18;
+
+int n, m;
+int dp[1 << NN];  // dp[mask] - minimum cost for a set of vertices
+int sum[1 << NN]; // sum[mask] - sum of cost[v] for vertices in the mask
+int cost[NN];     // cost[v] = outgoing_sum(v) - incoming_sum(v)
+int nxt[NN];      // nxt[v] - bitmask of vertices reachable from v
+int prv[NN];      // prv[v] - bitmask of vertices that can reach v
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+        u--; v--; // 0-indexed
+        nxt[u] |= (1 << v); // v is reachable from u
+        prv[v] |= (1 << u); // u can reach v
+        cost[u] += w;       // out-sum for u
+        cost[v] -= w;       // in-sum for v
+    }
+
+    // Precompute sum for each subset of vertices (bitmask)
+    for (int mask = 0; mask < 1 << n; mask++) {
+        sum[mask] = 0;
+        for (int i = 0; i < n; i++) {
+			if (mask & (1 << i)) sum[mask] += cost[i];
+        }
+    }
+
+    // Initialize DP
+    dp[0] = 0; // base case: no vertices selected
+
+    return 0;
+}
+
+
+
+
+
+\(\bull\) \(dp[new\_mask] = \min(dp[new\_mask], dp[mask] + a_v \cdot \text{cost}_v)\), where \( new\_mask = mask \cup \{v\} \), \(a_v\) is the value assigned to the new vertex \(v\).
+I prefer to calculate \(mask\) from \(submask\) rather than updating \(new\_mask\) from \(mask\). Therefore, let's iterate through all \(submask\).
+
+If the \(\text{parent}\) node of the currently inserting node does not represent the current mask, it means that the condition \(b_i = a_{x_i} - a_{y_i} > 0\) is not met.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int inf = 1e9, NN = 18;
+
+int n, m;
+int dp[1 << NN];  // dp[mask] - minimum cost for a set of vertices
+int sum[1 << NN]; // sum[mask] - sum of cost[v] for vertices in the mask
+int cost[NN];     // cost[v] = outgoing_sum(v) - incoming_sum(v)
+int nxt[NN];      // nxt[v] - bitmask of vertices reachable from v
+int prv[NN];      // prv[v] - bitmask of vertices that can reach v
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+        u--; v--; // 0-indexed
+        nxt[u] |= (1 << v); // v is reachable from u
+        prv[v] |= (1 << u); // u can reach v
+        cost[u] += w;       // out-sum for u
+        cost[v] -= w;       // in-sum for v
+    }
+
+    // Precompute sum for each subset of vertices (bitmask)
+    for (int mask = 0; mask < 1 << n; mask++) {
+        sum[mask] = 0;
+        for (int i = 0; i < n; i++) {
+			if (mask & (1 << i)) sum[mask] += cost[i];
+        }
+    }
+
+    // Initialize DP
+    dp[0] = 0; // base case: no vertices selected
+
+    // Iterate over all masks (states)
+    for (int mask = 1; mask < 1 << n; mask++) {
+    	dp[mask] = inf;
+        int valid = 1;
+        for (int i = 0; i < n; i++) {
+            if ((mask >> i) & 1) {
+                // Check if the mask contains vertices that can reach i
+                if ((prv[i] & mask) != prv[i]) valid = 0;
+            }
+        }
+        
+        if (!valid) continue; // skip invalid states
+    }
+
+    return 0;
+}
+
+
+
+
+
+We need to identify the list of available vertices that can be added to the current \(mask\).
+We should attempt to add all options by iterating through the subsets of the above list one by one.
+I already mentioned about the transition in block 3 and 11 in detail.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int inf = 1e9, NN = 18;
+
+int n, m;
+int dp[1 << NN];  // dp[mask] - minimum cost for a set of vertices
+int sum[1 << NN]; // sum[mask] - sum of cost[v] for vertices in the mask
+int cost[NN];     // cost[v] = outgoing_sum(v) - incoming_sum(v)
+int nxt[NN];      // nxt[v] - bitmask of vertices reachable from v
+int prv[NN];      // prv[v] - bitmask of vertices that can reach v
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+        u--; v--; // 0-indexed
+        nxt[u] |= (1 << v); // v is reachable from u
+        prv[v] |= (1 << u); // u can reach v
+        cost[u] += w;       // out-sum for u
+        cost[v] -= w;       // in-sum for v
+    }
+
+    // Precompute sum for each subset of vertices (bitmask)
+    for (int mask = 0; mask < 1 << n; mask++) {
+        sum[mask] = 0;
+        for (int i = 0; i < n; i++) {
+			if (mask & (1 << i)) sum[mask] += cost[i];
+        }
+    }
+
+    // Initialize DP
+    dp[0] = 0; // base case: no vertices selected
+
+    // Iterate over all masks (states)
+    for (int mask = 1; mask < 1 << n; mask++) {
+    	dp[mask] = inf;
+        int available = 0, valid = 1;
+        for (int i = 0; i < n; i++) {
+            if ((mask >> i) & 1) {
+                // Store all rechable vertices from i to available
+                if ((nxt[i] & mask) == 0) available |= 1 << i;
+                // Check if the mask contains vertices that can reach i
+                if ((prv[i] & mask) != prv[i]) valid = 0;
+            }
+        }
+        
+        if (!valid) continue; // skip invalid states
+
+        // Iterate over all subsets of 'available' vertices
+        for (int submask = available; submask; submask = (submask - 1) & available) {
+            if (dp[mask] > dp[mask ^ submask] + sum[mask ^ submask]) {
+                dp[mask] = dp[mask ^ submask] + sum[mask ^ submask];
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+
+We already calculated the all possible \(dp[mask]\), we only need to insert the following logic to print the array \(\{a_v\}\).
+Every time \(dp[mask]\) updated, we save which \(submask\) effected to current \(mask\).
+By saving this information, we can restore all \(a_v\) from \(dp[2^n - 1]\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int inf = 1e9, NN = 18;
+
+int n, m;
+int dp[1 << NN];  // dp[mask] - minimum cost for a set of vertices
+int sum[1 << NN]; // sum[mask] - sum of cost[v] for vertices in the mask
+int cost[NN];     // cost[v] = outgoing_sum(v) - incoming_sum(v)
+int nxt[NN];      // nxt[v] - bitmask of vertices reachable from v
+int prv[NN];      // prv[v] - bitmask of vertices that can reach v
+int rev[1 << NN]; // to track the set of vertices added to each state
+int ans[NN];      // to store the final answer for each vertex
+
+int main() {
+
+    scanf("%d %d", &n, &m);
+    for (int i = 0; i < m; i++) {
+        int u, v, w; scanf("%d %d %d", &u, &v, &w);
+        u--; v--; // 0-indexed
+        nxt[u] |= (1 << v); // v is reachable from u
+        prv[v] |= (1 << u); // u can reach v
+        cost[u] += w;       // out-sum for u
+        cost[v] -= w;       // in-sum for v
+    }
+
+    // Precompute sum for each subset of vertices (bitmask)
+    for (int mask = 0; mask < 1 << n; mask++) {
+        sum[mask] = 0;
+        for (int i = 0; i < n; i++) {
+			if (mask & (1 << i)) sum[mask] += cost[i];
+        }
+    }
+
+    // Initialize DP
+    dp[0] = 0; // base case: no vertices selected
+
+    // Iterate over all masks (states)
+    for (int mask = 1; mask < 1 << n; mask++) {
+    	dp[mask] = inf;
+        int available = 0, valid = 1;
+        for (int i = 0; i < n; i++) {
+            if ((mask >> i) & 1) {
+                // Store all rechable vertices from i to available
+                if ((nxt[i] & mask) == 0) available |= 1 << i;
+                // Check if the mask contains vertices that can reach i
+                if ((prv[i] & mask) != prv[i]) valid = 0;
+            }
+        }
+        
+        if (!valid) continue; // skip invalid states
+
+        // Iterate over all subsets of 'available' vertices
+        for (int submask = available; submask; submask = (submask - 1) & available) {
+            if (dp[mask] > dp[mask ^ submask] + sum[mask ^ submask]) {
+                dp[mask] = dp[mask ^ submask] + sum[mask ^ submask];
+                rev[mask] = submask; // record the subset used to transition
+            }
+        }
+    }
+
+    // Reconstruct the solution
+    int current_mask = (1 << n) - 1; // all vertices
+    int value = 0;
+
+    while (current_mask) {
+        int used_set = rev[current_mask];
+        for (int i = 0; i < n; i++) {
+            if ((used_set >> i) & 1) {
+                ans[i] = value; // assign current value to vertex i
+            }
+        }
+        value++;
+        current_mask ^= used_set; // remove used vertices from the mask
+    }
+
+    // Output the answer
+    for (int i = 0; i < n; i++) printf("%d ", ans[i]);
+
+    return 0;
+}
+
+
+
+
+
+My output is different from sample output.
+Let's check my output is correct.
+<b>Sample Intput</b>
+<code>
+5 4
+1 2 1
+2 3 1
+1 3 6
+4 5 8
+</code>
+<b>Sample Output</b>
+<code>
+43 42 41 1337 1336
+</code>
+Let's calculate the minimum value of \(\sum \limits_{i = 1}^{m} w_i b_i\):
+\(\sum \limits_{i = 1}^{m} w_i b_i = \sum \limits_{i = 1}^{m} w_i \cdot (a_{x_i} - a_{y_i}) = 1 \cdot (43 - 42) + 1 \cdot (42 - 41) + 6 \cdot (43 - 41) + 8 \cdot (1337 - 1336) = 1 + 1 + 12 + 8 = 22\)
+
+<b>My Output</b>
+<code>
+2 1 0 1 0
+</code>
+Let's calculate the minimum value of \(\sum \limits_{i = 1}^{m} w_i b_i\):
+\(\sum \limits_{i = 1}^{m} w_i b_i = \sum \limits_{i = 1}^{m} w_i \cdot (a_{x_i} - a_{y_i}) = 1 \cdot (2 - 1) + 1 \cdot (1 - 0) + 6 \cdot (2 - 0) + 8 \cdot (1 - 0) = 1 + 1 + 12 + 8 = 22\)
+So my output prints the solution that \(\sum \limits_{i = 1}^{m} w_i b_i\) is same as the sample output. Ans also all \(b_1 = 2 - 1 > 0, b_2 = 1 - 0 > 0, b_3 = 2 - 0 > 0, b_4 = 1 - 0 > 0\).
+So my answer is valid answer.
+
+
+
+
+My output is different from sample output.
+Let's check my output is correct.
+<b>Sample Intput</b>
+<code>
+5 5
+1 2 1
+2 3 1
+3 4 1
+1 5 1
+5 4 10
+</code>
+<b>Sample Output</b>
+<code>
+4 3 2 1 2
+</code>
+Let's calculate the minimum value of \(\sum \limits_{i = 1}^{m} w_i b_i\):
+\(\sum \limits_{i = 1}^{m} w_i b_i = \sum \limits_{i = 1}^{m} w_i \cdot (a_{x_i} - a_{y_i}) = 1 \cdot (4 - 3) + 1 \cdot (3 - 2) + 1 \cdot (2 - 1) + 1 \cdot (4 - 2) + 10 \cdot (2 - 1) = 1 + 1 + 1 + 2 + 10 = 15\)
+
+<b>My Output</b>
+<code>
+3 2 1 0 1
+</code>
+Let's calculate the minimum value of \(\sum \limits_{i = 1}^{m} w_i b_i\):
+\(\sum \limits_{i = 1}^{m} w_i b_i = \sum \limits_{i = 1}^{m} w_i \cdot (a_{x_i} - a_{y_i}) = 1 \cdot (3 - 2) + 1 \cdot (2 - 1) + 1 \cdot (1 - 0) + 1 \cdot (3 - 1) + 10 \cdot (1 - 0) = 1 + 1 + 1 + 2 + 10 = 15\)
+So my output prints the solution that \(\sum \limits_{i = 1}^{m} w_i b_i\) is same as the sample output. Ans also all \(b_1 = 3 - 2 > 0, b_2 = 2 - 1 > 0, b_3 = 1 - 0 > 0, b_4 = 3 - 1 > 0, b_5 = 1 - 0 > 0\).
+So my answer is a valid answer.
+
+
+
+
+Let's examine a custom corner case, where \(n, m\) are their minimum values: \(n = 2, m = 0\)
+In this case there is no edges, so we only need to print any array that is in range \([0, 10 ^ 9]\).
+According my algorithm, I set \(a_v\) as minimum as possible, so the output will be "0 0".
+Let me check.
+
+
+
+
+2 0

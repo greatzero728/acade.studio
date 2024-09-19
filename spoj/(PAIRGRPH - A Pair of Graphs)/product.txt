@@ -1,0 +1,340 @@
+<b>A Pair of Graphs
+Time limit: 1s
+Memory limit: 1536MB</b>
+
+We say that two graphs are equivalent if and only if a one-to-one correspondence between their nodes can be established and under such a correspondence their edges are exactly the same. Given \(A\) and \(B\), two undirected simple graphs with the same number of vertexes, you are to find a series of operations with the minimum cost that will make the two graphs equivalent. An operation may be one of the following two types:
+
+\(\bullet\) Add an arbitrary edge \((x, y)\), provided that \((x, y)\) does not exist before such an operation. Such an operation costs \(IA\) and \(IB\) on two graphs, respectively.
+\(\bullet\) Delete an existing edge \((x, y)\), which costs \(DA\) and \(DB\) on two graphs, respectively.
+
+<b>Input</b>
+There are multiple test cases in the input file.
+
+Each test case starts with three integers, \(N\), \(MA\) and \(MB\), \((1≤N≤8, 0≤MA,MB≤N(N−1)/2)\), the total number of vertexes, the number of edges in graph \(A\), and the number of edges in graph \(B\), respectively. Four integers \(IA\), \(IB\), \(DA\), and \(DB\) come next, \((0≤IA,IB,DA,DB≤32767)\), representing the costs as stated in the problem description. The next \(MA+MB\) lines describe the edges in graph \(A\) followed by those in graph \(B\). Each line consists of exactly two integers, \(X\) and \(Y\) \((X≠Y, 0≤X,Y<N)\).Two successive test cases are separated by a blank line. A case with \(N=0\), \(MA=0\), and \(MB=0\) indicates the end of the input file, and should not be processed by your program.
+
+<b>Output</b>
+Please print the minimum cost in the format as illustrated below.
+
+
+
+
+After reading the problem, we can see that it requires us to make the two graphs similar, and note that \(n\) can be at most 8, so we can brute-force over all possible mappings of nodes from \(a\) and \(b\) and calculate the cost for every map, then minimize the cost among all of them.
+
+So, how to calculate the cost for such a mapping?
+We can see that for every map, we say the node \(x\) from graph \(a\) will be corresponding to \(i\) in graph \(b\), and also node \(y\) from \(a\) with node \(j\) from \(b\). Now, we need to check if there is an edge in both graphs or not. If there is an edge, so we don't need to add this edge again; but if we don't have an edge, we need to check if one graph has this edge and the other does not, or if the two graphs do not have this edge. In this case, we don't have to add it as it's not necessary.
+
+So, let's start by taking our input and mark for every edge that there is an edge between \(x,y\) in our matrix.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    while (1) {
+        int n, ma, mb;
+        cin >> n >> ma >> mb;
+        if (n == 0 && ma == 0 && mb == 0) {
+            return 0;
+        }
+        int la, lb, da, db;
+        cin >> la >> lb >> da >> db;
+        int matrixA[8][8] = {};
+        for (int i = 0; i < ma; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixA[u][v] = 1;
+            matrixA[v][u] = 1;
+        }
+        int matrixB[8][8] = {};
+        for (int i = 0; i < mb; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixB[u][v] = 1;
+            matrixB[v][u] = 1;
+        }
+    }
+}
+
+
+
+
+
+Now we need to generate all possible maps between two graphs, so we need to generate all possible permutations for the first graph and compare them with the second graph and calculate the cost for this map.
+
+When we have a map between two graphs, it means we will make node \(x\) in the first one equal to node \(i\) in the second one, for all \(x\) and \(i\).
+
+So we will need to generate all possible edges from the new map, and check every possible case:
+
+\(\bullet\) if the edge is in both
+\(\bullet\) if the edge is not in both
+\(\bullet\) if the edge is in one but not in the other
+
+So let's code it; first, we will generate all possible permutations with size \(n\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    while (1) {
+        int n, ma, mb;
+        cin >> n >> ma >> mb;
+        if (n == 0 && ma == 0 && mb == 0) {
+            return 0;
+        }
+        int la, lb, da, db;
+        cin >> la >> lb >> da >> db;
+        int matrixA[8][8] = {};
+        for (int i = 0; i < ma; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixA[u][v] = 1;
+            matrixA[v][u] = 1;
+        }
+        int matrixB[8][8] = {};
+        for (int i = 0; i < mb; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixB[u][v] = 1;
+            matrixB[v][u] = 1;
+        }
+        vector<int> first(n);
+        std::iota(first.begin(), first.end(), 0);
+        do {
+        } while (next_permutation(first.begin(), first.end()));
+    }
+}
+
+
+
+
+After that, we need to generate all possible edges from it, as there is, for any node, an edge between it and all other nodes. So, let's generate all possible \( (x,y) \).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    while (1) {
+        int n, ma, mb;
+        cin >> n >> ma >> mb;
+        if (n == 0 && ma == 0 && mb == 0) {
+            return 0;
+        }
+        int la, lb, da, db;
+        cin >> la >> lb >> da >> db;
+        int matrixA[8][8] = {};
+        for (int i = 0; i < ma; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixA[u][v] = 1;
+            matrixA[v][u] = 1;
+        }
+        int matrixB[8][8] = {};
+        for (int i = 0; i < mb; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixB[u][v] = 1;
+            matrixB[v][u] = 1;
+        }
+        vector<int> first(n);
+        std::iota(first.begin(), first.end(), 0);
+        do {
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    int x = first[i], y = first[j];
+                }
+            }
+        } while (next_permutation(first.begin(), first.end()));
+    }
+}
+
+
+
+
+Now we know node \(x\) maps to node \(i\) in the second graph, and also node \(y\) is mapped to node \(j\) in the second graph, so we can now check the case of this edge in the two graphs and calculate the total cost of this mapping then minimize the answer with it.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    while (1) {
+        int n, ma, mb;
+        cin >> n >> ma >> mb;
+        if (n == 0 && ma == 0 && mb == 0) {
+            return 0;
+        }
+        int la, lb, da, db;
+        cin >> la >> lb >> da >> db;
+        int matrixA[8][8] = {};
+        for (int i = 0; i < ma; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixA[u][v] = 1;
+            matrixA[v][u] = 1;
+        }
+        int matrixB[8][8] = {};
+        for (int i = 0; i < mb; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixB[u][v] = 1;
+            matrixB[v][u] = 1;
+        }
+        vector<int> first(n);
+        std::iota(first.begin(), first.end(), 0);
+        int answer = 1e9;
+        do {
+            int cost = 0;
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    int x = first[i], y = first[j];
+                    //if edge between x,y in first graph and i,j in second are found in both
+                    if (matrixA[x][y] == 1 && matrixB[i][j] == 1) {
+                        continue;
+                    }
+                    //if edge between x,y in first graph and i,j in second are not found in both
+                    if (matrixA[x][y] == 0 && matrixB[i][j] == 0) {
+                        continue;
+                    }
+                    //if edge between x,y in first graph and i,j in second are found in first graph but not in second
+                    //so we will check what is the best , add it in second graph with cost lb
+                    //or delete it from first graph with cost da
+                    if (matrixA[x][y] == 1 && matrixB[i][j] == 0) {
+                        cost += min(lb, da);
+                        continue;
+                    }
+                    //if edge between x,y in first graph and i,j in second are found in second graph but not in first
+                    //so we will check what is the best , add it in first graph with cost la
+                    //or delete it from second graph with cost db
+                    if (matrixA[x][y] == 0 && matrixB[i][j] == 1) {
+                        cost += min(la, db);
+                        continue;
+                    }
+                }
+            }
+            answer = min(answer, cost);
+        } while (next_permutation(first.begin(), first.end()));
+    }
+}
+
+
+
+
+Now we have an edge case.
+
+What if there is only one node in the two graphs? What should the answer be?
+We can see that the two graphs are similar if they have only one node, so the answer for making them equal is just 0, as there is no need for any operation.
+
+So, let's handle it and print our custom output for the answer.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int cases = 1;
+    while (1) {
+        int n, ma, mb;
+        cin >> n >> ma >> mb;
+        if (n == 0 && ma == 0 && mb == 0) {
+            return 0;
+        }
+        int la, lb, da, db;
+        cin >> la >> lb >> da >> db;
+        int matrixA[8][8] = {};
+        for (int i = 0; i < ma; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixA[u][v] = 1;
+            matrixA[v][u] = 1;
+        }
+        int matrixB[8][8] = {};
+        for (int i = 0; i < mb; i++) {
+            int u, v;
+            cin >> u >> v;
+            matrixB[u][v] = 1;
+            matrixB[v][u] = 1;
+        }
+        vector<int> first(n);
+        std::iota(first.begin(), first.end(), 0);
+        int answer = 1e9;
+        do {
+            int cost = 0;
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    int x = first[i], y = first[j];
+                    //if edge between x,y in first graph and i,j in second are found in both
+                    if (matrixA[x][y] == 1 && matrixB[i][j] == 1) {
+                        continue;
+                    }
+                    //if edge between x,y in first graph and i,j in second are not found in both
+                    if (matrixA[x][y] == 0 && matrixB[i][j] == 0) {
+                        continue;
+                    }
+                    //if edge between x,y in first graph and i,j in second are found in first graph but not in second
+                    //so we will check what is the best , add it in second graph with cost lb
+                    //or delete it from first graph with cost da
+                    if (matrixA[x][y] == 1 && matrixB[i][j] == 0) {
+                        cost += min(lb, da);
+                        continue;
+                    }
+                    //if edge between x,y in first graph and i,j in second are found in second graph but not in first
+                    //so we will check what is the best , add it in first graph with cost la
+                    //or delete it from second graph with cost db
+                    if (matrixA[x][y] == 0 && matrixB[i][j] == 1) {
+                        cost += min(la, db);
+                        continue;
+                    }
+                }
+            }
+            answer = min(answer, cost);
+        } while (next_permutation(first.begin(), first.end()));
+        if (n == 1) {
+            answer = 0;
+        }
+        cout << "Case #" << cases++ << ": " << answer << '\n';
+    }
+}
+
+
+
+
+now we need to test against the custom test
+<b>Input</b>
+<code>
+2 1 1
+1 1 1 1
+1 2
+2 1
+0 0 0
+</code>
+the motivation for this test is what if the two graph have more than one node , but the are the same from the first
+
+as we see that the two graphs are the same as they two have edge between the two nodes they have so the answer is 0
+
+
+
+
+2 1 1
+1 1 1 1
+1 2
+2 1
+0 0 0

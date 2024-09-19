@@ -1,0 +1,308 @@
+<b>B. Interesting Array
+time limit per test 1 second
+memory limit per test 256 megabytes</b>
+
+We'll call an array of \(n\) non-negative integers \(a[1], a[2], \ldots, a[n] ~\textit{interesting}\), if it meets \(m\) constraints. The \(i\)-th of the \(m\) constraints consists of three integers \(l_i, r_i, q_i (1 \le l_i \le r_i \le n)\) meaning that value \(a[l_i]\enspace\&\enspace a[l_{i} + 1]\enspace\&\enspace\ldots\enspace\&\enspace a[r_i]\) should be equal to \(q_i\).
+
+Your task is to find any \(\textit{interesting}\) array of \(n\) elements or state that such array doesn't exist.
+
+Expression \(x \& y\) means the bitwise AND of numbers \(x\) and \(y\). In programming languages C++, Java and Python this operation is represented as "&'', in Pascal --- as "and''.
+
+Input
+The first line contains two integers \(n, m (1 \le n \le 10^5, 1 \le m \le 10^5)\)--- the number of elements in the array and the number of limits.
+
+Each of the next \(m\) lines contains three integers \(l_i, r_i, q_i (1 \le l_i \le r_i \le n, 0 \le q_i < 2^{30})\) describing the \(i\)-th limit.
+
+Output
+IIf the interesting array exists, in the first line print "YES" (without the quotes) and in the second line print n integers \(a[1], a[2], ..., a[n] (0 ≤ a[i] < 2^{30})\) decribing the interesting array. If there are multiple answers, print any of them.
+
+If the interesting array doesn't exist, print "NO" (without the quotes) in the single line.
+
+
+
+
+<b>naive solution</b>
+generate all possible arrays of length \(n\) and have values in the range \([0 , 2^{30}]\) then check if there is at least one array can be valid for these queries. but this is slow and won't pass due to problem constraints.
+
+<b>optimized solution</b>
+
+first Let's solve each bit alone to easy handle the queries.
+Let's analysis the queries:
+you want the given range on the array has bitwise anding equal to \(q_i\) so from bit perspective if the \(q_i\) has 1 in the \(j\)-th bit then the whole range has 1 in the \(j\)-th bit (anding working like that).
+what if it is a zero? we can't judge because if there is at least one number has the \(j\)-th bit 0 the whole range in anding will have the \(j\)-th bit zeros.
+
+so we can handle the queries on 2 times , first time handle one because if the range has 1 in the \(j\)-th bit we go and fill the every number in the array from range \([l , r]\) this can done using partial sum , after doing so handling zeros is becoming easy because we now should only check if the range has 0 in the \(j\)-th bit it must the number of numbers in that range that has the \(j\)-th bit on doesn't equal the length of the range. if it is equal then the answer is No.
+if the condition is true for all queries then the answer is YES and we can build the output array by create every number from it's bits we already calculated.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e5 + 10;
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    cin>>n>>m;
+    vector<array<int , 3>>queries;
+    for(int i = 0;i < m;i++) {
+        int l , r , q;cin>>l>>r>>q;
+        queries.emplace_back(array<int , 3>{l , r, q});
+    }
+}
+
+
+
+
+
+Now we create partial sum for each bit and handling the queries.
+first we handle the ones in the queries after we will handle the zeros.
+
+if the query has one in the \(j\)-th bit in the range we set the \(j\)-th bit for the range with 1 we can do it using partial sum because we don't require online querying (partial[l]++ , partial[r + 1]--) then do a prefix sum on it.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e5 + 10;
+ll pref[30][N];
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    cin>>n>>m;
+    vector<array<int , 3>>queries;
+    for(int i = 0;i < m;i++) {
+        int l , r , q;cin>>l>>r>>q;
+        queries.emplace_back(array<int , 3>{l , r, q});
+        for(int j = 0;j < 30;j++) {
+            if(q & (1LL << j)) {
+                pref[j][l - 1]++ , pref[j][r]--;
+            }
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+}
+
+
+
+
+
+Now after we handled the ones in the queries we need to adjust the ones because something like we have in range [2 , 3] then again we have ones in range[2 , 3] after doing prefix sum for this it will has pref[2] = 2 not one so we need to adjust it to 1 then do prefix sum again in order make the summation in the range equal to count how many bits in the range set to 1.
+
+note: first prefix sum to make the initial range update , then adjust the value to make second prefix sum which allow us to count how many number in the range has the \(j\) bit set to 1.
+
+query function: standard way to query on the prefix sum to get range summation by including the whole prefix up to end of the range then exculde the prefix up to start of the range
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e5 + 10;
+ll pref[30][N];
+int query(int j , int l , int r) {
+    return pref[j][r] - (l == 0 ? 0 : pref[j][l - 1]);
+}
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    cin>>n>>m;
+    vector<array<int , 3>>queries;
+    for(int i = 0;i < m;i++) {
+        int l , r , q;cin>>l>>r>>q;
+        queries.emplace_back(array<int , 3>{l , r, q});
+        for(int j = 0;j < 30;j++) {
+            if(q & (1LL << j)) {
+                pref[j][l - 1]++ , pref[j][r]--;
+            }
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+    for(int i = 0;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] = min(1ll , pref[j][i]);
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+    // for(int i = 0;i < n;i++)cout<<pref[0][i]<<" "<<pref[1][i]<<endl;
+}
+
+
+
+
+
+Now handling zeros in the queries.
+
+as we explained in first thinking block we just if encountered a 0 we check if the number of numbers in the range has ones in this bit aren't equal to the length of the range because if this happen this is contradiction in the operation and the answer is NO and we exist the program
+we count using the standard technique of prefix sums.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e5 + 10;
+ll pref[30][N];
+int query(int j , int l , int r) {
+    return pref[j][r] - (l == 0 ? 0 : pref[j][l - 1]);
+}
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    cin>>n>>m;
+    vector<array<int , 3>>queries;
+    for(int i = 0;i < m;i++) {
+        int l , r , q;cin>>l>>r>>q;
+        queries.emplace_back(array<int , 3>{l , r, q});
+        for(int j = 0;j < 30;j++) {
+            if(q & (1LL << j)) {
+                pref[j][l - 1]++ , pref[j][r]--;
+            }
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+    for(int i = 0;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] = min(1ll , pref[j][i]);
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+    // for(int i = 0;i < n;i++)cout<<pref[0][i]<<" "<<pref[1][i]<<endl;
+
+    for(int i = 0;i < m;i++) {
+        auto [l ,r , q] = queries[i];
+        for(int j = 0;j < 30;j++) {
+            if(!(q & (1LL<<j))) {
+                if(query(j , l - 1, r - 1) == r - l  + 1) {
+                    cout<<"NO";
+                    exit(0);
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+Now we have answer so we output YES and build the answer.
+
+how to build the answer we see the bits for every number and multiply the status of the bit into the weight of that bit in order to create the number correctly
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e5 + 10;
+ll pref[30][N];
+int query(int j , int l , int r) {
+    return pref[j][r] - (l == 0 ? 0 : pref[j][l - 1]);
+}
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    cin>>n>>m;
+    vector<array<int , 3>>queries;
+    for(int i = 0;i < m;i++) {
+        int l , r , q;cin>>l>>r>>q;
+        queries.emplace_back(array<int , 3>{l , r, q});
+        for(int j = 0;j < 30;j++) {
+            if(q & (1LL << j)) {
+                pref[j][l - 1]++ , pref[j][r]--;
+            }
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+    for(int i = 0;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] = min(1ll , pref[j][i]);
+        }
+    }
+    for(int i = 1;i < n;i++) {
+        for(int j = 0;j < 30;j++) {
+            pref[j][i] += pref[j][i - 1];
+        }
+    }
+    // for(int i = 0;i < n;i++)cout<<pref[0][i]<<" "<<pref[1][i]<<endl;
+
+    for(int i = 0;i < m;i++) {
+        auto [l ,r , q] = queries[i];
+        for(int j = 0;j < 30;j++) {
+            if(!(q & (1LL<<j))) {
+                if(query(j , l - 1, r - 1) == r - l  + 1) {
+                    cout<<"NO";
+                    exit(0);
+                }
+            }
+        }
+    }
+    cout<<"YES"<<'\n';
+    for(int i = 0;i < n;i++) {
+        ll res = 0;
+        for(int j = 0;j < 30;j++) {
+            res |= (1<<j) * query(j , i , i);
+        }
+        cout<<res<<" ";
+    }
+}
+
+
+
+
+3 1
+1 3 3
+
+
+
+
+
+3 2
+1 3 3
+1 3 2
+
+
+
+
+Let's add custom test with minimal constraints on array size to check this corner case is handled
+1 1
+1 1 10
+
+output must be 10 because we have one element and it's anding with it self is 10
+
+
+
+
+1 1
+1 1 10

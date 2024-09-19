@@ -1,0 +1,134 @@
+<b>Divide it!</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+You are given an integer \(n\).
+
+You can perform any of the following operations with this number an arbitrary (possibly, zero) number of times:
+\(1\). Replace \(n\) with \(\frac{n}{2}\) if \(n\) is divisible by \(2\);
+\(2\). Replace \(n\) with \(\frac{2n}{3}\) if \(n\) is divisible by \(3\);
+\(3\). Replace \(n\) with \(\frac{4n}{5}\) if \(n\) is divisible by \(5\).
+
+For example, you can replace \(30\) with \(15\) using the first operation, with \(20\) using the second operation or with \(24\) using the third operation.
+
+Your task is to find the minimum number of moves required to obtain \(1\) from \(n\) or say that it is impossible to do it.
+
+You have to answer \(q\) independent queries.
+
+<b>Input</b>
+The first line of the input contains one integer \(q\) (\(1 \le q \le 1000\)) --- the number of queries.
+
+The next \(q\) lines contain the queries. For each query you are given the integer number \(n\) (\(1 \le n \le 10^{18}\)).
+
+<b>Output</b>
+Print the answer for each query on a new line. If it is impossible to obtain \(1\) from \(n\), print \(-1\). Otherwise, print the minimum number of moves required to do it.
+
+
+
+
+
+when i read this problem i started to think about a recursive approach in which I will try all the possible ways to divide the number then return the answer if there is an answer, or return -1, but then I realized that the \(n\) is up to \(10^{18}\), so after thinking for a while I found a better solution to get the minimum number of moves and I will explain it now.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int q;
+   cin >> q;
+   while(q--){
+       unsigned long long n;
+       cin >> n;
+       
+   }
+}
+
+
+
+
+
+Now i will initialize a variable \(count\) to track how many moves I did as this is the answer, then I will make a while loop with a condition (\(n\ !=1\)) and I will make a boolean variable called \(can\) to check if the number can be \(1\) or not that will help me break the loop
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int q;
+   cin >> q;
+   while(q--){
+       unsigned long long n;
+       cin >> n;
+       int count = 0 ;
+       bool can = true;
+       while(n != 1){
+
+       }
+   }
+}
+
+
+
+
+
+Now i will keep checking the divisibility as mentioned on the problem so for example if \(n\) is divisible by \(2\) I will keep dividing \(n\) on \(2\) and increasing the \(count\), and if \(n\) is divisible by \(3\) I will keep replacing \(n\) with \(\frac{2n}{3}\), and from the \(5\) I will keep replacing \(n\) with \(\frac{4n}{5}\), and the end I will check if the number is not divisible on any of them, and id the number is not equal to \(1\) then this number will not be valid to be \(1\) so I will mark the \(can\) variable with \(false\) and break the loop
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+   int q;
+   cin >> q;
+   while(q--){
+       unsigned long long n;
+       cin >> n;
+       int count = 0 ;
+       bool can = true;
+       while(n != 1){
+           while (n % 2 == 0 && n != 1)
+               count++, n /= 2;
+           while (n % 5 == 0 && n != 1)
+               n = (4 * n) / 5, count++;
+           while (n % 3 == 0 && n != 1)
+               n = (2 * n) / 3, count++;
+           if (n % 2 != 0 && n % 3 != 0 && n % 5 != 0 && n != 1)
+               can = false;
+           if (!can)
+               break;
+       }
+   }
+}
+
+
+
+
+
+Now i will print the answer based on the variable \(can\) if it is true, I will print my \(count\) if not I will print \(-1\)
+
+
+
+
+
+the code outputs the correct answers, so now I will add this test to see if the code can deal with it correctly
+test:
+1
+999999999999999001
+answer should be: -1 , as this number is not divisible by \(5\) or \(3\) or \(2\) and this number is not equal to \(1\)
+
+
+
+
+
+1
+999999999999999001

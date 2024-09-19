@@ -1,0 +1,126 @@
+C. Hacking Cypher
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Polycarpus participates in a competition for hacking into a new secure messenger. He's almost won.
+
+Having carefully studied the interaction protocol, Polycarpus came to the conclusion that the secret key can be obtained if he properly cuts the public key of the application into two parts. The public key is a long integer which may consist of even a million digits!
+
+Polycarpus needs to find such a way to cut the public key into two nonempty parts, that the first (left) part is divisible by \(a\) as a separate number, and the second (right) part is divisible by \(b\) as a separate number. Both parts should be positive integers that have no leading zeros. Polycarpus knows values \(a\) and \(b\).
+
+Help Polycarpus and find any suitable method to cut the public key.
+
+<b>Input</b>
+The first line of the input contains the public key of the messenger — an integer without leading zeroes, its length is in range from \(1\) to \(10^6\) digits.
+The second line contains a pair of space-separated positive integers \(a, b (1 ≤ a, b ≤ 10^8)\).
+
+<b>Output</b>
+In the first line print "YES" (without the quotes), if the method satisfying conditions above exists. In this case, next print two lines — the left and right parts after the cut. These two parts, being concatenated, must be exactly identical to the public key. The left part must be divisible by \(a\), and the right part must be divisible by \(b\). The two parts must be positive integers having no leading zeros. If there are several answers, print any of them.
+
+If there is no answer, print in a single line "NO" (without the quotes).
+
+
+
+
+The naive solution involves iterating over the public key, attempting to split it each time, and checking if the first part is divisible by \(a\) and the second part is divisible by \(b\).
+A straightforward method to perform this check would be to convert the large number from a string to an integer. However, this approach requires the entire large number to fit into memory as an integer, which can be impractical and inefficient.
+Therefore, we need to find an alternative method for checking divisibility.
+
+
+
+
+We are given a large integer public key, and two integers a and b. We need to find a way to cut the public key into two nonempty parts, such that the first part is divisible by a and the second part is divisible by b.
+
+To solve this problem, we can use the concept of prefix and suffix arrays. We can calculate the prefix array for the public key with respect to a, and the suffix array with respect to b.
+
+The prefix array will store the remainder of the prefix of the public key when divided by a, and the suffix array will store the remainder of the suffix of the public key when divided by b.
+
+We can then iterate through the public key and check if there is a position where the prefix array value is 0 (i.e., the prefix is divisible by a) and the suffix array value is 0 (i.e., the suffix is divisible by b). If such a position exists, we can return the prefix and suffix as the two parts of the public key.
+
+If no such position exists, we can return "NO".
+
+Let's first write the code to read the input and calculate the prefix and suffix arrays.
+
+We will use C++ as our programming language.
+
+Note that we will assume that the input public key is a string of digits, and a and b are integers.
+
+We will also assume that the public key is nonempty and has no leading zeros.
+
+Next step will be to write the code to implement this idea.
+
+Please let me know I can proceed with code.
+
+However, I need to provide full code so that it is compiled and run successfully.
+
+So my next step would be CODE.
+
+
+
+
+
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int main() {
+    string s;
+    int a, b;
+    cin >> s >> a >> b;
+
+    int n = s.length();
+    int pref[n];
+    int suff[n];
+
+    int rem = (s[0] - '0') % a;
+    pref[0] = rem;
+    for(int i = 1 ; i < n ; i++) {
+        rem = (rem * 10 + s[i] - '0') % a;
+        pref[i] = rem;
+    }
+
+    int curr = 1;
+    suff[n-1] = rem = (s[n-1] - '0') % b;
+    for(int i = n-2 ; i >= 0 ; i--) {
+        curr = (curr * 10) % b;
+        rem = ((s[i]-'0')*curr + rem) % b;
+        suff[i] = rem;
+    }
+
+    bool found = false;
+    for(int i = 1 ; i < n ; i++) {
+        if( pref[i-1] == 0 && suff[i] == 0 && s[i] != '0') {
+            cout << "YES" << endl;
+            cout << s.substr(0, i) << endl;
+            cout << s.substr(i, n-i) << endl;
+            found = true;
+            break;
+        }
+    }
+
+    if(!found)
+        cout << "NO" << endl;
+
+    return 0;
+}
+
+
+
+
+Let's create a custom test
+
+There are two possible ways to split 6:
+
+6 + "" – Here, \(a\) can divide the first part, but \(b\) cannot divide the second part.
+"" + 6 – In this case, \(b\) can divide the second part, but \(a\) cannot divide the first part.
+
+excepcted output:
+NO
+
+
+
+
+
+6
+2 3

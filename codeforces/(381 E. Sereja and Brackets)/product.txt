@@ -1,0 +1,164 @@
+E. Sereja and Brackets
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Sereja has a bracket sequence \(s_1, s_2, ..., s_n\), or, in other words, a string s of length n, consisting of characters "(" and ")".
+
+Sereja needs to answer m queries, each of them is described by two integers \(l_i, r_i (1 ≤ l_i ≤ r_i ≤ n)\). The answer to the i-th query is the length of the maximum correct bracket subsequence of sequence \(s_{l_i}, s_{l_i + 1}, ..., s_{r_i}\). Help Sereja answer all queries.
+
+You can find the definitions for a subsequence and a correct bracket sequence in the notes.
+
+Input
+The first line contains a sequence of characters \(s_1, s_2, ..., s_n (1 ≤ n ≤ 10^6)\) without any spaces. Each character is either a "(" or a ")". The second line contains integer \(m (1 ≤ m ≤ 10^5)\) — the number of queries. Each of the next m lines contains a pair of integers. The i-th line contains integers \(l_i, r_i (1 ≤ l_i ≤ r_i ≤ n)\) — the description of the i-th query.
+
+Output
+Print the answer to each question on a single line. Print the answers in the order they go in the input.
+
+Note
+A subsequence of length |x| of string \(s = s_1s_2... s_{|s|}\) (where |s| is the length of string s) is string \(x = s_{k_1}s_{k_2}... s_{k_{|x|}} (1 ≤ k_1 < k_2 < ... < k_{|x|} ≤ |s|)\).
+
+A correct bracket sequence is a bracket sequence that can be transformed into a correct aryphmetic expression by inserting characters "1" and "+" between the characters of the string. For example, bracket sequences "()()", "(())" are correct (the resulting expressions "(1)+(1)", "((1+1)+1)"), and ")(" and "(" are not.
+
+For the third query required sequence will be «()».
+
+For the fourth query required sequence will be «()(())(())».
+
+
+
+
+For each query \(l_i, r_i\), we can iterate through all possible \(2^{r_i - l_i + 1}\) subsets of indices from \(\{l_i, l_i + 1, \ldots, r_i\}\) that will be included in the final correct bracket sequence.
+If we determine the positions that will remain for the final correct bracket sequence, we can check if the current sequence is valid. If the current sequence is valid, we maximize the answer with the length of the current sequence.
+Therefore, for every query, we require \(O(2^n \cdot n)\) time complexity. Overall, this naive algorithm necessitates \(O(2^n \cdot n^2)\), which will result in a time limit exceeded error, given that \(n \leq 10^6\).
+So, this naive algorithm is not feasible within the given time constraints.
+
+
+
+
+Define the struct to hold the result of the segment, it should have the maximum length of the bracket subsequence (named len), and the number of open and closed brackets that are not included in the subsequence (named open and close).
+
+Use the meaningful name for the struct variable.
+
+After defining the struct, think about how to initialize the leaf nodes of the segment tree and merge two nodes.
+
+Remember the rules of merging:
+Length = Length of Left + Length of Right + Minimum of (Open of Left, Close of Right)
+Open = Open of Left + Open of Right - Minimum of (Open of Left, Close of Right)
+Close = Close of Left + Close of Right - Minimum of (Open of Left, Close of Right)
+
+After implementing the merge function, implement the query function that gets the result of the segment tree on the given range.
+
+The query function should get the result from the segment tree in O(log n) time.
+
+Now, go ahead with implementing the segment tree and then the main function that reads the input and handles queries.
+
+Implement a simple way to get the char input, no error handling needed.
+
+When initializing the leaf nodes, be careful with the index.
+
+When merging two nodes, make sure to handle the case when one of the nodes is not a leaf node.
+
+For each query, get the result from the segment tree and print it.
+
+Just define the struct, implement the initialize function and merge function and then stop.
+
+Don't use any complex code, just keep it simple.
+
+
+
+
+
+\(\bullet\) The first rule of merging are working because the length of the maximum correct bracket subsequence of the current merged parent segment combines the lengths of the maximum correct bracket subsequences of the both children segments, plus any pairs formed between unmatched opening brackets from the left child and unmatched closing brackets from the right child.
+\(\bullet\) The second and third rules are similar.
+It's obviously that the number of opening brackets of the merged parent segment is the sum of the number of opening brackets of the left child segment and the number of opening brackets of the right child segment.
+However, the minimum value between the number of opening brackets from the left child and the number of closing brackets from the right child has already been used to create new valid bracket pairs for the current merged parent. Therefore, we need to subtract this value from the number of opening brackets of the merged parent segment.
+This is similar in case of closing bracket.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Node{
+    int len, open, close;
+};
+
+const int N = 1e6 + 5;
+
+char s[N];
+Node tr[N << 2];
+
+void init(int id, int l, int r){
+    if (l == r){
+        if (s[l] == '('){
+            tr[id].len = 0;
+            tr[id].open = 1;
+            tr[id].close = 0;
+        } else {
+            tr[id].len = 0;
+            tr[id].open = 0;
+            tr[id].close = 1;
+        }
+        return;
+    }
+    int mid = (l + r) >> 1;
+    init(id << 1, l, mid);
+    init(id << 1 | 1, mid + 1, r);
+    int t = min(tr[id << 1].open, tr[id << 1 | 1].close);
+    tr[id].len = tr[id << 1].len + tr[id << 1 | 1].len + t;
+    tr[id].open = tr[id << 1].open + tr[id << 1 | 1].open - t;
+    tr[id].close = tr[id << 1].close + tr[id << 1 | 1].close - t;
+}
+
+Node query(int id, int l, int r, int ql, int qr){
+    if (l >= ql && r <= qr)
+        return tr[id];
+    int mid = (l + r) >> 1;
+    if (qr <= mid)
+        return query(id << 1, l, mid, ql, qr);
+    if (ql > mid)
+        return query(id << 1 | 1, mid + 1, r, ql, qr);
+    Node res1 = query(id << 1, l, mid, ql, qr);
+    Node res2 = query(id << 1 | 1, mid + 1, r, ql, qr);
+    Node res;
+    int t = min(res1.open, res2.close);
+    res.len = res1.len + res2.len + t;
+    res.open = res1.open + res2.open - t;
+    res.close = res1.close + res2.close - t;
+    return res;
+}
+
+int main(){
+    scanf("%s", s + 1);
+    int n = strlen(s + 1);
+    init(1, 1, n);
+    int m;
+    scanf("%d", &m);
+    while (m --){
+        int l, r;
+        scanf("%d%d", &l, &r);
+        printf("%d\n", query(1, 1, n, l, r).len * 2);
+    }
+    return 0;
+}
+
+
+
+
+Let's check a custom corner case, where n, m, are their minimum values: n = m = 1.
+(
+1
+1
+1 1
+In this test case, we have to check the number of maximum correct bracket subsequences \(s_{l_i}, s_{l_i + 1}, ..., s_{r_i} = "("\). The length of "(" is just one, so we can't seletect the correct bracket subsequence in "(", because the length of the correct bracket subsequence is even.
+So in this case, the answer should be 0.
+
+
+
+
+(
+1
+1
+1 1

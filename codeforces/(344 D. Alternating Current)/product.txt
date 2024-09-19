@@ -1,0 +1,111 @@
+<b> Alternating Current </b>
+time limit per test 1 second
+memory limit per test 256 megabytes
+
+Mad scientist Mike has just finished constructing a new device to search for extraterrestrial intelligence! He was in such a hurry to launch it for the first time that he plugged in the power wires without giving it a proper glance and started experimenting right away. After a while Mike observed that the wires ended up entangled and now have to be untangled again.
+
+The device is powered by two wires "plus" and "minus". The wires run along the floor from the wall (on the left) to the device (on the right). Both the wall and the device have two contacts in them on the same level, into which the wires are plugged in some order.
+The wires are considered entangled if there are one or more places where one wire runs above the other one. For example, the picture below has four such places (top view):
+
+<img 1>
+
+Mike knows the sequence in which the wires run above each other. Mike also noticed that on the left side, the "plus'' wire is always plugged into the top contact (as seen on the picture). He would like to untangle the wires without unplugging them and without moving the device. Determine if it is possible to do that. A wire can be freely moved and stretched on the floor, but cannot be cut.
+
+To understand the problem better please read the notes to the test samples.
+
+<b> Input </b>
+The single line of the input contains a sequence of characters "+'' and "-'' of length \(n\) (\(1 \leq n \leq 100000\)). The \(i\)-th (\(1 \leq i \leq n\)) position of the sequence contains the character "+'', if on the \(i\)-th step from the wall the "plus'' wire runs above the "minus'' wire, and the character "-'' otherwise.
+
+
+<b> Output </b>
+Print either "Yes'' (without the quotes) if the wires can be untangled or "No'' (without the quotes) if the wires cannot be untangled.
+
+<b> Note </b>
+The first testcase corresponds to the picture in the statement. To untangle the wires, one can first move the "plus'' wire lower, thus eliminating the two crosses in the middle, and then draw it under the "minus'' wire, eliminating also the remaining two crosses.
+
+In the second testcase the "plus'' wire makes one full revolution around the "minus" wire. Thus the wires cannot be untangled:
+<img 2>
+
+In the third testcase the "plus'' wire simply runs above the "minus'' wire twice in sequence. The wires can be untangled by lifting "plus'' and moving it higher:
+<img 3>
+
+In the fourth testcase the "minus'' wire runs above the "plus'' wire once. The wires cannot be untangled without moving the device itself:
+<img 4>
+
+
+
+
+
+The naive solution for this problem is basically to think about how to untangle the wires.
+The answer is that if I find any two adjacent characters with the same symbol, then I will know that this part of the wires can be easily untangled.
+
+That is it.
+The solution basically is to untangle each part that can be made untangled, and if I manage to untangle the whole wires, then the answer will be Yes; otherwise, No.
+So, this can be easily implemented using a stack.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+signed main()
+{
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    string s;cin>>s;
+    stack<char>st;
+    return 0;
+}
+
+
+
+
+Let's break down the main idea of the implementation.
+I iterate over the string and check for the current character if the top of the stack (the last element put into it) was the same, then this part can be untangled, and then I remove this top from the stack.
+
+And the final step is to check if the stack is empty; this means that we managed to untangle the whole wire, then the answer is "Yes", otherwise, the answer is "No".
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+signed main()
+{
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    string s;cin>>s;
+    stack<char>st;
+    for(auto it:s)
+    {
+        if(st.empty()||st.top()!=it)
+        {
+            st.push(it);
+        }
+        else
+        {
+            st.pop();
+        }
+    }
+    if(st.empty()){
+        cout<<"Yes";
+    }
+    else{
+        cout<<"No";
+    }
+    return 0;
+}
+
+
+
+
+Let's create a custom test to check the corner case where there is only one character (minimum constraint custom test).
+
+The test is
++
+
+The expected output is "No" as it is impossible to untangle the wire in this case without moving the device as the wire makes a cross.
+
+
+
+
+
++

@@ -1,0 +1,190 @@
+\(\textbf{Bertown roads}\)
+\(\textbf{time limit per test: 5 second}\)
+\(\textbf{memory limit per test: 256 megabytes}\)
+
+Bertown has \( n \) junctions and \( m \) bidirectional roads. It is known that one can get from any junction to any other one by the existing roads.
+
+As there were more and more cars in the city, traffic jams started to pose real problems. To deal with them, the government decided to make the traffic one-directional on all the roads, thus easing down the traffic. Your task is to determine whether there is a way to make the traffic one-directional so that there still is the possibility to get from any junction to any other one. If the answer is positive, you should also find one of the possible ways to orient the roads.
+
+<b>Input</b>
+The first line contains two space-separated integers \( n \) and \( m \) \((2 \leq n \leq 10^5, n - 1 \leq m \leq 3 \times 10^5)\) — the number of junctions and roads in the town, respectively.
+The next \( m \) lines each contain two integers \( a_i \) and \( b_i \) \((1 \leq a_i, b_i \leq n, a_i \neq b_i)\), which represent that there is a road between junction \( a_i \) and junction \( b_i \). The roads are bidirectional.
+
+It is guaranteed that one can get from any junction to any other junction using the existing roads. Each road connects different junctions, and there is no more than one road between each pair of junctions.
+
+<b>Output</b>
+If there's no solution, print the single number \( 0 \).
+Otherwise, print \( m \) lines, each containing two integers \( p_i \) and \( q_i \) — each road's orientation. That is, the traffic flow will move along a one-directional road from junction \( p_i \) to junction \( q_i \). The roads can be printed in any order. If there are multiple valid solutions, any of them can be printed.
+
+
+
+
+
+We can deduce that it involves graph theory, where junctions are represented as nodes and roads as edges. We can also deduce that the task is to convert an undirected connected graph into a strongly connected directed graph by orienting the edges as we have to reach any junction from any other junction.
+A naive solution might involve trying all possible orientations of the edges and then checking if the resulting graph is strongly connected. However, this approach is inefficient, with a time complexity of approximately O(\(2^m\)\(m\)), where m is the number of edges. This is impractical given the constraints of the problem.
+A more optimal solution focuses on identifying bridges in the graph. If a bridge exists, the answer will always be \(0\). This is because a bridge is an edge whose removal would split the graph into two disconnected components. Since the bridge is the only connection between these components, it can only be oriented in one direction—allowing travel from one component to the other but not vice versa. This violates the requirement for the graph to remain strongly connected after orientation. Therefore, if a bridge is present, it is impossible to orient the edges such that the graph remains strongly connected.Let's write the boilerplate code and create the graph using adjacency list
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    int n,m;
+    cin >> n >> m;
+    vector<vector<int>> adjacency_list(n+1);
+    for (int i = 0;i < m;i++){
+        int a,b ; cin >> a >> b;
+        adjacency_list[a].push_back(b);
+        adjacency_list[b].push_back(a);
+    }
+    return 0;
+}
+
+
+
+
+
+
+Now let's find the bridges in the graph and using the concept of dfs tree, discovery time, lowest discovery time and backedges. We also know that if the graph has a bridge, the answer is \( 0 \).
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+bool hasBridge = false;
+void bridgeUtil(int node, int parent,vector<vector<int>> &adjacency_list,vector<bool>& visited, vector<int>& discovery_time, vector<int>& lowest_discovery_time, vector<pair<int,int>> &edges_orientation){
+    static int time = 0;
+    visited[node] = true;
+    discovery_time[node] = lowest_discovery_time[node] = time++;
+    for (auto child : adjacency_list[node]){
+        if(child == parent) continue;
+        if(visited[child]){
+            lowest_discovery_time[node]  = min(lowest_discovery_time[node], discovery_time[child]);
+        }else{
+            bridgeUtil(child,node, adjacency_list,visited,discovery_time,lowest_discovery_time,edges_orientation);
+            if (lowest_discovery_time[child] > discovery_time[node]){
+                hasBridge = true;
+                return;
+            }
+            lowest_discovery_time[node]  = min(lowest_discovery_time[node], lowest_discovery_time[child]);
+        }
+    }
+}
+int main(){
+    int n,m;
+    cin >> n >> m;
+    vector<vector<int>> adjacency_list(n+1);
+    for (int i = 0;i < m;i++){
+        int a,b ; cin >> a >> b;
+        adjacency_list[a].push_back(b);
+        adjacency_list[b].push_back(a);
+    }
+    vector<bool> visited(n+1);
+    vector<int> discovery_time(n+1),lowest_discovery_time(n+1);
+    vector<pair<int,int>> edges_orientation;
+    bridgeUtil(1,-1,adjacency_list,visited,discovery_time,lowest_discovery_time,edges_orientation);
+    if(hasBridge){
+        cout << 0 << endl;
+    }
+    return 0;
+}
+
+
+
+
+
+Now that we've determined the graph does not contain any bridges (if there were a bridge, the answer would be 0), the next step is to orient the graph in a way that it remains strongly connected. There are multiple ways to achieve this, but since we are utilizing the concept of bridges, we can optimize our function to avoid unnecessary calculations.
+
+The idea is straightforward: since the graph doesn't contain any bridges, every node will be connected to every other node via at least two different paths*. This means we can reach any node from any other node through at least two different routes. Therefore, we can orient any two paths in completely opposite directions.
+
+To implement this, we can update the bridge_undirected_graph function as follows:
+
+If during our traversal, we move from a visited node to an unvisited node, we use a forward edge (i.e., orient the edge from the visited node to the unvisited node).
+If we encounter a back edge (i.e., moving from a currently visited node to an already visited node), we orient the edge from the newly visited node to the previously visited node.
+This approach ensures that the graph remains strongly connected after the orientation, taking advantage of the fact that there are no bridges. It simplifies the orientation process by ensuring that every back edge contributes to maintaining the strong connectivity of the graph.
+
+
+
+
+* 2 paths are different if the all nodes present in one path is different from the other path.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+bool hasBridge = false;
+void bridgeUtil(int node, int parent,vector<vector<int>> &adjacency_list,vector<bool>& visited, vector<int>& discovery_time, vector<int>& lowest_discovery_time, vector<pair<int,int>> &edges_orientation){
+    static int time = 0;
+    visited[node] = true;
+    discovery_time[node] = lowest_discovery_time[node] = time++;
+    for (auto child : adjacency_list[node]){
+        if(child == parent) continue;
+        if(visited[child]){
+            lowest_discovery_time[node]  = min(lowest_discovery_time[node], discovery_time[child]);
+            if(discovery_time[node] > discovery_time[child]){
+                edges_orientation.push_back({node,child});
+            }
+        }else{
+            bridgeUtil(child,node, adjacency_list,visited,discovery_time,lowest_discovery_time,edges_orientation);
+            if (lowest_discovery_time[child] > discovery_time[node]){
+                hasBridge = true;
+                return;
+            }
+            edges_orientation.push_back({node,child});
+            lowest_discovery_time[node]  = min(lowest_discovery_time[node], lowest_discovery_time[child]);
+        }
+    }
+}
+int main(){
+    int n,m;
+    cin >> n >> m;
+    vector<vector<int>> adjacency_list(n+1);
+    for (int i = 0;i < m;i++){
+        int a,b ; cin >> a >> b;
+        adjacency_list[a].push_back(b);
+        adjacency_list[b].push_back(a);
+    }
+    vector<bool> visited(n+1);
+    vector<int> discovery_time(n+1),lowest_discovery_time(n+1);
+    vector<pair<int,int>> edges_orientation;
+    bridgeUtil(1,-1,adjacency_list,visited,discovery_time,lowest_discovery_time,edges_orientation);
+    if(hasBridge){
+        cout << 0 << endl;
+    }else{
+        for (auto edge : edges_orientation){
+            cout << edge.first << ' ' << edge.second << endl;
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+The sample tests have passed, although the order of the edges may differ. This variation is expected because, given that any two different paths between two nodes are valid, the output can vary depending on the specific paths chosen by the judge.
+
+Now, let's examine two custom test cases:
+
+<b>Linear Graph</b>: In a linear graph (a simple path where each node is connected in a straight line), each edge is a bridge. In such graphs, removing any edge will disconnect the graph into two components. Since there are bridges, it's impossible to orient the edges such that the graph remains strongly connected. Therefore, the expected output for this test case is 0.
+
+<b>Complete Cyclic Graph</b>: In a complete cyclic graph (where every node is connected in a cycle, i.e., a graph where each node has exactly two neighbors and there are no bridges), we need to ensure that the graph remains strongly connected after orientation. An effective orientation is to direct each edge such that it forms a directed cycle. For example, if the nodes are labeled 1,2,…,𝑛
+1,2,…,n, we can direct each edge so that 1 directs to 2,2 directs to 3, and so on, up to n directing back to 1.This way, every node can reach every other node, preserving strong connectivity. Thus, the expected output for this test case is to orient the edges in a sequential manner around the cycle.
+
+
+
+
+
+7 6
+1 2
+2 3
+3 4
+4 5
+5 6
+6 7

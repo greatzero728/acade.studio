@@ -1,0 +1,158 @@
+Om Nom and Necklace
+time limit per test : 1 second
+memory limit per test : 256 megabytes
+
+
+One day Om Nom found a thread with \(n\) beads of different colors. He decided to cut the first several beads from this thread to make a bead necklace and present it to his girlfriend Om Nelly.
+<img ima1>
+
+Om Nom knows that his girlfriend loves beautiful patterns. That's why he wants the beads on the necklace to form a \(\textit{regular}\) pattern. A sequence of beads \(S\) is \(\textit{regular}\) if it can be represented as \(S = A + B + A + B + A + \ldots + A + B + A\), where \(A\) and \(B\) are some bead sequences, "\(+\)'' is the concatenation of sequences, there are exactly \(2k + 1\) summands in this sum, among which there are \(k + 1\) "\(A\)'' summands and \(k\) "\(B\)'' summands that follow in alternating order. Om Nelly knows that her friend is an eager mathematician, so she doesn't mind if \(A\) or \(B\) is an empty sequence.
+
+Help Om Nom determine in which ways he can cut off the first several beads from the found thread (at least one; probably, all) so that they form a \(\textit{regular pattern}\). When Om Nom cuts off the beads, he doesn't change their order.
+
+
+<b>Input</b>
+
+The first line contains two integers \(n\), \(k\) \((1 \leq n, k \leq 1\,000\,000)\) --- the number of beads on the thread that Om Nom found and number \(k\) from the definition of the regular sequence above.
+
+The second line contains the sequence of \(n\) lowercase Latin letters that represent the colors of the beads. Each color corresponds to a single letter.
+
+
+Output
+Print a string consisting of \(n\) zeroes and ones. Position \(i\) \((1 \leq i \leq n)\) must contain either number one if the first \(i\) beads on the thread form a regular sequence, or a zero otherwise.
+
+
+<b>Note</b>
+
+In the first sample test a regular sequence is both a sequence of the first 6 beads (we can take \(A = \)"'', \(B = \)"bca''), and a sequence of the first 7 beads (we can take \(A = \) "b'', \(B =\) "ca'').
+
+In the second sample test, for example, a sequence of the first 13 beads is regular, if we take \(A =
+\) "aba'', \(B = \) "ba''.
+
+
+
+
+
+We are tasked with determining if each prefix of a string \( S \) follows the pattern \( ABABA\ldots ABA \), where \( A \) and \( B \) are substrings that alternate, and the sequence ends with \( A \).
+
+The naive approach would involve checking all possible splits of the string into alternating substrings for each prefix, which would result in a time complexity of \( O(n^2) \) or worse. This approach would be too slow, especially for larger inputs with up to \(10^6\) characters.
+
+Let's talk about our idea:
+
+We use the KMP algorithm to efficiently compute the minimal repeating block for each prefix. The KMP prefix function helps identify repeating structures within the string. By leveraging this, we can check whether the prefix can be divided into alternating patterns of two sequences \( A \) and \( B \) in linear time.
+
+The KMP algorithm provides the minimal periodic structure of a string. By breaking each prefix into blocks of repeating patterns and verifying the alternating structure of \( A \) and \( B \), we can quickly determine if the prefix matches the required form. This approach ensures that we only traverse the string once, reducing the time complexity to \( O(n) \), which is efficient for large inputs.
+
+We will do the following:
+1. Compute the KMP prefix function to find the smallest repeating block for each prefix.
+2. For each prefix, check whether it can be split into alternating patterns \( A + B + A + \dots + A \) based on the prefix function's result.
+3. Output the result for each prefix in \( O(n) \) time.
+
+We will start by initializing an array to track the longest matching prefix-suffix for each position, using a pattern-matching technique. Then, we will loop through the string and update this array by checking how the current character matches with previously seen parts of the string. This helps detect repeating patterns.
+
+For each prefix, we compute the length of the smallest repeating segment and determine how many times this segment fits into the prefix. We will then verify if the prefix can be split into alternating blocks of two patterns and whether it ends correctly with the last block being the first pattern.
+
+Based on these checks, the output will consist of either a 1 or 0 for each prefix, indicating whether the pattern is valid.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+long long n, k;
+string s;
+int main() {
+    cin >> n >> k >> s;
+    
+    return 0;
+}
+
+
+
+
+
+Now we will write KMP and print the answer.
+
+\(b[i]\) : This array stores the length of the longest proper prefix that matches a suffix for the prefix ending at index \(i\). It is initialized to \(-1\) for \(b[0]\) to handle the boundary case when comparing prefixes and suffixes.
+
+\(i\) : Iterates over the characters of the string \(s\).
+\(j\): Tracks the length of the matching prefix-suffix. It is initialized to \(-1\) to represent that no matching prefix exists at the start.
+
+The inner while loop compares the current character \(s[i]\) with \(s[j]\). If there’s no match, it updates \(j\) using \(b[j]\) to backtrack to the next possible matching prefix length. This is part of the KMP algorithm's prefix function construction.
+After a match, both \(i\) and \(j\) are incremented, and \(b[i]\) is updated with the current value of \(j\), storing the longest matching prefix-suffix length at index \(i\).
+
+\(len\): This stores the length of the repeating block for the first \(i\) characters, calculated as \(i - b[i]\). This gives the smallest repeating unit within the prefix.
+
+\(tot\): The number of times the repeating block fits into the first \(i\) characters, calculated as \(i / len\).
+\(x\) : Represents how many full repeating units of size \(len\) can fit into the prefix for the given \(k\), computed as \(tot / k\).
+\(y\) : The remaining characters after accounting for the full repeating units, calculated as \(i - x * len * k\).
+
+The expression \(i - x \times len \times k\) calculates the remaining length of the prefix after accounting for all possible full repeating blocks of size \(len\) that fit into the prefix. Here, \(i\) is the total length of the current prefix, \(x\) is the number of full repeating units that can fit in, \(len\) is the length of each repeating unit, and \(k\) is the parameter controlling the number of alternating blocks. By subtracting \(x \times len \times k\) from \(i\), we determine how many characters are left after fitting in the complete blocks, which helps in verifying if the remaining part fits the required alternating pattern.
+
+If the number of full repeating units \(x * len\) is greater than or equal to the remaining characters \(y\), it means the prefix can be split into valid alternating patterns of \(A\) and \(B\). In this case, we output \(1\). Otherwise, we output \(0\).
+
+This structure allows us to efficiently check each prefix for the regular alternating pattern, updating variables as we go through the string.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const int N = 1e6+5;
+long long n, k;
+long long b[N];
+string s;
+int main() {
+    cin >> n >> k >> s;
+    
+    int i = 0, j = -1;
+    b[0] = -1;
+    while (i < n) {
+        while (j >= 0 && s[i] != s[j])j = b[j];
+        i++, j++;
+        b[i] = j;
+        int len = i - b[i];
+        int tot = i / len;
+        int x = tot / k;
+        int y = i - x * len * k;
+        if (x * len >= y)cout << 1;
+        else cout << 0;
+    }
+    return 0;
+}
+
+
+
+
+
+7 2
+bcabcab
+
+
+
+
+21 2
+ababaababaababaababaa
+
+
+
+
+Now we will test our code with a small test case (n = 1, k = 1) with any letter.
+The input will be:
+
+1 1
+m
+
+The output will be:
+
+1
+
+Because A = "", B = "m", so only the first letter will be valid because k = 1.
+
+
+
+
+
+1 1
+m

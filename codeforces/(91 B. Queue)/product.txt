@@ -1,0 +1,126 @@
+<b>Queue</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+There are \( n \) walruses standing in a queue in an airport. They are numbered starting from the queue's tail: the 1st walrus stands at the end of the queue and the \( n \)-th walrus stands at the beginning of the queue. The \( i \)-th walrus has an age equal to \( a_i \).
+
+The \( i \)-th walrus becomes displeased if there's a younger walrus standing in front of him, that is, if there exists such \( j \) (\( i < j \)), that \( a_i > a_j \). The displeasure of the \( i \)-th walrus is equal to the number of walruses between him and the furthest walrus ahead of him, which is younger than the \( i \)-th one. That is, the further that young walrus stands from him, the stronger the displeasure is.
+
+The airport manager asked you to count for each of \( n \) walruses in the queue his displeasure.
+
+<b>Input</b>
+The first line contains an integer \( n \) (\( 2 \leq n \leq 10^5 \)) — the number of walruses in the queue. The second line contains integers \( a_i \) (\( 1 \leq a_i \leq 10^9 \)).
+
+Note that some walruses can have the same age, but for the displeasure to emerge, the walrus that is closer to the head of the queue needs to be strictly younger than the other one.
+
+<b>Output</b>
+Print \( n \) numbers: if the \( i \)-th walrus is pleased with everything, print "-1" (without the quotes). Otherwise, print the \( i \)-th walrus's displeasure: the number of other walruses that stand between him and the furthest from him younger walrus.
+
+
+
+
+A naive solution would be for each walrus \(i\) to iterate over \(j > i\) and find the largest \(j\) such that \(a_i > a_j\), but that would take time \(\mathcal{O}(n^2)\), which is too slow.
+
+Notice that for each walrus \(i\), we need to find the maximum \(j\) such that \(\min(a[j:n]) < a_i\). Since the left hand side is monotonically increasing with increasing \(j\), we can use binary search. To answer the range minimum queries efficiently, we use a sparse table as the array is static and there are no updates. A sparse table is a two-dimensional table \(S\) where \(S_{i,j} \triangleq \min(a[i:i+2^j])\). Initially, \(S_{i,0} = a_i\) for \(1 \le i \le n\). We have the recurrence \(S_{i,j} = \min(S_{i,j-1}, S_{i+2^{j-1},j-1})\).
+
+To answer range queries \(\min(a[l:r])\), let \(k\) be the largest integer such that \(2^k \le r - l + 1\), that is, \(k\) is the most significant bit of \(r - l + 1\). Then, \(\min(a[l:r]) = \min(S_{l,k}, S_{r-2^k,k})\), giving us an \(\mathcal{O}(1)\) answer per query with fast bit operations.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    for (auto &u : a) cin >> u;
+    return 0;
+}
+
+
+
+
+
+Let's implement the sparse table and populate it. We also implement a function to query the minimum on the range \(\mathcal[l, r)\), as described above.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+constexpr int LOG = 17;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    for (auto &u : a) cin >> u;
+    vector<array<int, LOG>> spt(n);
+    for (int i = 0; i < n; i++) spt[i][0] = a[i];
+    for (int j = 1; j < LOG; j++)
+        for (int bm = 1<<(j - 1), i = 0; i + (1<<j) <= n; i++)
+            spt[i][j] = min(spt[i][j - 1], spt[i + bm][j - 1]);
+    auto qry = [&] (int l, int r) {
+        int p = 31 - __builtin_clz(r - l);
+        return min(spt[l][p], spt[r - (1<<p)][p]);
+    };
+    return 0;
+}
+
+
+
+
+
+We now implement the binary search, where we find the furthest possible younger walrus. The left endpoint maintains the largest index where the range minimum from walrus \(i\) onwards is at least \(a_i\). Suppose it is \(l\). Then, the answer is \(l - i - 1\), as we need to count the walruses in between only.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+constexpr int LOG = 17;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    for (auto &u : a) cin >> u;
+    vector<array<int, LOG>> spt(n);
+    for (int i = 0; i < n; i++) spt[i][0] = a[i];
+    for (int j = 1; j < LOG; j++)
+        for (int bm = 1<<(j - 1), i = 0; i + (1<<j) <= n; i++)
+            spt[i][j] = min(spt[i][j - 1], spt[i + bm][j - 1]);
+    auto qry = [&] (int l, int r) {
+        int p = 31 - __builtin_clz(r - l);
+        return min(spt[l][p], spt[r - (1<<p)][p]);
+    };
+    for (int i = 0; i < n; i++) {
+        int l = i, r = n;
+        while (r - l > 1) {
+            int g = (l + r) / 2;
+            if (qry(g, n) < a[i]) l = g;
+            else r = g;
+        }
+        cout << l - i - 1 << ' ';
+    }
+    return 0;
+}
+
+
+
+
+Now, we test on a corner case where all the \(a_i\)'s are equal. None of the walruses should be displeasured in this setting.
+
+
+
+
+2
+69 69

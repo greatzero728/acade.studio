@@ -1,0 +1,423 @@
+<b> Moment of Bloom </b>
+time limit per test: 3 seconds
+memory limit per test: 512 megabytes
+
+She does her utmost to flawlessly carry out a person's last rites and preserve the world's balance of yin and yang.
+
+Hu Tao, being the little prankster she is, has tried to scare you with this graph problem! You are given a connected undirected graph of \(n\) nodes with \(m\) edges. You also have \(q\) queries. Each query consists of two nodes \(a\) and \(b\).
+
+Initially, all edges in the graph have a weight of \(0\). For each query, you must choose a simple path starting from \(a\) and ending at \(b\). Then you add \(1\) to every edge along this path. Determine if it's possible, after processing all \(q\) queries, for all edges in this graph to have an even weight. If so, output the choice of paths for each query.
+
+If it is not possible, determine the smallest number of extra queries you could add to make it possible. It can be shown that this number will not exceed \(10^{18}\) under the given constraints.
+
+A simple path is defined as any path that does not visit a node more than once.
+
+An edge is said to have an even weight if its value is divisible by \(2\).
+
+<b> Input </b>
+The first line contains two integers \(n\) and \(m\) (\(2 \leq n \leq 3 \cdot 10^5\), \(n-1 \leq m \leq \min{\left(\frac{n(n-1)}{2}, 3 \cdot 10^5\right)}\)).
+
+Each of the next \(m\) lines contains two integers \(x\) and \(y\) (\(1 \leq x, y \leq n\), \(x\neq y\)) indicating an undirected edge between node \(x\) and \(y\). The input will not contain self-loops or duplicate edges, and the provided graph will be connected.
+
+The next line contains a single integer \(q\) (\(1 \leq q \leq 3 \cdot 10^5\)).
+
+Each of the next \(q\) lines contains two integers \(a\) and \(b\) (\(1 \leq a, b \leq n, a \neq b\)), the description of each query.
+
+It is guaranteed that \(nq \leq 3 \cdot 10^5\).
+
+<b> Output </b>
+If it is possible to force all edge weights to be even, print "YES'' on the first line, followed by \(2q\) lines indicating the choice of path for each query in the same order the queries are given. For each query, the first line should contain a single integer \(x\): the number of nodes in the chosen path. The next line should then contain \(x\) spaced separated integers \(p_i\) indicating the path you take (\(p_1 = a, p_x = b\) and all numbers should fall between \(1\) and \(n\)). This path cannot contain duplicate nodes and must be a valid simple path in the graph.
+
+If it is impossible to force all edge weights to be even, print "NO'' on the first line and the minimum number of added queries on the second line.
+
+<b> Note </b>
+Here is what the queries look like for the first test case (red corresponds to the 1st query, blue 2nd query, and green 3rd query):
+<img sh>
+Notice that every edge in the graph is part of either \(0\) or \(2\) colored query edges.
+
+The graph in the second test case looks like this:
+<img sh2>
+There does not exist an assignment of paths that will force all edges to have even weights with the given queries. One must add at least \(2\) new queries to obtain a set of queries that can satisfy the condition.
+
+
+
+
+<b> Naive approach </b>
+The naive approach is simple, just try every possible path for every query and try all combinations of those paths for all queries and in the end check if the condition is satisfied.
+This solution is extremely time consuming and would exceed the time limit of the problem.
+
+
+
+
+
+To solve this problem, There is a nice observation that we need to think of.
+
+Let's consider any node for example node called \(x\).
+What if node \(x\) has appeared in the queries an odd number of times let's say \(o\)?
+Let's say for example that node \(x\) is connected to \(y\) edges.
+Then, the count of paths leading to x which is \(o\) will of course need to be distributed over the number of edges \(y\) that are connected to node \(x\). Because of course, the paths that we are going to choose for node \(x\) have to select either one of those edges.
+
+But wait!
+We can't distribute an odd number to be the sum of even numbers!
+There has to be an odd number between them, and then the edges \(y\) have to have at least one edge with an odd weight!
+
+This tells us that if any node \(x\) appeared an odd number of times in queries the answer will be "NO" for sure.
+
+what about the minimum number of queries we need to add then?
+
+Well, we can see that the number of nodes that have appeared an odd number of times.
+Let's call them "bad nodes", the count of those "bad nodes" has to be even actually, because there is no way to have all nodes for example appear even number of time and only node appear odd number of times. Because this node is not going to be alone in the query after all.
+
+Then we have even number of those "bad nodes"
+we can just get every node of them with another one.
+So, the answer is their count divided by 2.
+
+
+
+
+What if all nodes appeared an even number of times in all queries?
+Let's for simplicity assume that we have a tree instead of a graph.A tree is special in that every two nodes have a unique path between them.
+
+
+If we draw for every query two dots for both nodes and a line between those two nodes.
+then because all our nodes have even frequency in the queries, there can't be any node that has only one line connecting to, this says that there has to be like a cycle in this picture we draw right now.
+
+This says that if we went over queries one by one and start add weights to edges in the unique path between them (we are assuming we have a tree).
+So, if the first query is \(a\) \(b\).
+Then for sure next queries that have \(a\) and the next query that have \(b\) they will form as a cycle as we stated above and since there is only one path between a and b. This path has to be affected again for sure.
+And if we ruined any path by doing so, then ofcourse the upcoming queries will fix it.
+Then there have to an answer!
+
+Okay, we proved that for a tree what about a general graph?
+Here comes a nice fact, we can just get a spanning tree of our graph and work with it and every thing will be the same as the previous explanation.
+
+Let's begin by reading input
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+
+
+
+signed main(){
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> graph(n+1);
+
+    int x, y;
+    for(int i = 0; i < m; i++){
+        cin >> x >> y;
+        
+    }
+}
+
+
+
+
+
+Let's read the queries and count how many times each node appeared.
+
+Then count how many nodes have odd frequency.
+If there is any then the answer is "NO" as we stated above.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+
+
+
+signed main(){
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> graph(n+1);
+
+    int x, y;
+    for(int i = 0; i < m; i++){
+        cin >> x >> y;
+    }
+    
+    vector<int> cnt(n+1);
+    vector<pair<int,int>> queries;
+    int q, a, b;
+    cin >> q;
+    while(q--){
+        cin >> a >> b;
+        queries.push_back({a,b});
+        cnt[a]++;
+        cnt[b]++;
+    }
+
+    int cnt_odd = 0;
+    for(int i = 1; i <= n; i++){
+        if(cnt[i]%2){
+            cnt_odd++;
+        }
+    }
+
+    if(cnt_odd){
+        cout << "NO\n";
+        cout << cnt_odd / 2 << endl;
+    }
+}
+
+
+
+
+Okay, we said that we will get a spanning tree of our graph.
+
+How are we going to do so?
+We will use DSU data structure which simply keeps information for every connected component in the graph.
+At the beginning it works as if all nodes are isolated.
+once we merge any two nodes it makes them in the same component.
+
+This is done by giving every component a parent node responsible for it. and for every node we merge with another node we make one of them the parent of the other.
+
+If we wanted to get the parent for a node we simply traverse over the parents until we reach a node that's a parent for itself.
+
+How this don't get time limit?
+We simply merge the small component into the big component which makes it very hard to have the distance between any node and it's parent more than logarithmic
+
+How we will use this data structure to make our spanning tree?
+When we read an edge, we will merge the two nodes at the end of this edge, if they are already merged then this edge is useless. Otherwise we add this edge to our graph.
+
+By this we make sure that every edge remaining is essential to keep the graph as one connected component and no redundant edges. This is simply a tree by definition.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+
+struct DSU{
+    vector<int> parent, sizes;
+
+    void init(int n){
+        parent.resize(n+1);
+        sizes.resize(n+1, 1);
+        for(int i = 1; i <= n; i++) parent[i] = i;
+    }
+
+    int find_root(int u){
+        if(parent[u] == u) return u;
+        return parent[u] = find_root(parent[u]);
+    }
+
+    int merge(int u, int v){
+        int root_u = find_root(u), root_v = find_root(v);
+        if(root_u == root_v){
+            return 0;
+        }
+        if(sizes[root_u] > sizes[root_v]){
+            swap(root_u, root_v);
+        }
+
+        parent[root_u] = root_v;
+        sizes[root_v] += sizes[root_u];
+        return 1;
+    }
+};
+
+
+signed main(){
+
+    int n, m;
+    cin >> n >> m;
+    
+    DSU dsu;
+    dsu.init(n);
+
+    vector<vector<int>> graph(n+1);
+
+    int x, y;
+    for(int i = 0; i < m; i++){
+        cin >> x >> y;
+        if(dsu.merge(x, y)){
+            graph[x].push_back(y);
+            graph[y].push_back(x);
+        }
+    }
+    
+    vector<int> cnt(n+1);
+    vector<pair<int,int>> queries;
+    int q, a, b;
+    cin >> q;
+    while(q--){
+        cin >> a >> b;
+        queries.push_back({a,b});
+        cnt[a]++;
+        cnt[b]++;
+    }
+
+    int cnt_odd = 0;
+    for(int i = 1; i <= n; i++){
+        if(cnt[i]%2){
+            cnt_odd++;
+        }
+    }
+
+    if(cnt_odd){
+        cout << "NO\n";
+        cout << cnt_odd / 2 << endl;
+    }
+}
+
+
+
+
+Okay, as we proved above that now all we need to do if all nodes appeared an even number in the queries, we can get a spanning tree and the answer is guaranteed to exist!
+
+All we need to do now is to get the paths between any node in every query and print the path!
+
+We will use simple dfs for this.
+Which will go every child of it (not the parent for sure) and see if this child can reach the target. if it can then the root we have now is part of the path and we add it.
+We reverse the path in the end because the flow makes target is the first node to be pushed and the source is the last node.
+We can now print the answer as required in the problem.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+
+struct DSU{
+    vector<int> parent, sizes;
+
+    void init(int n){
+        parent.resize(n+1);
+        sizes.resize(n+1, 1);
+        for(int i = 1; i <= n; i++) parent[i] = i;
+    }
+
+    int find_root(int u){
+        if(parent[u] == u) return u;
+        return parent[u] = find_root(parent[u]);
+    }
+
+    int merge(int u, int v){
+        int root_u = find_root(u), root_v = find_root(v);
+        if(root_u == root_v){
+            return 0;
+        }
+        if(sizes[root_u] > sizes[root_v]){
+            swap(root_u, root_v);
+        }
+
+        parent[root_u] = root_v;
+        sizes[root_v] += sizes[root_u];
+        return 1;
+    }
+};
+
+bool dfs(int root, int parent,int target, vector<vector<int>> &graph, vector<int> &path){
+    if(root == target){
+        path.push_back(root);
+        return true;
+    }
+    for(auto &ch: graph[root]){
+        if(ch != parent){
+            if(dfs(ch, root, target, graph, path)){
+                path.push_back(root);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+signed main(){
+
+    int n, m;
+    cin >> n >> m;
+    
+    DSU dsu;
+    dsu.init(n);
+
+    vector<vector<int>> graph(n+1);
+
+    int x, y;
+    for(int i = 0; i < m; i++){
+        cin >> x >> y;
+        if(dsu.merge(x, y)){
+            graph[x].push_back(y);
+            graph[y].push_back(x);
+        }
+    }
+    
+    vector<int> cnt(n+1);
+    vector<pair<int,int>> queries;
+    int q, a, b;
+    cin >> q;
+    while(q--){
+        cin >> a >> b;
+        queries.push_back({a,b});
+        cnt[a]++;
+        cnt[b]++;
+    }
+
+    int cnt_odd = 0;
+    for(int i = 1; i <= n; i++){
+        if(cnt[i]%2){
+            cnt_odd++;
+        }
+    }
+
+    if(cnt_odd){
+        cout << "NO\n";
+        cout << cnt_odd / 2 << endl;
+    } else {
+        cout << "YES\n";
+        vector<int> path;
+        for(auto &[u, v]: queries){
+            dfs(u, -1, v, graph, path);
+            cout << path.size() << endl;
+            reverse(path.begin(), path.end());
+            for(auto i : path) cout << i << " ";
+            cout << endl;
+            path.clear();
+        }
+    }
+}
+
+
+
+
+Let's try a custom test to check the validity of the solution when n is very small.
+
+<code>
+2 1
+1 2
+1
+1 2
+</code>
+
+There is actually only one query so, of course we can't get even weights after applying this.
+The answer will be no.
+We can add only one query and it's the same query and by adding this query the weights will be even
+answer is
+<code>
+NO
+1
+</code>
+
+
+
+
+2 1
+1 2
+1
+1 2

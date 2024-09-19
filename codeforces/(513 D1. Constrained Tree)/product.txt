@@ -1,0 +1,385 @@
+D1. Constrained Tree
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+You need to find a binary tree of size \(n\) that satisfies a given set of \(c\) constraints. Suppose that the nodes of the unknown binary tree are labeled using a pre-order traversal starting with 1. For the \(i\)-th constraint you are given two labels, \(a_i\) and \(b_i\) and a direction, left or right. In case of left direction, \(b_i\) is an element of the subtree rooted at \(a_i\)'s left child. Similarly in the case of right direction \(b_i\) is an element of the subtree rooted at \(a_i\)'s right child.
+
+Input
+The first line of input contains two integers n and c (1 ≤ n ≤ 100, 1 ≤ c ≤ 50). The next c lines contain 2 integers \(a_i, b_i (1 ≤ a_i, b_i ≤ n)\) and either "LEFT" or "RIGHT" denoting whether \(b_i\) is in the subtree rooted at \(a_i\)'s left child or in the subtree rooted at \(a_i\)'s right child.
+
+Output
+Output will be on a single line.
+
+Any binary tree that satisfies the constraints will be accepted. The tree's nodes should be printed out as n space separated labels representing an in-order traversal, using the pre-order numbers as labels of vertices.
+
+If there are no trees that satisfy the constraints, print "IMPOSSIBLE" (without quotes).
+
+Note
+Consider the first sample test. We need to find a tree with 3 nodes that satisfies the following two constraints. The node labeled 2 with pre-order traversal should be in the left subtree of the node labeled 1 with pre-order traversal; the node labeled 3 with pre-order traversal should be in the right subtree of the node labeled 1. There is only one tree with three nodes that satisfies these constraints and its in-order traversal is (2, 1, 3).
+
+Pre-order is the "root – left subtree – right subtree" order. In-order is the "left subtree – root – right subtree" order.
+
+
+
+
+\(\bull\) Naive algorithm  
+We can generate all possible \(n!\) permutations representing the in-order traversal of node labels and check each permutation against the given constraints to determine if it forms a valid binary tree.
+
+To validate a current permutation, start by selecting the root node as the first element, which represents the minimum index in a pre-order traversal. Check the constraints to determine where child nodes are positioned relative to the root, ensuring that left subtree nodes appear before the root and right subtree nodes appear after it. If all constraints are satisfied for the current permutation, it is deemed valid; otherwise, it is discarded.
+
+The time complexity of this approach is \(O(n! \cdot n)\), where \(n!\) accounts for generating all permutations and \(O(n)\) is for validating each permutation. Consequently, for larger values of \(n\), this algorithm will exceed time limits due to the rapid growth of \(n!\), making it a time-limit-exceeding algorithm.
+
+
+
+
+\(\bull\) Real algorithm
+We are given \(c\) constraints: \(a_i, b_i, tp_i\) (where \(tp_i\) is either "LEFT" or "RIGHT"). If \(tp_i\) = "LEFT", node \(b_i\) is positioned in the left subtree of node \(a_i\); otherwise, node \(b_i\) is positioned in the right subtree of node \(a_i\).
+If \(b_i\) is less than or equal to \(a_i\), it indicates that there exists a subtree node with an index less than or equal to the index of the current subtree node, which violates the rules of pre-order traversal.
+
+Among all these constraints, we can determine the range limits of the left subtree indices and the right subtree indices.
+Let's assume as follows:
+\(lmn \leq \text{left\_subtree\_indices} \leq lmx\)
+\(rmn \leq \text{right\_subtree\_indices} \leq rmx\).
+
+Let's suppose we need to determine the in-order traversal of subtree \(u\). Then, we have to determine the in-order traversal of subtree \(1\) (which represents the full tree).
+
+The following truths hold:
+- It is obvious that in both in-order and pre-order traversals, all indices of the subtree are consecutive integers.
+- Since the nodes of the original unknown binary tree are labeled using pre-order traversal, we have \(u \leq lmn \leq lmx\) if the left subtree of \(u\) exists, and \(u \leq rmn \leq rmx\) if the right subtree of \(u\) exists. This means that if we can set the range indices \([mn, mx]\) as the current subtree \(u\), then the index of \(u\) should be the same as \(mn\), which is the index of the root of the subtree traversed first in pre-order traversal.
+- Since our desired traversal is in-order traversal, we need to assign the minimum indices first to the left subtree if it exists, set the index \(mn\) to node \(u\), and then assign the remaining indices to the right subtree if it exists.
+
+By determining the indices using a depth-first search algorithm in in-order traversal with the logic described above, we can identify cases where a valid in-order traversal permutation cannot be created. 
+- There is no issue when setting the indices for the left subtree (if it exists) and node \(u\), because node \(u\) is already indexed with \(mn\). For the left subtree, we can set the indices range as \([mn + 1, lmx]\) since we have already used \(mn\) for node \(u\) and must start from \(mn + 1\). Thus, there are no other challenges at this stage.
+- However, before entering the right subtree, if \(rmn\) is less than or equal to the maximum index among the left subtree and \(u\), it indicates a violation of the in-order traversal rules, and we should not proceed further. The reason is that we need to assign \(rmn\) to one node of the right subtree. If we set \(rmn\) to the right subtree, it would mean that there exists a right subtree node with an index less than or equal to the indices of the left subtree nodes and \(u\), which contradicts the rules of in-order traversal.
+In this case, since we cannot find a valid in-order traversal, we can simply exit our algorithm.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+    }
+    return 0;
+}
+
+
+
+
+We are given \(c\) constraints: \(a_i, b_i, tp_i\) (where \(tp_i\) is either "LEFT" or "RIGHT"). If \(tp_i\) = "LEFT", node \(b_i\) is positioned in the left subtree of node \(a_i\); otherwise, node \(b_i\) is positioned in the right subtree of node \(a_i\).
+
+Let's store the above information in son[u][k].
+Here, \(k\) can be 0 or 1, where son[u][0] represents the left subtree and son[u][1] represents the right subtree.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+vector<int> son[NN][2];
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    return 0;
+}
+
+
+
+
+If \(b_i\) is less than or equal to \(a_i\), it indicates that there exists a subtree node with an index less than or equal to the index of the current subtree node, which violates the rules of pre-order traversal.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+void end() {puts("IMPOSSIBLE"), exit(0);}
+
+vector<int> son[NN][2];
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        if(b <= a) end();
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    return 0;
+}
+
+
+
+
+By determining the indices using a depth-first search algorithm with in-order traversal, we can identify cases where a valid in-order traversal permutation cannot be created.
+While iterating through subtrees, we only need to know the limits of the indices: \([mn, mx]\) (indicating that all indices of the current subtree fall within this range).
+We can start our depth-first search with dfs(1, n) since we need to assign all indices from 1 to \(n\) for the full tree.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+void end() {puts("IMPOSSIBLE"), exit(0);}
+
+vector<int> son[NN][2];
+
+void dfs(int mn, int mx) {
+    
+}
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        if(b <= a) end();
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    dfs(1, n);
+    return 0;
+}
+
+
+
+
+Let's establish the range limits for the indices of the left and right subtrees:
+
+For the left subtree, the indices are defined as \([lmn, lmx]\):
+\(lmn \leq \text{left\_subtree\_indices} \leq lmx\)
+
+For the right subtree, the indices are defined as \([rmn, rmx]\):
+\(rmn \leq \text{right\_subtree\_indices} \leq rmx\)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+void end() {puts("IMPOSSIBLE"), exit(0);}
+
+vector<int> son[NN][2];
+
+void dfs(int mn, int mx) {
+    int lmn = NN, lmx = 0;
+    for(int v : son[mn][0]) lmn = min(lmn, v), lmx = max(lmx, v);
+    
+    int rmn = NN, rmx = 0;
+    for(int v : son[mn][1]) rmn = min(rmn, v), rmx = max(rmx, v);
+}
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        if(b <= a) end();
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    dfs(1, n);
+    return 0;
+}
+
+
+
+
+Since our desired traversal is in-order, we need to assign the minimum indices first to the left subtree if it exists, set the index \(mn\) to node \(u\), and then assign the remaining indices to the right subtree if it exists.
+
+In detail:
+\(\bull\) If there is a left subtree, we can assign the smallest possible indices except index \(mn\) to it. (This is because index \(mn\) is already assigned to root node \(u\))
+\(\bull\) After assigning the left subtree, we can set \(mn\) to node \(u\), allowing us to save the in-order traversal order by recording the index of node \(u\) as \(mn\).
+\(\bull\) If there are nodes that have not yet been assigned indices and a right subtree exists, we can allocate the remaining indices to the right subtree.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+void end() {puts("IMPOSSIBLE"), exit(0);}
+
+vector<int> son[NN][2], ans;
+
+void dfs(int mn, int mx) {
+    int lmn = NN, lmx = 0;
+    for(int v : son[mn][0]) lmn = min(lmn, v), lmx = max(lmx, v);
+    int lst = mn + 1, led = lmx;
+    if(lst <= lmx) dfs(lst, lmx);
+    
+    ans.push_back(mn);
+    
+    int rmn = NN, rmx = 0;
+    for(int v : son[mn][1]) rmn = min(rmn, v), rmx = max(rmx, v);
+    int rst = rt + 1, red = max(mx, rmx);
+    if(rmn < NN || rst <= red) dfs(rst, red);
+}
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        if(b <= a) end();
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    dfs(1, n);
+    return 0;
+}
+
+
+
+
+Before entering the right subtree, if \(rmn\) is less than or equal to the maximum index among the left subtree and \(u\), it indicates a violation of the in-order traversal rules, and we should not proceed further. The reason is that we need to assign \(rmn\) to one node of the right subtree. If we set \(rmn\) to the right subtree, it would mean that there exists a right subtree node with an index less than or equal to the indices of the left subtree nodes and \(u\), which contradicts the rules of in-order traversal.
+In this case, since we cannot find a valid in-order traversal, we can simply exit our algorithm.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+void end() {puts("IMPOSSIBLE"), exit(0);}
+
+vector<int> son[NN][2], ans;
+int rt;
+
+void dfs(int mn, int mx) {
+    rt = mn;
+    
+    int lmn = NN, lmx = 0;
+    for(int v : son[mn][0]) lmn = min(lmn, v), lmx = max(lmx, v);
+    int lst = mn + 1, led = lmx;
+    if(lst <= lmx) dfs(lst, lmx);
+    
+    ans.push_back(mn);
+    
+    int rmn = NN, rmx = 0;
+    for(int v : son[mn][1]) rmn = min(rmn, v), rmx = max(rmx, v);
+    int rst = rt + 1, red = max(mx, rmx);
+    if(rmn < NN || rst <= red) {
+        if(rmn <= rt) end();
+        dfs(rst, red);
+    }
+}
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        if(b <= a) end();
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    dfs(1, n);
+    return 0;
+}
+
+
+
+
+Finally, we can print the saved in-order traversal indices.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+const int NN = 121;
+
+void end() {puts("IMPOSSIBLE"), exit(0);}
+
+vector<int> son[NN][2], ans;
+int rt;
+
+void dfs(int mn, int mx) {
+    rt = mn;
+    
+    int lmn = NN, lmx = 0;
+    for(int v : son[mn][0]) lmn = min(lmn, v), lmx = max(lmx, v);
+    int lst = mn + 1, led = lmx;
+    if(lst <= lmx) dfs(lst, lmx);
+    
+    ans.push_back(mn);
+    
+    int rmn = NN, rmx = 0;
+    for(int v : son[mn][1]) rmn = min(rmn, v), rmx = max(rmx, v);
+    int rst = rt + 1, red = max(mx, rmx);
+    if(rmn < NN || rst <= red) {
+        if(rmn <= rt) end();
+        dfs(rst, red);
+    }
+}
+
+int main() {
+    int n, c; scanf("%d %d", &n, &c);
+    while(c--) {
+        int a, b; string c;
+        cin>>a>>b>>c;
+        if(b <= a) end();
+        son[a][c[0] == 'R'].push_back(b);
+    }
+    dfs(1, n);
+    for(int x : ans) printf("%d ", x);
+    return 0;
+}
+
+
+
+
+3 2
+1 2 LEFT
+1 3 RIGHT
+
+
+
+
+3 2
+1 2 RIGHT
+1 3 LEFT
+
+
+
+
+Let's examine a custom corner case where \(n, c, a_i, b_i\) are at their minimum values: \(n = c = a_i = b_i = 1\).
+
+<code>
+1 1
+1 1 LEFT
+</code>
+
+According to the definition of \(c = 1\) subtree direction information, in this custom test case, node 1 is located in the left subtree of node 1.
+This is absolutely not correct, as node is is not located in left subtree and it's just the root of subtree 1, so in this case we have to print "IMPOSSIBLE"
+
+
+
+
+1 1
+1 1 LEFT

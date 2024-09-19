@@ -1,0 +1,113 @@
+<b>XOR Equation</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Two positive integers \(a\) and \(b\) have a sum of \(s\) and a bitwise XOR of \(x\). How many possible values are there for the ordered pair \((a, b)\)?
+
+<b>Input</b>
+The first line of the input contains two integers \(s\) and \(x\) (\(2 \le s \le 10^{12}, 0 \le x \le 10^{12}\)), the sum and bitwise XOR of the pair of positive integers, respectively.
+
+<b>Output</b>
+Print a single integer, the number of solutions to the given conditions. If no solutions exist, print 0.
+
+<b>Note</b>
+In the first sample, we have the following solutions: (2, 7), (3, 6), (6, 3), (7, 2).
+
+In the second sample, the only solutions are (1, 2) and (2, 1).
+
+
+
+
+We can iterate over all pairs \((a, b)\) with the sum \(s\) and check which ones have xor of \(x\), but that would take \(\mathcal{O}(s)\) which is too slow.
+
+Let us consider numbers \(a\) and \(b\) bit-by-bit. If at a position, both bits are set, then the sum and xor will differ, as the sum adds these two bits and doubles them, but the xor cancels them. In all other cases, both the sum and xor are the same. Thus, the quantity \(d \triangleq \frac{s - x}{2}\) will give us the bits which need to be set in both \(a\) and \(b\). We divide by 2 to account for the doubling in the sum. This already tells us that we need \(s \ge x\) and \(s \equiv x \bmod 2\). Also, we require that \(d \& x = 0\), since a set bit in \(d\) means that bits in \(x\) should be unset (as \(1 \oplus 1 = 0\)).
+
+Now, we consider bits that are unset in \(d\). If a bit is set in \(x\), then one of the bits in either \(a\) or \(b\) should be set, and there are two ways of doing so (either \(a\) or \(b\) will get the set bit). If it is unset, then both bits should be unset in \(a\) and \(b\), and there is only one way of doing this. Hence, the answer will be \(2^{c(x)}\), where \(c(x)\) denotes the number of set bits in \(x\). As a corner case, notice that if \(d = 0\) or \(s = x\), then we must subtract the answer by 2, for cases where either \(a = 0\) or \(b = 0\) (we may not assign any set bit to one of these numbers) as \(a, b > 0\).
+
+Let's set up the boilerplate and read the input. Due to the larger range, we use 64-bit inputs.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    ll s, x;
+    cin >> s >> x;
+    return 0;
+}
+
+
+
+
+
+Now, let's implement the checks described above and output 0 if the checks fail. We need to check that all of the following are satisfied.
+
+1. \(s \ge x\).
+2. \(s \equiv x \bmod 2\).
+3. \(d \& x = 0\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    ll s, x;
+    cin >> s >> x;
+    if ((s < x) || (s%2 != x%2)) return cout << 0, 0;
+    ll d = (s - x) / 2;
+    if (d & x) return cout << 0, 0;
+    return 0;
+}
+
+
+
+
+
+Finally, lets compute the answer. Do not forget to subtract \(2\) in case \(s = x\) or \(d = 0\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+int main() {
+    cin.tie(0)->sync_with_stdio(0);
+    ll s, x;
+    cin >> s >> x;
+    if ((s < x) || (s%2 != x%2)) return cout << 0, 0;
+    ll d = (s - x) / 2;
+    if (d & x) return cout << 0, 0;
+    ll ans = 1;
+    for (int i = 0; i < 60; i++) {
+        if (d & (1LL << i)) continue;
+        if (x & (1LL << i)) ans *= 2;
+    }
+    if (!d) ans -= 2;
+    cout << ans;
+    return 0;
+}
+
+
+
+
+
+Now, consider a test where \(d \& x \neq 0\) have a common bit. According to our analysis we should expect an output of 0. This case was not present in the samples. Here, we consider \(d = x = 2\) so that \(s = 2d + x = 6\).
+
+
+
+
+6 2

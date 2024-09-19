@@ -1,0 +1,259 @@
+Problem Statement:
+<b>Problem Name</b>: Picking Strings
+<b>Time limit per test</b>: 2 seconds
+<b>Memory limit per test</b>: 256 megabytes
+
+Alice has a string consisting of characters <tt>'A'</tt>, <tt>'B'</tt> and <tt>'C'</tt>. Bob can use the following transitions on any substring of our string in any order any number of times:
+
+• <tt>A</tt> \(\rightarrow\) <tt>BC</tt>
+• <tt>B</tt> \(\rightarrow\) <tt>AC</tt>
+• <tt>C</tt> \(\rightarrow\) <tt>AB</tt>
+• <tt>AAA</tt> \(\rightarrow\) empty string
+
+Note that a substring is one or more consecutive characters. For given queries, determine whether it is possible to obtain the target string from source.
+
+<b>Input</b>
+The first line contains a string \(S\) \((1≤|S|≤10^5)\). The second line contains a string \(T\) \((1≤|T|≤10^5)\), each of these strings consists only of uppercase English letters <tt>'A'</tt>, <tt>'B'</tt> and <tt>'C'</tt>.
+
+The third line contains the number of queries \(Q\) \((1≤Q≤10^5)\).
+
+The following \(Q\) lines describe queries. The \(i\)-th of these lines contains four space separated integers \(a_i, b_i, c_i, d_i\). These represent the \(i\)-th query: is it possible to create \(T[c_i..d_i]\) from \(S[a_i..b_i]\) by applying the above transitions finite amount of times?
+
+Here, \(U[x..y]\) is a substring of \(U\) that begins at index \(x\) (indexed from \(1\)) and ends at index \(y\). In particular, \(U[1..|U|]\) is the whole string \(U\).
+
+It is guaranteed that \((1≤a≤b≤|S|)\) and \((1≤c≤d≤|T|)\).
+
+<b>Output</b>
+Print a string of \(Q\) characters, where the \(i\)-th character is <tt>'1'</tt> if the answer to the \(i\)-th query is positive, and <tt>'0'</tt> otherwise.
+
+<b>Note</b>
+In the first query we can achieve the result, for instance, by using transitions \(AA\bold{B} \rightarrow AAA\bold{C} \rightarrow \bold{AAA}AB \rightarrow AB\) .
+
+The third query asks for changing <tt>AAB</tt> to <tt>A</tt> — but in this case we are not able to get rid of the character <tt>'B'</tt>.
+
+
+
+
+Let us summarize the problem: We are given two strings \(S\) and \(T\) made up of characters <tt>'A'</tt>, <tt>'B'</tt> and <tt>'C'</tt>. We have some transformation rules which are,
+
+• <tt>A</tt> \(\rightarrow\) <tt>BC</tt>
+• <tt>B</tt> \(\rightarrow\) <tt>AC</tt>
+• <tt>C</tt> \(\rightarrow\) <tt>AB</tt>
+• <tt>AAA</tt> \(\rightarrow\) empty string
+
+and the goal is to determine if it's possible to transform a substring of \(S\) into a substring of \(T\) using these rules. We are asked to answer multiple queries where each query checks if we can transform \(S[a_i..b_i]\) into \(T[c_i..d_i]\).
+
+The naive approach would involve simulating all possible transformations, which is clearly impractical for large input sizes due to the complexity of the transformations and the number of steps required. The transformations might involve adding or removing characters, making this approach difficult to simulate step-by-step in a straightforward way.
+
+
+
+
+Let us make some observations,
+
+• If a substring contains more 'B's and 'C's, it’s not going to transform into one that contains fewer.
+• 'A' can be removed using the "AAA" rule, but this requires consecutive 'A's in groups of three.
+• Since the rules replace 'A', 'B', and 'C' with two new characters, the number of non-'A' characters ('B' and 'C') in the string grows or stays the same. This means that the number of non-'A' characters in \(S[a_i..b_i]\) should match the number of non-'A' characters in \(T[c_i..d_i]\) for the transformation to be possible.
+• The transformations shuffle characters cyclically ('A' → 'BC', 'B' → 'AC', 'C' → 'AB'), so there’s a modulo-3 relationship between the character counts of 'B' and 'C'. Additionally, since we can remove 'A's in groups of three, the number of consecutive 'A's must also be divisible by three for a perfect match.
+
+
+
+
+Using these observations instead of simulating each transformation, we can focus on precomputing important information about the strings. For each string \(S\) and \(T\), we track the number of non-'A' characters (B and C combined) and track the longest sequence of consecutive 'A's (since we can only remove them in groups of three). For that we can use prefix sums to efficiently compute the number of non-'A' characters and the longest sequence of 'A's for any substring in constant time. Once we have the preprocessed information we can start processing the queries.
+
+For each query, we can compute the number of non-'A' characters and the maximum sequence of 'A's in both substrings using the prefix sums. To check whether the transformation is possible we have the following conditions from the observations,
+
+• The number of non-'A' characters in \(S[a_i..b_i]\) must be at least as large as in \(T[c_i..d_i]\).
+• The parity (odd/even) of the non-'A' character counts must match between the two substrings, since transformations maintain this property.
+• The maximum sequence of consecutive 'A's in \(S[a_i..b_i]\) must be at least as large as in \(T[c_i..d_i]\).
+• If the non-'A' counts are the same, then the length of the longest 'A' sequence must match modulo 3 (because we can only remove 'A's in groups of three).
+• If \(S[a_i..b_i]\) contains only 'A's but \(T[c_i..d_i]\) has non-'A' characters, the transformation is impossible.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    
+    string s, t;
+    cin >> s >> t;
+}
+
+
+
+
+
+We inititalize two arrays \(nonA\_S\) and \(nonA\_T\) to store cumulative counts of non-'A' characters for \(S\) and \(T\), respectively, while \(maxA\_S\) and \(maxA\_T\) to store the length of the longest consecutive sequence of 'A' characters encountered up to each index. We iterate through each character of strings \(S\) and \(T\), update these arrays. For counting non-'A' characters we just need to add \(1\) if it is not an 'A' and for longest consecutive 'A's we add the previous length with \(1\) if current character is 'A' otherwise it gets initialized with \(0\).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int nonA_S[100003], nonA_T[100003], maxA_S[100003], maxA_T[100003];
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    
+    string s, t;
+    cin >> s >> t;
+
+    for (int i = 0; i < s.size(); i++) {
+        nonA_S[i + 1] = nonA_S[i] + (s[i] != 'A');
+        maxA_S[i + 1] = (s[i] == 'A' ? maxA_S[i] + 1 : 0);
+    }
+
+    for (int i = 0; i < t.size(); i++) {
+        nonA_T[i + 1] = nonA_T[i] + (t[i] != 'A');
+        maxA_T[i + 1] = (t[i] == 'A' ? maxA_T[i] + 1 : 0); 
+    }
+}
+
+
+
+
+
+We now read the number of queries (\(numQueries\)) and declare a string \(result\) to store the result of each query. For each query, we take input of the indices \(a, b, c\), and \(d\). These indices represent the substring ranges of \(S[a..b]\) and \(T[c..d]\) that need to be compared. We adjust \(a\) and \(c\) to convert the \(1\)-based input indices to \(0\)-based indexing.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int nonA_S[100003], nonA_T[100003], maxA_S[100003], maxA_T[100003];
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    
+    string s, t;
+    cin >> s >> t;
+
+    for (int i = 0; i < s.size(); i++) {
+        nonA_S[i + 1] = nonA_S[i] + (s[i] != 'A');
+        maxA_S[i + 1] = (s[i] == 'A' ? maxA_S[i] + 1 : 0);
+    }
+
+    for (int i = 0; i < t.size(); i++) {
+        nonA_T[i + 1] = nonA_T[i] + (t[i] != 'A');
+        maxA_T[i + 1] = (t[i] == 'A' ? maxA_T[i] + 1 : 0); 
+    }
+
+    int numQueries;
+    cin >> numQueries;
+
+    string result;
+
+    while (numQueries--) {
+        int a, b, c, d;
+        cin >> a >> b >> c >> d;
+        a--; c--;
+    }
+}
+
+
+
+
+Based on the indices \(a,b,c,d\), we now calculate the number of non-'A' characters and the longest sequence of consecutive 'A's in both substrings by using the precomputed arrays \(nonA\_S, nonA\_T, maxA\_S\), and \(maxA\_T\). Based on these values, we check several conditions whether the transformation is possible or not as discussed before in the solution:
+
+• The number of non-'A' characters in \(S\) must not exceed those in \(T\).
+• Both substrings must have the same parity (odd/even) of non-'A' characters.
+• The maximum sequence of 'A's in \(S\) must be at least as long as in \(T\).
+• If the non-'A' character counts are equal, the 'A' sequences must match in length modulo \(3\).
+• If \(S\) contains only 'A's, then it can't be transformed into a substring with non-'A' characters if maximum sequence of 'A's in \(S\) is equal to \(T\).
+
+Depending on whether these conditions are satisfied, we append <tt>'1'</tt> (if the transformation is possible) or <tt>'0'</tt> (if not) to the \(result\) string.
+
+After processing all queries, we output the \(result\) string.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int nonA_S[100003], nonA_T[100003], maxA_S[100003], maxA_T[100003];
+
+int main() {
+    ios::sync_with_stdio(0);
+    cin.tie(NULL);
+    
+    string s, t;
+    cin >> s >> t;
+
+    for (int i = 0; i < s.size(); i++) {
+        nonA_S[i + 1] = nonA_S[i] + (s[i] != 'A');
+        maxA_S[i + 1] = (s[i] == 'A' ? maxA_S[i] + 1 : 0);
+    }
+
+    for (int i = 0; i < t.size(); i++) {
+        nonA_T[i + 1] = nonA_T[i] + (t[i] != 'A');
+        maxA_T[i + 1] = (t[i] == 'A' ? maxA_T[i] + 1 : 0); 
+    }
+
+    int numQueries;
+    cin >> numQueries;
+
+    string result;
+
+    while (numQueries--) {
+        int a, b, c, d;
+        cin >> a >> b >> c >> d;
+        a--; c--;
+        
+        int nonA_S_count = nonA_S[b] - nonA_S[a];
+        int nonA_T_count = nonA_T[d] - nonA_T[c]; 
+
+        int maxA_S_count = min(maxA_S[b], b - a);
+        int maxA_T_count = min(maxA_T[d], d - c);
+
+        if (nonA_S_count > nonA_T_count || (nonA_S_count % 2 != nonA_T_count % 2) || 
+            maxA_S_count < maxA_T_count || 
+            (nonA_S_count == nonA_T_count && maxA_S_count % 3 != maxA_T_count % 3) || 
+            (nonA_S_count == 0 && nonA_T_count > 0 && maxA_S_count == maxA_T_count)) {
+            result += '0';
+        } else {
+            result += '1';
+        }
+    }
+
+    cout << result;
+}
+
+
+
+
+
+Let us take a case where both strings \(s\) and \(t\) are same.
+
+<tt>ABC
+ABC
+2
+1 3 1 3
+1 2 1 2
+</tt>
+
+Both the strings are equal. Let us process each query,
+
+• \(S[1..3]~and~T[1..3]\): If we see, \(S[1..3] = ABC\) and \(T[1..3] = ABC\). As they are already equal we don't need to do any operation. So, this query is possible.
+• \(S[1..2]~and~T[1..2]\): If we see, \(S[1..2] = AB\) and \(T[1..2] = AB\). As they are already equal we don't need to do any operation. So, this query is also possible.
+
+As both queries are possible, the output should be <tt>11</tt>.
+
+
+
+
+Both the strings are equal. Let us process each query,
+
+• \(S[1..3]~and~T[1..3]\): If we see, \(S[1..3] = ABC\) and \(T[1..3] = ABC\). As they are already equal we don't need to do any operation. So, this query is possible.
+• \(S[1..2]~and~T[1..2]\): If we see, \(S[1..2] = AB\) and \(T[1..2] = AB\). As they are already equal we don't need to do any operation. So, this query is also possible.
+
+As both queries are possible, the output should be <tt>11</tt>.

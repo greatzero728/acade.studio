@@ -1,0 +1,193 @@
+<b>SPCS - Gopu And Palindromes</b>
+
+Time limit: 1s
+Source limit: 50000B
+Memory limit: 1536MB
+
+Gopu loves palindromes. A palindrome is a string which is same even when it is reversed. eg. aba, a, abba are palindromes whereas, ab is not a palindrome.
+
+Once Gopu was playing with string s, he thought of whether he can change this string into a palindrome or not.
+
+A "cool operation" takes some substring of string with the property that all the characters in the substring should be same. Let us say that substring has size L. Then he can reduce the size of this substring by at least 0 and at most L - 1. e.g. string is abbb, He can change substring bbb into b, bb, bbb (corresponding to not changing it at all) which will make the string s into ab, abb, abbb respectively.
+
+He can apply a "cool operation" as many times as he wishes.
+
+Find out whether he can convert the string into a palindrome or not?
+
+Output "YES" if possible, else output "NO".
+
+<b>Input</b>
+First line of input contains number of test cases T, (1 <= T <= 100).
+
+For each test case, there is a single line representing the string with which Gopu is playing with. (length of string >= 1 and <= 10^5). String will only contain small letters of English alphabet i.e. 'a' to 'z'.
+
+<b>Output</b>
+For each test case output a single line containing "YES" or "NO" (without quotes) respectively to situation whether he can convert given string into palindrome or not?
+
+<b>Explanation</b>
+For first test case string "aba", string is already a palindrome, so no need to apply "cool operation".
+
+For second test case string "aabaaa", take aaa and convert it into aa, So string becomes aabaa which is a palindrome.
+
+For fifth test case string "abca", Gopu can not convert it into palindrome despite applying any "cool operation".
+
+
+
+
+The most obvious solution might be to directly check if the original string can be transformed into a palindrome by applying "cool operations" on it. One might attempt to do this by checking all possible substrings and seeing if they can be reduced into a palindrome. However, this approach is impractical because it involves a combinatorial explosion of possible operations and substrings, which is computationally infeasible for large strings.
+
+
+
+
+To determine whether a string can be converted to a palindrome using the given "interesting operations", we will first simplify the problem by compressing the string.
+
+We will reduce consecutive blocks of identical characters to a single character, capturing the essence of the allowed operations in that one can reduce the length of these blocks but not change them completely.
+
+After compressing the string, we will check whether this simplified version is a palindrome.
+
+If so, the original string can be converted to a palindrome using the allowed operations; otherwise, it cannot.
+
+Let's start by reading the input data.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main()
+{
+    int t;
+    cin >> t;
+    while (t--)
+    {
+        string str;
+        cin >> str;
+    }
+}
+
+
+
+
+
+Reducing Consecutive Identical Characters: we will construct a new string 
+s
+t
+r
+1
+str1 where consecutive identical characters are reduced to a single instance.
+
+Why This Approach?
+
+- Efficiency: Directly checking all possible substrings and their reductions would be computationally infeasible. The approach of reducing consecutive identical characters simplifies the problem to a manageable size.
+- Correctness: The simplified string captures the essential structure needed to check for palindromic properties without needing to simulate every possible reduction operation explicitly.
+
+Example:
+aaabbaa
+It should be:
+aabbaa -is a palindrome.
+aabaa -is a palindrom.
+abba - is a palindrom.
+aba -is a palindrom.
+hence, we can reduce consecutive identical characters to simplify the problem.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main()
+{
+    int t;
+    cin >> t;
+    while (t--)
+    {
+        string str;
+        cin >> str;
+        string str1 = "";
+        str1 += str[0];
+        for (int i = 1; i < str.size(); i++)
+        {
+            if (str[i] == str[i - 1])
+                continue;
+            else
+            {
+                str1 += str[i];
+            }
+        }
+    }
+}
+
+
+
+
+Then we will check, \(str1\) is a palindrome or not by comparing characters from the start and end moving towards the center.
+
+then print "YES" if str1 is a palindrome, otherwise print "NO".
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main()
+{
+    int t;
+    cin >> t;
+    while (t--)
+    {
+        string str;
+        cin >> str;
+        string str1 = "";
+        str1 += str[0];
+        for (int i = 1; i < str.size(); i++)
+        {
+            if (str[i] == str[i - 1])
+                continue;
+            else
+            {
+                str1 += str[i];
+            }
+        }
+        bool flag = true;
+        for (int i = 0; i < str1.size() / 2; i++)
+        {
+            if (str1[i] != str1[str1.size() - 1 - i])
+            {
+                flag = false;
+                break;
+            }
+        }
+        if (flag)
+            cout << "YES" << endl;
+        else
+            cout << "NO" << endl;
+    }
+}
+
+
+
+
+5
+aba
+aabaaa
+aabbba
+aaab
+abca
+
+
+
+
+All the given sample test cases answers are correct. Now I will test a custom test case to check if it runs correctly or gives a corner case or runtime error.
+
+Example:
+<code>
+1
+a
+</code>
+Since the input string consists of a single character and keeps it as is, the string `"a"` doesn't require any modifications. Therefore, it naturally satisfies the condition of being a palindrome. As a result, the output should be "YES".
+
+
+
+
+1
+a

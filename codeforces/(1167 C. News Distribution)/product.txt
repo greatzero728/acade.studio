@@ -1,0 +1,115 @@
+News Distribution
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+In some social network, there are \(n\) users communicating with each other in \(m\) groups of friends. Let's analyze the process of distributing some news between users.
+
+Initially, some user \(x\) receives the news from some source. Then he or she sends the news to his or her friends (two users are friends if there is at least one group such that both of them belong to this group). Friends continue sending the news to their friends, and so on. The process ends when there is no pair of friends such that one of them knows the news, and another one doesn't know.
+
+For each user \(x\) you have to determine what is the number of users that will know the news if initially only user \(x\) starts distributing it.
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(m (1≤n,m≤5⋅10^5)\) — the number of users and the number of groups of friends, respectively.
+
+Then \(m\) lines follow, each describing a group of friends. The \(i\)-th line begins with integer \(k_i (0≤k_i≤n)\) — the number of users in the \(i\)-th group. Then \(k_i\) distinct integers follow, denoting the users belonging to the \(i\)-th group.
+
+It is guaranteed that \(\sum^{m}_{i=1}k_i≤5⋅10^5 \).
+
+<b>Output</b>
+Print \(n\) integers. The \(i\)-th integer should be equal to the number of users that will know the news if user \(i\) starts distributing it.
+
+
+
+
+
+A naive approach might involve using Breadth-First Search (BFS) for each user to find all users reachable from them. Given the constraints, this approach would be too slow and likely result in a Time Limit.
+
+To solve the problem efficiently, we can use the Disjoint Set Union (DSU) data structure (also known as Union-Find). The idea is to treat each user as a node in a graph and create edges between users who are in the same group. Our goal is to determine the size of the connected component for each user, representing the number of users who will receive the news if that user starts distributing it.
+
+First, we treat each user as a node; an edge exists between two users if they are in the same group. The problem reduces to finding connected components in an undirected graph.
+
+Using DSU to efficiently manage and merge the connected components, each user starts in their own component. For each group, merge all users within that group into a single connected component. This step can be done in linear time with respect to the size of the group.
+
+Using the union-by-size strategy to always merge the smaller component into the larger one ensures that the tree representing each component remains shallow, which optimizes future find operations, and using path compression in the find operation flattens the structure of the tree whenever we traverse it.
+
+After processing all groups and merging users, we compute the size of each connected component. To determine the size of the component a user belongs to, find the representative (or parent) of the user using the DSU structure and retrieve the size of that component.
+
+The DSU efficiently maintains the connected components through the find and union operations. Union-by-size ensures that each merge operation is optimal, and path compression ensures that the structure remains flat, resulting in efficient operations.
+
+Every time users in the same group are merged, they are guaranteed to be in the same connected component, ensuring that the component sizes are correctly calculated.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+const int MAXN = 500005;
+
+int par[MAXN];
+int sz[MAXN];
+
+int find(int u) {
+    if (par[u] != u) {
+        par[u] = find(par[u]);
+    }
+    return par[u];
+}
+
+void unite(int u, int v) {
+    u = find(u);
+    v = find(v);
+    if (u == v) return;
+    if (sz[u] < sz[v]) swap(u, v);
+    sz[u] += sz[v];
+    par[v] = u;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    int n, m;
+    cin >> n >> m;
+    for (int i = 0; i < n; i++) {
+        par[i] = i;
+        sz[i] = 1;
+    }
+
+    for (int i = 0; i < m; i++) {
+        int k;
+        cin >> k;
+        int a = -1;
+        for (int j = 0; j < k; j++) {
+            int x;
+            cin >> x;
+            if (a != -1) unite(a, x - 1);
+            a = x - 1;
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        cout << sz[find(i)] << " ";
+    }
+    cout << "\n";
+
+    return 0;
+}
+
+
+
+
+Let's assume a custom test case for validation.
+1 1
+1
+We have a single user (User 1).
+There is one group containing just this single user. Since there is only one user in Group 1, no merging is needed. User 1 remains in its own connected component. The connected component for User 1 contains only themselves, so the size of this component is 1. Therefore, for User 1, the number of users who will know the news if User 1 starts distributing it is 1.
+
+
+
+
+1 1
+1
