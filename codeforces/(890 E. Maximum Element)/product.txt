@@ -1,0 +1,292 @@
+<b>Maximum Element</b>
+
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+One day Petya was solving a very interesting problem. But although he used many optimization techniques, his solution still got Time limit exceeded verdict. Petya conducted a thorough analysis of his program and found out that his function for finding maximum element in an array of n positive integers was too slow. Desperate, Petya decided to use a somewhat unexpected optimization using parameter k, so now his function contains the following code:
+
+<code>
+int fast_max(int n, int a[]) {
+int ans = 0;
+int offset = 0;
+for (int i = 0; i < n; ++i)
+if (ans < a[i]) {
+ans = a[i];
+offset = 0;
+} else {
+offset = offset + 1;
+if (offset == k)
+return ans;
+}
+return ans;
+}
+</code>
+
+That way the function iteratively checks array elements, storing the intermediate maximum, and if after k consecutive iterations that maximum has not changed, it is returned as the answer.
+
+Now Petya is interested in fault rate of his function. He asked you to find the number of permutations of integers from 1 to n such that the return value of his function on those permutations is not equal to n. Since this number could be very big, output the answer modulo \(10^9 + 7\).
+
+<b>Input</b>
+
+The only line contains two integers n and k (\(1 = n, k = 10^6\)), separated by a space — the length of the permutations and the parameter k.
+
+<b>Output</b>
+
+Output the answer to the problem modulo \(10^9 + 7\).
+
+<b>Note</b>
+
+Permutations from second example:
+
+[4, 1, 2, 3, 5], [4, 1, 3, 2, 5], [4, 2, 1, 3, 5], [4, 2, 3, 1, 5], [4, 3, 1, 2, 5], [4, 3, 2, 1, 5].
+
+
+
+
+
+The problem has a naive solution: we can simply iterate over all permutations of length n, run the function from the statement for each of them, and count the number of permutations for which the function returns a value not equal to n. However, there are n! permutations of length n, so this solution will work too slowly for \(n \le 10^6\).
+
+The main idea of the solution is as follows: we essentially need to count the number of permutations for which the function will not reach the number n and will stop earlier. Let's iterate over the x-position of the number n in the permutation. We want to count the number of permutations where the function will not reach the position x, where the number n is written. Let's look at the first x elements of the permutation as a permutation of length x (it's clear that it doesn't matter if the numbers from 1 to n or from 1 to x are written there, as long as the relative order is preserved). Then, in fact, we are interested in the number of permutations of length x where we will not reach the position x, where the number x is written. Let's denote this value as dp[x] (we will calculate this dynamic later). At the same time, to count the real number of permutations, we need to take into account that we can choose which (x - 1) numbers out of (n - 1) numbers will fall on the first (x - 1) positions, and we can also arbitrarily rearrange the elements on the suffix of length (n - x).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int mod = 1e9 + 7;
+
+int main() {
+    int n, k;
+    cin >> n >> k;
+    return 0;
+}
+
+
+
+
+To begin with, let's note that if k + 1 >= x, then dp[x] = 0, because we will always reach the last element of the permutation of length x.
+
+Now, let's break down the answer (assuming that the dynamic programming values have already been calculated). First, we need to select (x - 1) elements from (n - 1) (since the position of the number n is already fixed and equal to x), which will go to the prefix. The number of ways to choose them is \(\binom{n-1}{x-1}\), and we can also rearrange the elements in the suffix of length (n - x) in any way. The number of ways to do this is (n - x)!. Thus, we simply need to add to the answer \(dp[x] \cdot \binom{n-1}{x-1} \cdot (n-x)!\).
+
+Let's precompute the factorial values (modulo). We also need to quickly calculate the binomial coefficients. \(\binom{n}{k} = \frac{n!}{k!(n-k)!}\), so we also need to learn how to divide modulo. For this, we will need fast exponentiation, because \(b^{-1} \equiv b^{mod-2} \pmod{mod}\) (where \(mod\) is a prime number).
+
+Let's implement fast exponentiation, calculation of binomial coefficients, and factorials modulo.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN = 1e6 + 5;
+const int mod = 1e9 + 7;
+
+int my_pow(int n, int m) {
+    if (m == 0) return 1;
+    int res = my_pow(n, m / 2);
+    res = (1LL * res * res) % mod;
+    if (m % 2 == 1) res = (1LL * res * n) % mod;
+    return res;
+}
+
+vector<int> fact;
+
+int binom(int n, int k) {
+    return ((1LL * fact[n] * my_pow(fact[n - k], mod - 2)) % mod * my_pow(fact[k], mod - 2)) % mod;
+}
+
+int main() {
+    fact.resize(MAXN);
+    fact[0] = 1;
+    for (int i = 1; i < MAXN; i++) fact[i] = (1LL * i * fact[i - 1]) % mod;
+    int n, k;
+    cin >> n >> k;
+    return 0;
+}
+
+
+
+
+As mentioned earlier, when k + 1 >= x, the value dp[x] = 0. To the answer, we need to add \(dp[x] \cdot \binom{n-1}{x-1} \cdot (n-x)!\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN = 1e6 + 5;
+const int mod = 1e9 + 7;
+
+int my_pow(int n, int m) {
+    if (m == 0) return 1;
+    int res = my_pow(n, m / 2);
+    res = (1LL * res * res) % mod;
+    if (m % 2 == 1) res = (1LL * res * n) % mod;
+    return res;
+}
+
+vector<int> fact;
+
+int binom(int n, int k) {
+    return ((1LL * fact[n] * my_pow(fact[n - k], mod - 2)) % mod * my_pow(fact[k], mod - 2)) % mod;
+}
+
+int main() {
+    fact.resize(MAXN);
+    fact[0] = 1;
+    for (int i = 1; i < MAXN; i++) fact[i] = (1LL * i * fact[i - 1]) % mod;
+    int n, k;
+    cin >> n >> k;
+    int ans = 0;
+    vector<int> dp(n + 1);
+    for (int x = 1; x <= n; x++) {
+        if (k + 1 >= x) continue;
+        ans = (ans + ((1LL * dp[x] * binom(n - 1, x - 1)) % mod) * fact[n - x]) % mod;
+    }
+    cout << ans << "\n";
+    return 0;
+}
+
+
+
+
+Now we'll learn to count dynamics. Let's consider two cases:
+
+If we haven't reached the number (x - 1), then we definitely won't reach the number x.
+
+If we have reached the number (x - 1), then if it is at a position <= (x - k - 1), then there will be >= k numbers between (x - 1) and x, and we won't reach the number x. If it is at a position >= (x - k), then there will be < k numbers between them, so we will reach the number x.
+
+So, if the number (x - 1) is at a position <= (x - k - 1), then we won't reach the number x in any case. Let's count the number of such permutations. We have (x - k - 1) ways to choose a position for the number (x - 1) and (n - 2)! ways to arrange all the other numbers (except x and (x - 1)).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN = 1e6 + 5;
+const int mod = 1e9 + 7;
+
+int my_pow(int n, int m) {
+    if (m == 0) return 1;
+    int res = my_pow(n, m / 2);
+    res = (1LL * res * res) % mod;
+    if (m % 2 == 1) res = (1LL * res * n) % mod;
+    return res;
+}
+
+vector<int> fact;
+
+int binom(int n, int k) {
+    return ((1LL * fact[n] * my_pow(fact[n - k], mod - 2)) % mod * my_pow(fact[k], mod - 2)) % mod;
+}
+
+int main() {
+    fact.resize(MAXN);
+    fact[0] = 1;
+    for (int i = 1; i < MAXN; i++) fact[i] = (1LL * i * fact[i - 1]) % mod;
+    int n, k;
+    cin >> n >> k;
+    int ans = 0;
+    vector<int> dp(n + 1);
+    for (int x = 1; x <= n; x++) {
+        if (k + 1 >= x) continue;
+        dp[x] = (1LL * (x - k - 1) * fact[x - 2]) % mod;
+        ans = (ans + ((1LL * dp[x] * binom(n - 1, x - 1)) % mod) * fact[n - x]) % mod;
+    }
+    cout << ans << "\n";
+    return 0;
+}
+
+
+
+
+After this, we need to consider permutations where the number (x - 1) is at a position >= (x - k). In this case, we will not reach the number x only if we do not reach the number (x - 1). Let it be at position y. Then, we will again look at the first y elements as a permutation of length y. We need to ensure that we do not reach the last element, where the maximum value is recorded. At the same time, we need to take into account the number of ways to choose the first (y - 1) elements from (x - 2) elements (the positions of elements x and (x - 1) are fixed) and the number of ways to permute elements between numbers (x - 1) and x (this is all analogous to how we calculate the answer itself). Thus, we need to add to dp[x] the value \(\sum_{y = x-k}^{x-1} dp[y] \cdot \binom{x-2}{y-1}\cdot (x-y-1)! = \sum_{y=x-k}^{x-1} \frac{(x-2)!}{(y-1)! \cdot (x-y-1)!} \cdot (x-y-1)! \cdot dp[y] = (x-2)! \cdot \sum_{y=x-k}^{x-1} \frac{dp[y]}{(y-1)!}\).
+
+To calculate this sum quickly, we will simply maintain it. That is, we are actually interested in the sum of values \(\frac{dp[y]}{(y-1)!}\) for the last k positions, so when we calculate the next dp[x], we will add it with the necessary coefficient to this sum, and also subtract the value for (x - k), because when transitioning to (x + 1), it should no longer be considered in the sum.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAXN = 1e6 + 5;
+const int mod = 1e9 + 7;
+
+int my_pow(int n, int m) {
+    if (m == 0) return 1;
+    int res = my_pow(n, m / 2);
+    res = (1LL * res * res) % mod;
+    if (m % 2 == 1) res = (1LL * res * n) % mod;
+    return res;
+}
+
+vector<int> fact;
+
+int binom(int n, int k) {
+    return ((1LL * fact[n] * my_pow(fact[n - k], mod - 2)) % mod * my_pow(fact[k], mod - 2)) % mod;
+}
+
+int main() {
+    fact.resize(MAXN);
+    fact[0] = 1;
+    for (int i = 1; i < MAXN; i++) fact[i] = (1LL * i * fact[i - 1]) % mod;
+    int n, k;
+    cin >> n >> k;
+    int ans = 0;
+    vector<int> dp(n + 1);
+    int sum = 0;
+    for (int x = 1; x <= n; x++) {
+        if (k + 1 >= x) continue;
+        dp[x] = (1LL * (x - k - 1) * fact[x - 2]) % mod;
+        dp[x] = (dp[x] + 1LL * fact[x - 2] * sum) % mod;
+        sum = (sum - 1LL * dp[x - k] * my_pow(fact[x - k - 1], mod - 2)) % mod;
+        if (sum < 0) sum += mod;
+        sum = (sum + 1LL * dp[x] * my_pow(fact[x - 1], mod - 2)) % mod;
+        ans = (ans + ((1LL * dp[x] * binom(n - 1, x - 1)) % mod) * fact[n - x]) % mod;
+    }
+    cout << ans << "\n";
+    return 0;
+}
+
+
+
+
+5 2
+
+
+
+
+5 3
+
+
+
+
+6 3
+
+
+
+
+Let's test the solution on a test where there are no suitable permutations. To do this, it is enough to have k <= n (then we will pass all elements of the permutation in any case). For example, let's take n = 3 and k = 2. Test:
+
+3 2
+
+Expected answer:
+
+0
+
+
+
+
+
+3 2

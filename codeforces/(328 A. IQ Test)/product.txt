@@ -1,0 +1,113 @@
+A. IQ Test
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Petya is preparing for IQ test and he has noticed that there many problems like: you are given a sequence, find the next number. Now Petya can solve only problems with arithmetic or geometric progressions.
+
+Arithmetic progression is a sequence \(a_1, a_1 + d, a_1 + 2d, ..., a_1 + (n - 1)d\), where \(a_1\) and d are any numbers.
+
+Geometric progression is a sequence \(b_1, b_2 = b_1q, ..., b_n = b_{n - 1}q\), where \(b_1 ≠ 0, q ≠ 0, q ≠ 1\).
+
+Help Petya and write a program to determine if the given sequence is arithmetic or geometric. Also it should found the next number. If the sequence is neither arithmetic nor geometric, print 42 (he thinks it is impossible to find better answer). You should also print 42 if the next element of progression is not integer. So answer is always integer.
+
+Input
+The first line contains exactly four integer numbers between 1 and 1000, inclusively.
+
+Output
+Print the required number. If the given sequence is arithmetic progression, print the next progression element. Similarly, if the given sequence is geometric progression, print the next progression element.
+
+Print 42 if the given sequence is not an arithmetic or geometric progression.
+
+
+
+
+The problem requires determining whether a given sequence of four numbers is an arithmetic or geometric progression, and if so, finding the next number in the sequence. If the sequence is neither arithmetic nor geometric, or if the next element is not an integer, the program should print 42.
+
+First, let's analyze the conditions for arithmetic and geometric progressions:
+
+Arithmetic progression: The difference between consecutive terms is constant. Let's denote the first term as \(a_1\) and the common difference as \(d\). Then, the sequence can be represented as \(a_1, a_1 + d, a_1 + 2d, a_1 + 3d\).
+
+Geometric progression: The ratio between consecutive terms is constant. Let's denote the first term as \(b_1\) and the common ratio as \(q\). Then, the sequence can be represented as \(b_1, b_1q, b_1q^2, b_1q^3\).
+
+To determine whether the sequence is arithmetic or geometric, we can check the differences and ratios between consecutive terms.
+
+Next step is to write the code to read the input and calculate the differences and ratios between consecutive terms.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+}
+
+
+
+
+Next, let's calculate the differences and ratios between consecutive terms. If the sequence is arithmetic, the differences should be equal. If the sequence is geometric, the ratios should be equal.
+
+Let's denote the differences as \(d_1 = a_2 - a_1\), \(d_2 = a_3 - a_2\), and \(d_3 = a_4 - a_3\). If the sequence is arithmetic, \(d_1 = d_2 = d_3\).
+
+Similarly, let's denote the ratios as \(q_1 = \frac{a_2}{a_1}\), \(q_2 = \frac{a_3}{a_2}\), and \(q_3 = \frac{a_4}{a_3}\). If the sequence is geometric, \(q_1 = q_2 = q_3\).
+
+We can also calculate the next term in the sequence based on the differences and ratios. If the sequence is arithmetic, the next term is \(a_5 = a_4 + d_1\). If the sequence is geometric, the next term is \(a_5 = a_4 \times q_1\).
+
+Next step is to write the code to calculate the differences and ratios, and determine whether the sequence is arithmetic or geometric.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+    int d1 = a[2] - a[1], d2 = a[3] - a[2], d3 = a[4] - a[3];
+    double q1 = (double)a[2] / a[1], q2 = (double)a[3] / a[2], q3 = (double)a[4] / a[3];
+    
+    if(d1 == d2 && d2 == d3) {
+        printf("%d\n", a[4] + d1);
+    } else if(q1 == q2 && q2 == q3) {
+        double res = a[4] * q1;
+        if(res == (int)res) printf("%d\n", (int)res);
+        else printf("42\n");
+    } else printf("42\n");
+}
+
+
+
+
+836 624 412 200
+
+
+
+
+
+1 334 667 1000
+
+
+
+
+
+Let's examine a custom corner case where four integers are all at their minimum value: 1.  
+<code>
+1 1 1 1  
+</code>
+This sequence can be an arithmetic progression.
+We we can get \( d = 0 \), so the 5th element is \( a_1 + (5 - 1) \cdot d = 1 + 4 \cdot 0 = 1 \).
+Thus, the answer for this test case will be "1".
+
+
+
+
+1 1 1 1 

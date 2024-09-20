@@ -1,0 +1,556 @@
+<b>D. Cut</b>
+<b>time limit per test</b> \(1 \, \text{second}\)
+<b>memory limit per test</b> \(256 \, \text{megabytes}\)
+
+This time Baby Ehab will only cut and not stick. He starts with a piece of paper with an array \(a\) of length \(n\) written on it, and then he does the following:
+
+1. He picks a range \((l, r)\) and cuts the subsegment \(a_l, a_{l + 1}, \ldots, a_r\) out, removing the rest of the array.
+2. He then cuts this range into multiple subranges.
+3. To add a number theory spice to it, he requires that the elements of every subrange must have their product equal to their least common multiple (LCM).
+
+Formally, he partitions the elements of \(a_l, a_{l + 1}, \ldots, a_r\) into contiguous subarrays such that the product of every subarray is equal to its LCM. Now, for \(q\) independent ranges \((l, r)\), tell Baby Ehab the minimum number of subarrays he needs.
+
+<b>Input</b>
+The first line contains two integers \(n\) and \(q\) \((1 \leq n, q \leq 10^5)\) — the length of the array \(a\) and the number of queries.
+
+The next line contains \(n\) integers \(a_1, a_2, \ldots, a_n\) \((1 \leq a_i \leq 10^5)\) — the elements of the array \(a\).
+
+Each of the next \(q\) lines contains two integers \(l\) and \(r\) \((1 \leq l \leq r \leq n)\) — the endpoints of this query's interval.
+
+<b>Output</b>
+For each query, print its answer on a new line.
+
+<b>Note</b>
+The first query asks about the whole array. You can partition it into \([2]\), \([3,10,7]\), and \([5,14]\). The first subrange has product and LCM equal to 2. The second has product and LCM equal to 210. And the third has product and LCM equal to 70. Another possible partitioning is \([2,3]\), \([10,7]\), and \([5,14]\).
+
+The second query asks about the range \((2,4)\). Its product is equal to its LCM, so you don't need to partition it further.
+
+The last query asks about the range \((3,5)\). You can partition it into \([10,7]\) and \([5]\).
+
+
+
+
+
+We know that the \(lcm\) of a subarray is the product of each prime factor to the highest power it appeared in the subarray. In other words, if \(P_i^b\) is the \(i\)-th prime \(P\) to appear as a prime factor of an element in the subarray, raised by the highest power it appeared in, then \(\text{lcm} = \prod{P_i^b}\).
+
+That means that the product of the subarray elements should equal \(\prod{P_i^b}\).
+
+So that means that each prime factor in the subarray should only appear exactly once.
+
+That sets us up for a naive solution. For each query \(l\ r\) we can use a sliding window to keep track of each sub-array. When we encounter an element that has a prime factor that already appeared before, we'll start a new subarray and add 1 to the answer. This naive solution is slow because we'll loop \(n\) for each \(q\) queries, and we'll need to get the prime factors of each element. So its time complexity is \(O(nq\log{n})\).
+
+Let's take the input.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+
+int main() {
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+}
+
+
+
+
+Let's assume that for each array element \(a_i\), it is the first element in a subarray. That means we can calculate for it the maximum size of a subarray it can be part of. We can ignore other elements of the subarray for now. So, just for each \(a_i\), we need to find the nearest next occurrence of any of its prime factors.
+
+Let \(nxt_i =\) index of the next occurrence of any of the prime factors of \(a_i\)
+
+Now, if \(nxt_i = k\), and \(nxt_j = l\) such that \(i < j < l < k\). If \(a_j\) is part of the subarray that starts with \(a_i\), then this subarray must end at index \(l\) and not index \(k\), because one of the prime factors of \(a_j\) appears before index \(k\).
+
+So now, an element \(a_j\) can be part of a certain subarray \(a_l, a_{l+1}, ...., a_r\) if \(l \le j \le r; nxt_j \le r\).
+
+Let \(jmp_i =\) index of the start of the next subarray after a subarray that starts with \(a_i\). In other words, a subarray starting with \(a_i\) will end with \(a_{jmp_i - 1}\).
+
+\(jmp_i\) can be easily calculated as \(jmp_i = \min(a_i, a_{i+1}, .... a_{nxt_i-1})\).
+
+Pre-calculating the \(jmp\) array will allow us to completely skip the part of the naive solution where we use a sliding window, and just keep jumping instead. The last jump could lead us somewhere outside the query range but thats ok because if the subarray \(a_l, ...., a_j, ...., a_r\) is valid, then the subarray \(a_l, ....., a_j\) is valid too.
+
+. At the worst case, the time complexity of this solution is \(O(nq)\), which is slightly better than the naive solution.
+
+
+
+
+
+Let's calculate the \(nxt\) array before we start thinking about a more optimized solution.
+
+First, we need a way to prime factorize each array element. This can be easily done by using the Sieve of Eratosthenes. It will allow us to store the smallest prime factor of each number. That will allow us to get the prime factors of each number in \(O(\log{n})\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+const int N = 1e5 + 5;
+
+int spf[N];
+
+void sieve() {
+    std::iota(spf, spf + N, 0);
+    spf[1] = 1;
+    for (long long i = 2; i < N; i++) {
+        if (spf[i] == i) {
+            for (long long j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
+
+int main() {
+    sieve();
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+}
+
+
+
+
+Now, we need to actually prime factorize each number. When we divide a number by its smallest prime factor, we get a new number. If we keep doing that to the new numbers, we'll end up with \(1\). The prime factors of the original numbers are all the smallest prime factors we met along the way.
+
+We need to keep track of the latest occurrence of each prime factor.
+
+When we meet a certain prime factor of \(a_i\), there are 2 cases.
+1- It's the first time we've met that prime factor. In that case, we just update the latest occurrence of that prime factor.
+2- We've met that prime factor before at index \(j\). Then \(nxt_j = \min(nxt_j, i)\).
+
+To easily handle cases where all prime factors of a certain number appear only once, we can initialize the values of the \(nxt\) array with \(n\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+const int N = 1e5 + 5;
+
+int spf[N];
+
+void sieve() {
+    std::iota(spf, spf + N, 0);
+    spf[1] = 1;
+    for (long long i = 2; i < N; i++) {
+        if (spf[i] == i) {
+            for (long long j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
+
+int main() {
+    sieve();
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+    
+    map<int, int> last_occ;
+    vector<int> nxt(n + 1, n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        int tmp = a[i];
+        while (tmp > 1) {
+            int p = spf[tmp];
+            if (last_occ.count(p)) {
+                nxt[last_occ[p]] = min(nxt[last_occ[p]], i);
+            }
+            last_occ[p] = i;
+            while (tmp % p == 0) tmp /= p;
+        }
+    }
+}
+
+
+
+
+Now, if we assume that we can efficiently pre-calculate the \(jmp\) array, how can we further optimize the solution?
+
+Our jumping behavior can be visualized as a graph of \(n\) nodes, such that there is an edge between the nodes \(i\) and \(jmp_i\). We are sure that this graph is a tree because we are sure that there are no cycles. We are also sure that for each node \(i\) it has a parent \(p_i\) such that \(p_i > i\).
+
+So now, the queries of types \(l, r\), could be visualized as finding the shortest distance on the tree starting from node \(l\) until any node \(i\) such that \(i \ge r\). This type of queries can be easily answered by binary lifting.
+
+Binary lifting allows us to precompute some ancestors of each node, then we can keep jumping to those ancestors, skipping lots of intermediary nodes.
+Let \(anc_i^j = \) the \(2^j\)-th ancestor of the \(i\)-th node. Which means that \(anc_i^0\) is exactly the same as our original \(jmp\) array. So \(anc_i^0 = jmp_i = \min(a_i, a_{i+1}, .... a_{nxt_i-1})\).
+
+We can efficiently pre-calculate \(anc_i^0\) by using any data structure that answers range minimum queries efficiently. We can use a sparse table. Sparse tables answer range minimum queries in \(O(1)\) but without updates.
+
+First, let's write the sparse table.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+const int N = 1e5 + 5;
+
+struct SparseTable {
+    vector<vector<int>> jmp;
+
+    SparseTable(const vector<int> &v) {
+        jmp.resize(1, v);
+        for (int pw = 1, k = 1; pw * 2 <= v.size(); pw *= 2, ++k) {
+            jmp.emplace_back(v.size() - pw * 2 + 1);
+            for (int j = 0; j < jmp[k].size(); ++j) {
+                jmp[k][j] = min(jmp[k - 1][j], jmp[k - 1][j + pw]);
+            }
+        }
+    }
+    int query(int l, int r) {
+        assert(l <= r);
+        int dep = 31 - __builtin_clz(r - l + 1);
+        return min(jmp[dep][l], jmp[dep][r - (1 << dep) + 1]);
+    }
+};
+
+int spf[N];
+
+void sieve() {
+    std::iota(spf, spf + N, 0);
+    spf[1] = 1;
+    for (long long i = 2; i < N; i++) {
+        if (spf[i] == i) {
+            for (long long j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
+
+int main() {
+    sieve();
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+    
+    map<int, int> last_occ;
+    vector<int> nxt(n + 1, n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        int tmp = a[i];
+        while (tmp > 1) {
+            int p = spf[tmp];
+            if (last_occ.count(p)) {
+                nxt[last_occ[p]] = min(nxt[last_occ[p]], i);
+            }
+            last_occ[p] = i;
+            while (tmp % p == 0) tmp /= p;
+        }
+    }
+}
+
+
+
+
+Now, we'll use the sparse table to calculate \(anc_i^0 = \min(a_i, a_{i+1}, .... a_{nxt_i-1})\).
+We'll loop over each array element and query the minimum on the range \(i\) to \(nxt_i - 1\).
+
+We'll set the initial value of the \(anc\) array to \(n\) (which is the root of the tree), to handle cases where the \(2^j\)-th ancestor doesn't exist.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+const int N = 1e5 + 5;
+
+struct SparseTable {
+    vector<vector<int>> jmp;
+
+    SparseTable(const vector<int> &v) {
+        jmp.resize(1, v);
+        for (int pw = 1, k = 1; pw * 2 <= v.size(); pw *= 2, ++k) {
+            jmp.emplace_back(v.size() - pw * 2 + 1);
+            for (int j = 0; j < jmp[k].size(); ++j) {
+                jmp[k][j] = min(jmp[k - 1][j], jmp[k - 1][j + pw]);
+            }
+        }
+    }
+    int query(int l, int r) {
+        assert(l <= r);
+        int dep = 31 - __builtin_clz(r - l + 1);
+        return min(jmp[dep][l], jmp[dep][r - (1 << dep) + 1]);
+    }
+};
+
+int spf[N];
+
+void sieve() {
+    std::iota(spf, spf + N, 0);
+    spf[1] = 1;
+    for (long long i = 2; i < N; i++) {
+        if (spf[i] == i) {
+            for (long long j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
+
+int main() {
+    sieve();
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+    
+    map<int, int> last_occ;
+    vector<int> nxt(n + 1, n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        int tmp = a[i];
+        while (tmp > 1) {
+            int p = spf[tmp];
+            if (last_occ.count(p)) {
+                nxt[last_occ[p]] = min(nxt[last_occ[p]], i);
+            }
+            last_occ[p] = i;
+            while (tmp % p == 0) tmp /= p;
+        }
+    }
+    
+    vector<vector<int>> anc(n + 1, vector<int>(__lg(n) + 1, n));
+    SparseTable table(nxt);
+    for (int i = 0; i < n; ++i) {
+        anc[i][0] = table.query(i, nxt[i]);
+    }
+}
+
+
+
+
+Now that we calculated \(anc_i^0\), we need to calculate \(anc_i^j\).
+We know that the \(2\)nd ancestor of a node \(i\) is the ancestor of its ancestor. The \(4\)-th ancestor of a node \(i\) is the \(2\)nd ancestor of its \(2\)nd ancestor. And so on. We can generalize this relation as: \(anc_i^j = anc_{anc_i^{j-1}}^{j-1}\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+const int N = 1e5 + 5;
+
+struct SparseTable {
+    vector<vector<int>> jmp;
+
+    SparseTable(const vector<int> &v) {
+        jmp.resize(1, v);
+        for (int pw = 1, k = 1; pw * 2 <= v.size(); pw *= 2, ++k) {
+            jmp.emplace_back(v.size() - pw * 2 + 1);
+            for (int j = 0; j < jmp[k].size(); ++j) {
+                jmp[k][j] = min(jmp[k - 1][j], jmp[k - 1][j + pw]);
+            }
+        }
+    }
+    int query(int l, int r) {
+        assert(l <= r);
+        int dep = 31 - __builtin_clz(r - l + 1);
+        return min(jmp[dep][l], jmp[dep][r - (1 << dep) + 1]);
+    }
+};
+
+int spf[N];
+
+void sieve() {
+    std::iota(spf, spf + N, 0);
+    spf[1] = 1;
+    for (long long i = 2; i < N; i++) {
+        if (spf[i] == i) {
+            for (long long j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
+
+int main() {
+    sieve();
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+    
+    map<int, int> last_occ;
+    vector<int> nxt(n + 1, n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        int tmp = a[i];
+        while (tmp > 1) {
+            int p = spf[tmp];
+            if (last_occ.count(p)) {
+                nxt[last_occ[p]] = min(nxt[last_occ[p]], i);
+            }
+            last_occ[p] = i;
+            while (tmp % p == 0) tmp /= p;
+        }
+    }
+    
+    vector<vector<int>> anc(n + 1, vector<int>(__lg(n) + 1, n));
+    SparseTable table(nxt);
+    for (int i = 0; i < n; ++i) {
+        anc[i][0] = table.query(i, nxt[i]);
+    }
+    for (int i = n - 1; i >= 0; --i) {
+        for (int j = 1; j <= __lg(n); ++j) {
+            anc[i][j] = anc[anc[i][j - 1]][j - 1];
+        }
+    }
+}
+
+
+
+
+Now, we'll answer each query by simply doing the largest possible jump each time. We will never do multiple jumps of the same size, because if we do 2 jumps of size \(2^j\) we could've done only one jump of size \(2^{j+1}\).
+
+So, to answer each query, we'll simply loop over all jump sizes from largest to smallest, then we'll do a certain jump if we'll end up between the range \([l, r]\).
+
+Doing a jump of size \(2^j\) means that we did \(2^j\) jumps of size 1. So, after doing a jump of size \(2^j\), we'll add \(2^j\) to the answer.
+
+At the end, we'll add 1 to the answer because we can't skip the last jump because of how special it is. So, we'll just account for it while calculating the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+const int N = 1e5 + 5;
+
+struct SparseTable {
+    vector<vector<int>> jmp;
+
+    SparseTable(const vector<int> &v) {
+        jmp.resize(1, v);
+        for (int pw = 1, k = 1; pw * 2 <= v.size(); pw *= 2, ++k) {
+            jmp.emplace_back(v.size() - pw * 2 + 1);
+            for (int j = 0; j < jmp[k].size(); ++j) {
+                jmp[k][j] = min(jmp[k - 1][j], jmp[k - 1][j + pw]);
+            }
+        }
+    }
+    int query(int l, int r) {
+        assert(l <= r);
+        int dep = 31 - __builtin_clz(r - l + 1);
+        return min(jmp[dep][l], jmp[dep][r - (1 << dep) + 1]);
+    }
+};
+
+int spf[N];
+
+void sieve() {
+    std::iota(spf, spf + N, 0);
+    spf[1] = 1;
+    for (long long i = 2; i < N; i++) {
+        if (spf[i] == i) {
+            for (long long j = i * i; j < N; j += i) {
+                if (spf[j] == j)
+                    spf[j] = i;
+            }
+        }
+    }
+}
+
+int main() {
+    sieve();
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
+
+    map<int, int> last_occ;
+    vector<int> nxt(n + 1, n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+        int tmp = a[i];
+        while (tmp > 1) {
+            int p = spf[tmp];
+            if (last_occ.count(p)) {
+                nxt[last_occ[p]] = min(nxt[last_occ[p]], i);
+            }
+            last_occ[p] = i;
+            while (tmp % p == 0) tmp /= p;
+        }
+    }
+
+    vector<vector<int>> anc(n + 1, vector<int>(__lg(n) + 1, n));
+    SparseTable table(nxt);
+    for (int i = 0; i < n; ++i) {
+        anc[i][0] = table.query(i, nxt[i]);
+    }
+    for (int i = n - 1; i >= 0; --i) {
+        for (int j = 1; j <= __lg(n); ++j) {
+            anc[i][j] = anc[anc[i][j - 1]][j - 1];
+        }
+    }
+    while (q--) {
+        int l, r;
+        cin >> l >> r;
+        l--, r--;
+        int cur = l;
+        int ans = 0;
+        for (int i = __lg(n); i >= 0; --i) {
+            if (anc[cur][i] <= r) {
+                ans += (1 << i);
+                cur = anc[cur][i];
+            }
+        }
+        cout << ans + 1 << endl;
+    }
+}
+
+
+
+
+6 3
+2 3 10 7 5 14
+1 6
+2 4
+3 5
+
+
+
+
+Now let's try a test case with the minimum possible constraints to test the boundaries
+2 3
+1 5
+1 1
+2 2
+1 2
+Expected:
+1
+1
+1
+Reason:
+The first query 1 1: There is only 1 element so the answer is 1
+The second query 2 2: There is only 1 element so the answer is 1
+The third query 1 2: Multiplication by 1 doesn't change the product so the answer should be equal to the second query.
+
+
+
+
+
+2 3
+1 5
+1 1
+2 2
+1 2

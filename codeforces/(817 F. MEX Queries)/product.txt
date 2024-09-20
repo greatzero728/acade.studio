@@ -1,0 +1,383 @@
+F. MEX Queries
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+You are given a set of integer numbers, initially it is empty. You should perform n queries.
+
+There are three different types of queries:
+
+\(\bull\) 1 l r — Add all missing numbers from the interval [l, r]
+\(\bull\) 2 l r — Remove all present numbers from the interval [l, r]
+\(\bull\) 3 l r — Invert the interval [l, r] — add all missing and remove all present numbers from the interval [l, r]
+
+After each query you should output MEX of the set — the smallest positive (MEX  ≥ 1) integer number which is not presented in the set.
+
+Input
+The first line contains one integer number \(n (1 ≤ n ≤ 10^5)\).
+
+Next n lines contain three integer numbers \(t, l, r (1 ≤ t ≤ 3, 1 ≤ l ≤ r ≤ 10^{18})\) — type of the query, left and right bounds.
+
+Output
+Print MEX of the set after each query.
+
+Note
+Here are contents of the set after each query in the first example:
+
+1. {3, 4} — the interval [3, 4] is added
+2. {1, 2, 5, 6} — numbers {3, 4} from the interval [1, 6] got deleted and all the others are added
+3. {5, 6} — numbers {1, 2} got deleted
+
+
+
+
+
+\(\bull\) naive algorithm
+We can directly maintain a set of integers and update it for each query.
+For each query, we can iterate over the specified range [l, r], adding or removing numbers from the set as needed.
+After each operation, we check for the smallest missing positive integer (MEX) by starting from 1 and checking each integer until we find one that isn't in the set.
+This approach is slow because the range can be very large (up to \(10^{18}\)), and iterating over it for each query can lead to excessive time complexity. Given that there can be up to \(10^5\) queries, this results in a time complexity that exceeds the 2-second limit, making it impractical for large inputs.
+
+
+
+
+\(\bull\) improved algorithm
+According to our naive solution, for each query, we would need to iterate through all integers from 1 to \(10^{18} + 1\) in the worst case. This is unavoidable, as there are \(10^{18} + 1\) MEX candidates.
+However, we can approach it differently:
+
+After processing a query \([l_i, r_i]\), one MEX candidate \(l_i\) is added because it represents the first integer that could potentially be missing within the range of the query. For example, if the query \([l_i, r_i]\) involves a removal operation, then after this query, \(l_i\) can be a MEX candidate since it may no longer be present in the set and is the smallest number in the interval \([l_i, r_i]\).
+The candidate \(r_i + 1\) is included because it signifies the next integer immediately following the range, which could also be the smallest missing integer if all integers up to \(r_i\) are present. For instance, if the query \([l_i, r_i]\) is an addition operation, then after this query, \(r_i + 1\) can be a MEX candidate as it represents the first integer that might be missing if all previous integers are accounted for.
+
+At the beginning of the queries, there is only one MEX candidate: 1. After the first query \([l_1, r_1]\), the potential MEX candidates can be \(\{1, l_1, r_1 + 1\}\). Following the second query \([l_2, r_2]\), the maximum candidates increase to \(\{1, l_1, r_1 + 1, l_2, r_2 + 1\}\), resulting in up to five candidates.
+...
+In general, after processing \(n\) queries, the number of MEX candidates can reach a maximum of \(2n + 1\). Specifically, all possible MEX candidates are 1, \(l_1\), \(r_1 + 1\), \(l_2\), \(r_2 + 1\), ..., \(l_n\), \(r_n + 1\).
+
+This represents a significant reduction from the initial \(10^{18} + 1\) candidates. The algorithm efficiently narrows down the candidates, allowing us to handle each query in at most \(2n + 1\) operations.
+Thus, the time complexity of the current algorithm is \(O(n \cdot q)\).
+
+
+
+
+\(\bull\) real algorithm
+As the number of MEX candidates is \(2n + 1\), let's assume there are a total of \(nn\) MEX candidates: \(arr[0], arr[1], \ldots, arr[nn - 1]\) (where \(nn\) can be up to \(2n + 1\), representing the case where all MEX candidates are distinct). Without loss of generality, we can assume \(arr[i] < arr[i + 1]\).
+We can then split the interval \([1, \infty)\) into the following intervals: \([arr[0], arr[1])\), \([arr[1], arr[2])\), \(\ldots\), \([arr[nn - 1], \infty)\).
+
+
+Let's introduce the concept of \(flag[i]\) as follows (where \(0 \leq i < nn\)):
+If \(flag[i] = 1\), then the interval \([arr[i], arr[i + 1]]\) is fully removed.
+If \(flag[i] = 0\), then the interval \([arr[i], arr[i + 1]]\) is fully added.
+
+Then, the initial state is set such that \(flag[i] = 1\). \(0 \leq i < nn\)
+-For a type 1 query, we update all \(flag[i]\) to 0.
+-For a type 2 query, we update all \(flag[i]\) to 1.
+-For a type 3 query, we flip all \(flag[i]\) using \(flag[i] \oplus 1\) (Here, \(\oplus\) represents bitwise XOR)
+(Here,\([arr[i], arr[i + 1])\) should be included in the current query interval \([l, r]\)).
+After each query, we can find the minimum index \(i\) where \(flag[i] = 1\). Then, \(arr[i]\) will be the smallest positive integer that isn't present in the set.
+
+The time complexity of this algorithm remains \(O(n \cdot q)\).
+However, this primarily corresponds to the bitwise operations &, |, ^, and finding the first element with a value of 1. Therefore, we can consider using a bitset for optimization.
+
+Let's suppose \( \text{flag} \) is a bitset of length \( nn \).
+The initial state sets all elements in \( \text{flag} \) to 1. This is a general bitset flip operation, and the time complexity is approximately \( \frac{nn}{C} \) (where \( C \) can be 32 or 64, depending on the system; generally, it is 64).
+
+To think about the query for the interval \([l, r]\), both \(l\) and \(r + 1\) are already in the list of MEX candidates. This means that if we use the lower_bound method, we can easily find the range of \(i\) such that \([arr[i], arr[i + 1])\) falls within the current query interval \([l, r]\).
+We can create a bitset \(tmp\) where all elements in the above range are set to 1. (I will explain about how to make \(tmp\) in the later. Actually, this is a straightforward task that can be accomplished using the left shift (<<) and right shift (>>) methods.)
+
+For query type 1, our operation is simply \(flag = flag\ \&\ (\sim tmp)\). (\(\sim\) represent flip the full bitset)
+For query type 2, our operation is simply \(flag = flag\ |\ tmp\).
+For query type 3, our operation is simply \(flag = flag\ \oplus\ tmp\). (Here, \(\oplus\) represents bitwise XOR)
+All of these operations are standard bitset operations, so the time complexity for each query is approximately \( \frac{nn}{C} \).
+
+After performing each query, we need to find the minimum index where \(flag[i] = 1\), which can also be done easily using the \(\_Find\_first\) bitset operation, and the time complexity of this operation is approximately \( \frac{nn}{C} \).
+
+Finally, using the bitset, we handled each query in time complexity \( O\left(\frac{nn}{C}\right) \).
+Therefore, the overall time complexity of this algorithm is \( O\left(q \cdot \frac{n}{C}\right) \) since \( nn \) can be up to \( 2n + 1 \).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010;
+
+int t[NN];
+INT l[NN], r[NN];
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i);
+    }
+}
+
+
+
+
+Let's find the \(nn\) MEX candidates: \(arr[0], arr[1], \ldots, arr[nn - 1]\) mentioned in blocks 2 and 3.
+As I mentioned in block 2, all possible MEX candidates are 1, \(l_1\), \(r_1 + 1\), \(l_2\), \(r_2 + 1\), ..., \(l_n\), \(r_n + 1\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010, MM = 202020;
+
+int t[NN], nn = 1;
+INT l[NN], r[NN];
+INT arr[MM] = {1};
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i), r[i]++;
+        arr[nn++] = l[i], arr[nn++] = r[i];
+    }
+    sort(arr, arr + nn);
+    nn = unique(arr, arr + nn) - arr;
+}
+
+
+
+
+Let's declare the bitset \( \text{flag} \) mentioned in block 3.
+The initial state sets all elements in \( \text{flag} \) to 1.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010, MM = 202020;
+
+int t[NN], nn = 1;
+INT l[NN], r[NN];
+INT arr[MM] = {1};
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i), r[i]++;
+        arr[nn++] = l[i], arr[nn++] = r[i];
+    }
+    sort(arr, arr + nn);
+    nn = unique(arr, arr + nn) - arr;
+    
+    bitset<MM> flag;
+    flag.flip();
+}
+
+
+
+
+To think about the query for the interval \([l_i, r_i]\), both \(l_i\) and \(r_i + 1\) are already in the list of MEX candidates.
+This means that if we use the lower_bound method, we can easily find the range of \(i\) such that \([arr[i], arr[i + 1])\) falls within the current query interval \([l, r]\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010, MM = 202020;
+
+int t[NN], nn = 1;
+INT l[NN], r[NN];
+INT arr[MM] = {1};
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i), r[i]++;
+        arr[nn++] = l[i], arr[nn++] = r[i];
+    }
+    sort(arr, arr + nn);
+    nn = unique(arr, arr + nn) - arr;
+    
+    bitset<MM> flag;
+    flag.flip();
+    
+    for(int i = 1; i <= n; i++) {
+        l[i] = lower_bound(arr, arr + nn, l[i]) - arr;
+        r[i] = lower_bound(arr, arr + nn, r[i]) - arr;
+    }
+}
+
+
+
+
+To handle query types 1, 2, and 3, as I mentioned in block 2, we need to create a bitset \(tmp\). We should construct a bitset \(tmp\) where all elements in the range \([l_i, r_i)\) are set to 1. 
+
+Let's assume there is a bitset \(all\) of the same length with all bits set to 1.
+By using the right shift (>>) bitset operation, the full 1 bits will move to the right, allowing us to create a bitset that contains exactly \(r_i - l_i\) ones. 
+After creating this bitset, we can use the left shift (<<) bitset operation to move the \(r_i - l_i\) ones to the corresponding position.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010, MM = 202020;
+
+int t[NN], nn = 1;
+INT l[NN], r[NN];
+INT arr[MM] = {1};
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i), r[i]++;
+        arr[nn++] = l[i], arr[nn++] = r[i];
+    }
+    sort(arr, arr + nn);
+    nn = unique(arr, arr + nn) - arr;
+    
+    bitset<MM> flag, all;
+    flag.flip(), all.flip();
+    
+    for(int i = 1; i <= n; i++) {
+        l[i] = lower_bound(arr, arr + nn, l[i]) - arr;
+        r[i] = lower_bound(arr, arr + nn, r[i]) - arr;
+        
+        // all >> MM - (r[i] - l[i]) is the bitset that has exactly r[i] - l[i] ones at the beginning
+        // we can move above ones to the corresponding position, and this is final bitset tmp: all >> MM - (r[i] - l[i]) << l[i]
+    }
+}
+
+
+
+
+For query type 1, our operation is simply \(flag = flag\ \&\ (\sim tmp)\). (\(\sim\) represent flip the full bitset)
+For query type 2, our operation is simply \(flag = flag\ |\ tmp\).
+For query type 3, our operation is simply \(flag = flag\ \oplus\ tmp\). (Here, \(\oplus\) represents bitwise XOR)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010, MM = 202020;
+
+int t[NN], nn = 1;
+INT l[NN], r[NN];
+INT arr[MM] = {1};
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i), r[i]++;
+        arr[nn++] = l[i], arr[nn++] = r[i];
+    }
+    sort(arr, arr + nn);
+    nn = unique(arr, arr + nn) - arr;
+    
+    bitset<MM> flag, all;
+    flag.flip(), all.flip();
+    
+    for(int i = 1; i <= n; i++) {
+        l[i] = lower_bound(arr, arr + nn, l[i]) - arr;
+        r[i] = lower_bound(arr, arr + nn, r[i]) - arr;
+        
+        // all >> MM - (r[i] - l[i]) is the bitset that has exactly r[i] - l[i] ones at the beginning
+        // we can move above ones to the corresponding position, and this is final bitset tmp: all >> MM - (r[i] - l[i]) << l[i]
+        if(t[i] == 1) flag &= ~(all >> MM - (r[i] - l[i]) << l[i]);
+        else if(t[i] == 2) flag |= all >> MM - (r[i] - l[i]) << l[i];
+        else flag ^= all >> MM - (r[i] - l[i]) << l[i];
+    }
+}
+
+
+
+
+After performing each query, we need to find the minimum index where \(flag[i] = 1\), which can also be done easily using the \(\_Find\_first\) bitset operation.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010, MM = 202020;
+
+int t[NN], nn = 1;
+INT l[NN], r[NN];
+INT arr[MM] = {1};
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        scanf("%d %lld %lld", t + i, l + i, r + i), r[i]++;
+        arr[nn++] = l[i], arr[nn++] = r[i];
+    }
+    sort(arr, arr + nn);
+    nn = unique(arr, arr + nn) - arr;
+    
+    bitset<MM> flag, all;
+    flag.flip(), all.flip();
+    
+    for(int i = 1; i <= n; i++) {
+        l[i] = lower_bound(arr, arr + nn, l[i]) - arr;
+        r[i] = lower_bound(arr, arr + nn, r[i]) - arr;
+        
+        // all >> MM - (r[i] - l[i]) is the bitset that has exactly r[i] - l[i] ones at the beginning
+        // we can move above ones to the corresponding position, and this is final bitset tmp: all >> MM - (r[i] - l[i]) << l[i]
+        if(t[i] == 1) flag &= ~(all >> MM - (r[i] - l[i]) << l[i]);
+        else if(t[i] == 2) flag |= all >> MM - (r[i] - l[i]) << l[i];
+        else flag ^= all >> MM - (r[i] - l[i]) << l[i];
+        
+        printf("%lld\n", arr[flag._Find_first()]);
+    }
+}
+
+
+
+
+3
+1 3 4
+3 1 6
+2 1 3
+
+
+
+
+4
+1 1 3
+3 5 6
+2 4 4
+3 1 6
+
+
+
+
+Let's examine a custom corner case where \(n, t, l, r\) are at their minimum values: \(n = t = l = r = 1\).
+
+1
+1 1 1
+
+After the first query, 1 1 1, we added all missing numbers from the interval [1, 1], so there will be 1 in our set after this query.
+Therefore, the MEX of the set (the smallest positive integer not present in the set) is 2.
+In this case, my answer will be "2".
+
+
+
+
+1
+1 1 1

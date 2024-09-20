@@ -1,0 +1,884 @@
+Map
+<b>time limit per test</b>: 2 seconds
+<b>memory limit per test</b>: 128 megabytes
+There is an area map that is a rectangular matrix \(n × m\), each cell of the matrix contains the average height of a corresponding area part. Peter works for a company that has to build several cities within this area, each of the cities will occupy a rectangle \(a × b\) cells on the map. To start construction works in a particular place Peter needs to remove excess ground from the construction site where a new city will be built. To do so he chooses a cell of the minimum height within this site, and removes excess ground from other cells of the site down to this minimum level. Let's consider that to lower the ground level from \(h_2\) to \(h_1\) \((h_1 ≤ h_2)\) they need to remove \(h_2 - h_1\) ground units.
+
+Let's call a site's position optimal, if the amount of the ground removed from this site is minimal compared to other possible positions. Peter constructs cities according to the following algorithm: from all the optimum site's positions he chooses the uppermost one. If this position is not unique, he chooses the leftmost one. Then he builds a city on this site. Peter repeats this process untill he can build at least one more city. For sure, he cannot carry out construction works on the occupied cells. Would you, please, help Peter place cities according to the algorithm?
+
+<b>Input</b>
+The first line contains four space-separated integers: map sizes \(n, m\) and city sizes \(a, b\) \((1 ≤ a ≤ n ≤ 1000, 1 ≤ b ≤ m ≤ 1000)\). Then there follow n lines, each contains m non-negative space-separated numbers, describing the height matrix. Each number doesn't exceed \(10^9\).
+
+<b>Output</b>
+In the first line output \(k\) — the amount of constructed cities. In each of the following \(k\) lines output \(3\) space-separated numbers — the row number and the column number of the upper-left corner of a subsequent construction site, and the amount of the ground to remove from it. Output the sites in the order of their building up.
+
+
+
+
+The naive solution for this problem would involve brute-forcing through every possible placement of the city on the height map. For each possible top-left corner of the city, we would calculate the total amount of ground that needs to be removed by iterating over all the cells in the \(a \times b\) submatrix corresponding to the city's placement. For each submatrix, we would find the minimum height and then iterate again to sum up the excess ground removal required for each cell by subtracting the minimum height from each cell's height. After calculating this for all positions, we would choose the placement with the minimal ground removal and ensure that no cities overlap by marking all cells in previously selected submatrices as occupied. This approach is too slow and won't pass the time limit of the problem, so we have to come up with a better one.
+
+
+
+
+The problem presents a scenario where multiple cities need to be strategically placed on a given height map without overlapping, while minimizing the total amount of ground removal required for their construction. The height map is represented as an \(n × m\) matrix, with each cell containing the height of that particular area. Each city occupies a submatrix of size \(a × b\) cells. When constructing a city, the ground within the chosen submatrix must be leveled to the minimum height found in that submatrix. This leveling process involves removing excess ground from each cell in the submatrix, calculated as the difference between the cell's height and the minimum height within the submatrix. The main challenge is to select optimal positions for placing these cities such that the total ground removal is minimized, ensuring that no two cities overlap and that, in cases of ties, the uppermost and then the leftmost positions are prioritized.
+
+To efficiently solve this problem, we employ several approaches. The first is the use of prefix sums, which allow for rapid calculation of the sum of heights within any submatrix in constant time after a preprocessing step. This is crucial for determining the total ground removal required for each potential city placement. The second approach involves the sliding window minimum technique, which efficiently identifies the minimum height within each \(a × b\) submatrix. This is essential for calculating how much ground needs to be removed to level the area for city construction. Additionally, we use bitmasking to manage the occupancy of cells on the map efficiently. By representing each row of the map as a series of bits, we can quickly check for overlaps and mark cells as occupied using bitwise operations, significantly speeding up the process compared to iterating over each cell individually. Sorting the potential city placements based on their ground removal requirements ensures that the most optimal placements are considered first.
+
+
+
+
+We implement a struct, \(Rectangle\),which serves as a blueprint for each potential city placement. It encapsulates the total amount of ground removal required \(removal\) and the coordinates of the top-left cell of the submatrix where the city would be placed \(row\) and \(col\). By organizing the data in this manner, we can easily sort and manage the city placements based on their efficiency and position on the map. Let us take the input and implement this struct.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+    
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+    
+    return 0;
+}
+
+
+
+
+Then, we implement the struct.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+    
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+    
+    return 0;
+}
+
+
+
+
+
+Then, we compute the prefix sums for the height matrix \(A\). Each element \(prefix\_sum[i][j]\) represents the total sum of heights from the top-left corner \((1,1)\) to the cell \((i,j)\). This preprocessing allows for rapid computation of the sum of any submatrix, which is vital for determining the total ground removal required for each potential city placement.
+
+Next, we calculate the minimum heights for each row within a sliding window of size \(b\) using the \(sliding\_min\) function. This function efficiently computes the minimum values within a sliding window by maintaining a deque that keeps track of potential minimum candidates. By iterating through each row and applying the \(sliding\_min\) function, the \(row\_min\) matrix stores these minimum values for each row, which serves as a preliminary step in identifying the minimum height within each \(a × b\) submatrix. Then, we proceed to compute the minimum heights within each \(a × b\) submatrix by applying the sliding window minimum technique vertically. For each column \(j\) in the \(row\_min\) matrix, we extract a column of minimum values and applies the \(sliding\_min\) function with a window size of \(a\). The resulting \(col\_min\) array contains the minimum heights for each vertical window, which are then stored in the \(min\_grid\) matrix. This two-tiered sliding window approach ensures that \(min\_grid[i][j]\) accurately represents the minimum height within the submatrix starting at \((i+1, j+1)\), enabling efficient calculation of ground removal requirements. Let us implement this part.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+vector<int> sliding_min(const vector<int>& arr, int window_size) {
+    deque<int> dq;
+    vector<int> min_vals;
+    for(int i = 0; i < arr.size(); ++i){
+        while(!dq.empty() && arr[i] <= arr[dq.back()]){
+            dq.pop_back();
+        }
+        dq.push_back(i);
+        while(!dq.empty() && dq.front() <= i - window_size){
+            dq.pop_front();
+        }
+        if(i >= window_size -1){
+            min_vals.push_back(arr[dq.front()]);
+        }
+    }
+    return min_vals;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+
+    vector<vector<ll>> prefix_sum(n+1, vector<ll>(m+1, 0));
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=m;j++) {
+            prefix_sum[i][j] = A[i-1][j-1] + prefix_sum[i-1][j] + prefix_sum[i][j-1] - prefix_sum[i-1][j-1];
+        }
+    }
+
+    vector<vector<int>> row_min(n, vector<int>());
+    for(int i=0;i<n;i++) {
+        row_min[i] = sliding_min(A[i], b);
+    }
+
+    int rows = n - a +1;
+    int cols = m - b +1;
+    vector<vector<int>> min_grid(rows, vector<int>(cols, 0));
+
+    for(int j=0; j < cols; j++){
+        vector<int> column;
+        for(int i=0;i<n;i++) {
+            column.push_back(row_min[i][j]);
+        }
+        vector<int> col_min = sliding_min(column, a);
+        for(int i=0; i < rows; i++) {
+            min_grid[i][j] = col_min[i];
+        }
+    }
+
+
+    return 0;
+}
+
+
+
+
+With the sums and minimum heights computed, we now evaluate the ground removal required for each potential city placement. We iterate through each possible \(a × b\) submatrix, calculate the total ground removal by subtracting the product of the minimum height and the area of the submatrix from the total sum of heights within that submatrix. Each potential placement is encapsulated within a \(Rectangle\) structure, which stores the removal value and the coordinates of its top-left corner. These rectangles are collected into the \(rectangles\) vector for further processing.
+
+To prioritize the most optimal city placements, we sort the rectangles based on their ground removal requirements and positional priorities. If two rectangles have the same removal value, we compare their \(row\) values, prioritizing the uppermost positions. If both the removal and row values are identical, we finally compare their \(col\) values to prioritize the leftmost positions. By sorting the rectangles in this manner, we ensure that the most efficient and strategically placed cities are considered first during the placement process. Let us implement this part.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+bool cmp(const Rectangle &a, const Rectangle &b) {
+    if(a.removal != b.removal)
+        return a.removal < b.removal;
+    if(a.row != b.row)
+        return a.row < b.row;
+    return a.col < b.col;
+}
+
+vector<int> sliding_min(const vector<int>& arr, int window_size) {
+    deque<int> dq;
+    vector<int> min_vals;
+    for(int i = 0; i < arr.size(); ++i){
+        while(!dq.empty() && arr[i] <= arr[dq.back()]){
+            dq.pop_back();
+        }
+        dq.push_back(i);
+        while(!dq.empty() && dq.front() <= i - window_size){
+            dq.pop_front();
+        }
+        if(i >= window_size -1){
+            min_vals.push_back(arr[dq.front()]);
+        }
+    }
+    return min_vals;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+
+    vector<vector<ll>> prefix_sum(n+1, vector<ll>(m+1, 0));
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=m;j++) {
+            prefix_sum[i][j] = A[i-1][j-1] + prefix_sum[i-1][j] + prefix_sum[i][j-1] - prefix_sum[i-1][j-1];
+        }
+    }
+
+    vector<vector<int>> row_min(n, vector<int>());
+    for(int i=0;i<n;i++) {
+        row_min[i] = sliding_min(A[i], b);
+    }
+
+    int rows = n - a +1;
+    int cols = m - b +1;
+    vector<vector<int>> min_grid(rows, vector<int>(cols, 0));
+
+    for(int j=0; j < cols; j++){
+        vector<int> column;
+        for(int i=0;i<n;i++) {
+            column.push_back(row_min[i][j]);
+        }
+        vector<int> col_min = sliding_min(column, a);
+        for(int i=0; i < rows; i++) {
+            min_grid[i][j] = col_min[i];
+        }
+    }
+
+    vector<Rectangle> rectangles;
+    rectangles.reserve(static_cast<size_t>(rows) * cols);
+    for(int i=0;i<rows;i++) {
+        for(int j=0;j<cols;j++) {
+            ll sum_rect = prefix_sum[i+a][j+b] - prefix_sum[i][j+b] - prefix_sum[i+a][j] + prefix_sum[i][j];
+            int min_h = min_grid[i][j];
+            ll removal = sum_rect - (1LL * min_h * a * b);
+            rectangles.push_back(Rectangle{removal, i+1, j+1});
+        }
+    }
+
+    sort(rectangles.begin(), rectangles.end(), cmp);
+    return 0;
+}
+
+
+
+
+The next step involves managing and checking the occupancy of cells on the map to ensure that no two cities overlap. To achieve this efficiently, we employ a bitmasking technique. We use the equation \(num\_words = \frac{(m + 63)}{64}\) to determine how many \(64\)-bit segments, or "words," are needed to represent each row of the height map using bitmasking. Since each unsigned long long typically comprises \(64\) bits, dividing the total number of columns \(m\) by \(64\) (and rounding up by adding \(63\) before the division) ensures that the entire row is covered. For example, if there are \(130\) columns, \(\frac{(130 + 63)}{64} = 3\), meaning three 64-bit words are necessary to represent all \(130\) cells. This segmentation standardizes the representation of each row, allowing us to handle rows of varying lengths uniformly by breaking them down into fixed-size segments. This method ensures that even if the number of columns isn't a multiple of \(64\), the remaining cells are adequately represented without exceeding memory boundaries.
+
+Then we use a two-dimensional vector, \(occupied\), where each row corresponds to a row in the height map, and each element within that row represents a \(64\)-bit word. Each bit within these words signifies whether a particular cell is occupied by a city \((1)\) or remains free \((0)\). Initially, all bits are set to \(0\), indicating that no cells are occupied. By representing each row as a series of bits, we can efficiently determine overlaps and mark cells as occupied without the overhead of iterating through individual cells. This efficiency is particularly beneficial when dealing with large maps and numerous potential city placements. Let us implement this part.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+bool cmp(const Rectangle &a, const Rectangle &b) {
+    if(a.removal != b.removal)
+        return a.removal < b.removal;
+    if(a.row != b.row)
+        return a.row < b.row;
+    return a.col < b.col;
+}
+
+vector<int> sliding_min(const vector<int>& arr, int window_size) {
+    deque<int> dq;
+    vector<int> min_vals;
+    for(int i = 0; i < arr.size(); ++i){
+        while(!dq.empty() && arr[i] <= arr[dq.back()]){
+            dq.pop_back();
+        }
+        dq.push_back(i);
+        while(!dq.empty() && dq.front() <= i - window_size){
+            dq.pop_front();
+        }
+        if(i >= window_size -1){
+            min_vals.push_back(arr[dq.front()]);
+        }
+    }
+    return min_vals;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+
+    vector<vector<ll>> prefix_sum(n+1, vector<ll>(m+1, 0));
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=m;j++) {
+            prefix_sum[i][j] = A[i-1][j-1] + prefix_sum[i-1][j] + prefix_sum[i][j-1] - prefix_sum[i-1][j-1];
+        }
+    }
+
+    vector<vector<int>> row_min(n, vector<int>());
+    for(int i=0;i<n;i++) {
+        row_min[i] = sliding_min(A[i], b);
+    }
+
+    int rows = n - a +1;
+    int cols = m - b +1;
+    vector<vector<int>> min_grid(rows, vector<int>(cols, 0));
+
+    for(int j=0; j < cols; j++){
+        vector<int> column;
+        for(int i=0;i<n;i++) {
+            column.push_back(row_min[i][j]);
+        }
+        vector<int> col_min = sliding_min(column, a);
+        for(int i=0; i < rows; i++) {
+            min_grid[i][j] = col_min[i];
+        }
+    }
+
+    vector<Rectangle> rectangles;
+    rectangles.reserve(static_cast<size_t>(rows) * cols);
+    for(int i=0;i<rows;i++) {
+        for(int j=0;j<cols;j++) {
+            ll sum_rect = prefix_sum[i+a][j+b] - prefix_sum[i][j+b] - prefix_sum[i+a][j] + prefix_sum[i][j];
+            int min_h = min_grid[i][j];
+            ll removal = sum_rect - (1LL * min_h * a * b);
+            rectangles.push_back(Rectangle{removal, i+1, j+1});
+        }
+    }
+
+    sort(rectangles.begin(), rectangles.end(), cmp);
+
+    int num_words = (m +63)/64;
+    vector< vector<ull> > occupied(n, vector<ull>(num_words, 0));
+    vector<tuple<int, int, ll>> result;
+    result.reserve(rectangles.size());
+
+
+    return 0;
+}
+
+
+
+
+The next step involves precomputing masks for each possible starting column \(j\). This is accomplished through a loop that iterates over each column index. For each starting column, we determine the range of bits that correspond to the city's width \(b\). The variables \(word\_start\) and \(bit\_start\) are calculated using integer division and modulo operations \(word\_start = \frac{j}{64}\) and \(bit\_start = j \mod 64\), identifying the specific word and bit within that word where the city's placement begins. Similarly, \(word\_end\) and \(bit\_end\) are computed to locate the word and bit where the city's placement concludes \(word\_end = \frac{(j + b - 1)}{64}\) and \(bit\_end = (j + b -1) \mod64\).
+
+If the city's width, \(b\), fits entirely within a single 64-bit word, we construct a mask that sets only the bits corresponding to the city's placement. If the city's placement extends to the last bit of the word, the mask is set to all ones, ensuring that all bits from bit_start to 63 are active. Otherwise, the mask is created by shifting 1ULL left by (bit_end +1) positions and subtracting one, resulting in a series of consecutive ones up to bit_end. The subsequent operation then clears any bits before bit_start, ensuring that only the relevant bits for the city's placement are set. This precise masking allows us to accurately represent the occupied cells without affecting unrelated bits.
+
+In cases where the city's width spans multiple 64-bit words, we construct separate masks for the starting and ending words, as well as any intermediate words that are fully encompassed by the city's width. The starting mask sets all bits from bit_start to 63 in the word_start word, indicating occupancy from the starting bit onward. For any intermediate words, the mask ~0ULL is used, setting all bits to one, as these words are entirely covered by the city's placement. The ending mask is similarly constructed: if bit_end +1 == 64, it sets all bits in the word_end word, otherwise, it sets bits from 0 to bit_end using (1ULL << (bit_end +1)) -1. These masks collectively ensure that the entire width of the city is accurately represented across multiple words, with no unintended bits being set.
+
+By precomputing these masks and storing them in the \(masks\) vector, we can later perform overlap checks and occupancy updates efficiently. Let us implement this part.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+bool cmp(const Rectangle &a, const Rectangle &b) {
+    if(a.removal != b.removal)
+        return a.removal < b.removal;
+    if(a.row != b.row)
+        return a.row < b.row;
+    return a.col < b.col;
+}
+
+vector<int> sliding_min(const vector<int>& arr, int window_size) {
+    deque<int> dq;
+    vector<int> min_vals;
+    for(int i = 0; i < arr.size(); ++i){
+        while(!dq.empty() && arr[i] <= arr[dq.back()]){
+            dq.pop_back();
+        }
+        dq.push_back(i);
+        while(!dq.empty() && dq.front() <= i - window_size){
+            dq.pop_front();
+        }
+        if(i >= window_size -1){
+            min_vals.push_back(arr[dq.front()]);
+        }
+    }
+    return min_vals;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+
+    vector<vector<ll>> prefix_sum(n+1, vector<ll>(m+1, 0));
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=m;j++) {
+            prefix_sum[i][j] = A[i-1][j-1] + prefix_sum[i-1][j] + prefix_sum[i][j-1] - prefix_sum[i-1][j-1];
+        }
+    }
+
+    vector<vector<int>> row_min(n, vector<int>());
+    for(int i=0;i<n;i++) {
+        row_min[i] = sliding_min(A[i], b);
+    }
+
+    int rows = n - a +1;
+    int cols = m - b +1;
+    vector<vector<int>> min_grid(rows, vector<int>(cols, 0));
+
+    for(int j=0; j < cols; j++){
+        vector<int> column;
+        for(int i=0;i<n;i++) {
+            column.push_back(row_min[i][j]);
+        }
+        vector<int> col_min = sliding_min(column, a);
+        for(int i=0; i < rows; i++) {
+            min_grid[i][j] = col_min[i];
+        }
+    }
+
+    vector<Rectangle> rectangles;
+    rectangles.reserve(static_cast<size_t>(rows) * cols);
+    for(int i=0;i<rows;i++) {
+        for(int j=0;j<cols;j++) {
+            ll sum_rect = prefix_sum[i+a][j+b] - prefix_sum[i][j+b] - prefix_sum[i+a][j] + prefix_sum[i][j];
+            int min_h = min_grid[i][j];
+            ll removal = sum_rect - (1LL * min_h * a * b);
+            rectangles.push_back(Rectangle{removal, i+1, j+1});
+        }
+    }
+
+    sort(rectangles.begin(), rectangles.end(), cmp);
+
+    int num_words = (m +63)/64;
+    vector< vector<ull> > occupied(n, vector<ull>(num_words, 0));
+
+    vector<tuple<int, int, ll>> result;
+    result.reserve(rectangles.size());
+
+    vector< vector<pair<int, ull>> > masks(cols, vector<pair<int, ull>>());
+    for(int j=0; j < cols; j++) {
+        int word_start = j / 64;
+        int bit_start = j % 64;
+        int word_end = (j + b -1) /64;
+        int bit_end = (j + b -1) %64;
+        if(word_start == word_end){
+            ull mask = (bit_end +1 == 64) ? ~0ULL : ((1ULL << (bit_end +1)) -1);
+            mask &= (~0ULL << bit_start);
+            masks[j].emplace_back(word_start, mask);
+        }
+        else{
+            ull mask_start = ~0ULL << bit_start;
+            masks[j].emplace_back(word_start, mask_start);
+            for(int w = word_start +1; w < word_end; w++) {
+                masks[j].emplace_back(w, ~0ULL);
+            }
+            ull mask_end;
+            if(bit_end +1 == 64){
+                mask_end = ~0ULL;
+            }
+            else{
+                mask_end = (1ULL << (bit_end +1)) -1;
+            }
+            masks[j].emplace_back(word_end, mask_end);
+        }
+    }
+
+ 
+
+    return 0;
+}
+
+
+
+
+
+Then, we maintain a loop and iterate through each sorted \(Rectangle\), representing potential city placements ordered by their ground removal efficiency. For each rectangle, we first adjust the coordinates to zero-based indexing and checks whether placing the city would exceed the map's boundaries. If the rectangle fits within the map, we then proceed to detect any overlaps with already placed cities. This is achieved by iterating through each row \(x\) that the city would occupy and applying the precomputed masks. The expression \(occupied[x][word] \space\&\space mask\) performs a bitwise AND operation to check if any of the bits corresponding to the city's placement are already set \((1)\). A non-zero result indicates an overlap, setting the \(conflict\) flag to \(true\) and breaking out of the loops early to skip placing this rectangle.
+
+If no conflict is detected, the rectangle is deemed suitable for placement. We add this rectangle's details to the \(result\) vector and update the \(occupied\) matrix by setting the corresponding bits using \(occupied[x][word] \space |= mask\). This bitwise OR operation marks the cells as occupied, ensuring that subsequent rectangles will recognize these cells as unavailable, thus preventing any overlaps. This method is highly efficient because it updates multiple cells in a single operation, leveraging the parallelism inherent in bitwise operations. Let us implement this part.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+bool cmp(const Rectangle &a, const Rectangle &b) {
+    if(a.removal != b.removal)
+        return a.removal < b.removal;
+    if(a.row != b.row)
+        return a.row < b.row;
+    return a.col < b.col;
+}
+
+vector<int> sliding_min(const vector<int>& arr, int window_size) {
+    deque<int> dq;
+    vector<int> min_vals;
+    for(int i = 0; i < arr.size(); ++i){
+        while(!dq.empty() && arr[i] <= arr[dq.back()]){
+            dq.pop_back();
+        }
+        dq.push_back(i);
+        while(!dq.empty() && dq.front() <= i - window_size){
+            dq.pop_front();
+        }
+        if(i >= window_size -1){
+            min_vals.push_back(arr[dq.front()]);
+        }
+    }
+    return min_vals;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+
+    vector<vector<ll>> prefix_sum(n+1, vector<ll>(m+1, 0));
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=m;j++) {
+            prefix_sum[i][j] = A[i-1][j-1] + prefix_sum[i-1][j] + prefix_sum[i][j-1] - prefix_sum[i-1][j-1];
+        }
+    }
+
+    vector<vector<int>> row_min(n, vector<int>());
+    for(int i=0;i<n;i++) {
+        row_min[i] = sliding_min(A[i], b);
+    }
+
+    int rows = n - a +1;
+    int cols = m - b +1;
+    vector<vector<int>> min_grid(rows, vector<int>(cols, 0));
+
+    for(int j=0; j < cols; j++){
+        vector<int> column;
+        for(int i=0;i<n;i++) {
+            column.push_back(row_min[i][j]);
+        }
+        vector<int> col_min = sliding_min(column, a);
+        for(int i=0; i < rows; i++) {
+            min_grid[i][j] = col_min[i];
+        }
+    }
+
+    vector<Rectangle> rectangles;
+    rectangles.reserve(static_cast<size_t>(rows) * cols);
+    for(int i=0;i<rows;i++) {
+        for(int j=0;j<cols;j++) {
+            ll sum_rect = prefix_sum[i+a][j+b] - prefix_sum[i][j+b] - prefix_sum[i+a][j] + prefix_sum[i][j];
+            int min_h = min_grid[i][j];
+            ll removal = sum_rect - (1LL * min_h * a * b);
+            rectangles.push_back(Rectangle{removal, i+1, j+1});
+        }
+    }
+
+    sort(rectangles.begin(), rectangles.end(), cmp);
+
+    int num_words = (m +63)/64;
+    vector< vector<ull> > occupied(n, vector<ull>(num_words, 0));
+
+    vector<tuple<int, int, ll>> result;
+    result.reserve(rectangles.size());
+
+    vector< vector<pair<int, ull>> > masks(cols, vector<pair<int, ull>>());
+    for(int j=0; j < cols; j++) {
+        int word_start = j / 64;
+        int bit_start = j % 64;
+        int word_end = (j + b -1) /64;
+        int bit_end = (j + b -1) %64;
+        if(word_start == word_end){
+            ull mask = (bit_end +1 == 64) ? ~0ULL : ((1ULL << (bit_end +1)) -1);
+            mask &= (~0ULL << bit_start);
+            masks[j].emplace_back(word_start, mask);
+        }
+        else{
+            ull mask_start = ~0ULL << bit_start;
+            masks[j].emplace_back(word_start, mask_start);
+            for(int w = word_start +1; w < word_end; w++) {
+                masks[j].emplace_back(w, ~0ULL);
+            }
+            ull mask_end;
+            if(bit_end +1 == 64){
+                mask_end = ~0ULL;
+            }
+            else{
+                mask_end = (1ULL << (bit_end +1)) -1;
+            }
+            masks[j].emplace_back(word_end, mask_end);
+        }
+    }
+
+    for(auto &rect : rectangles){
+        int i = rect.row -1;
+        int j = rect.col -1;
+        if(j + b > m || i +a > n){
+            continue;
+        }
+        bool conflict = false;
+        for(int x =i; x < i +a; x++) {
+            for(auto &[word, mask] : masks[j]){
+                if(occupied[x][word] & mask){
+                    conflict = true;
+                    break;
+                }
+            }
+            if(conflict) break;
+        }
+        if(!conflict){
+            result.emplace_back(make_tuple(rect.row, rect.col, rect.removal));
+            for(int x =i; x < i +a; x++) {
+                for(auto &[word, mask] : masks[j]){
+                    occupied[x][word] |= mask;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+Finally, we print the total number of cities placed, followed by the details of each city, including its row and column coordinates and the total ground removal required. The bitmasking strategy ensures that these placements are both optimal and non-overlapping, adhering to the problem's constraints efficiently.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+
+struct Rectangle {
+    ll removal;
+    int row;
+    int col;
+};
+
+bool cmp(const Rectangle &a, const Rectangle &b) {
+    if(a.removal != b.removal)
+        return a.removal < b.removal;
+    if(a.row != b.row)
+        return a.row < b.row;
+    return a.col < b.col;
+}
+
+vector<int> sliding_min(const vector<int>& arr, int window_size) {
+    deque<int> dq;
+    vector<int> min_vals;
+    for(int i = 0; i < arr.size(); ++i){
+        while(!dq.empty() && arr[i] <= arr[dq.back()]){
+            dq.pop_back();
+        }
+        dq.push_back(i);
+        while(!dq.empty() && dq.front() <= i - window_size){
+            dq.pop_front();
+        }
+        if(i >= window_size -1){
+            min_vals.push_back(arr[dq.front()]);
+        }
+    }
+    return min_vals;
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    int n, m, a, b;
+    cin >> n >> m >> a >> b;
+
+    vector<vector<int>> A(n, vector<int>(m));
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            cin >> A[i][j];
+        }
+    }
+
+    vector<vector<ll>> prefix_sum(n+1, vector<ll>(m+1, 0));
+    for(int i=1;i<=n;i++) {
+        for(int j=1;j<=m;j++) {
+            prefix_sum[i][j] = A[i-1][j-1] + prefix_sum[i-1][j] + prefix_sum[i][j-1] - prefix_sum[i-1][j-1];
+        }
+    }
+
+    vector<vector<int>> row_min(n, vector<int>());
+    for(int i=0;i<n;i++) {
+        row_min[i] = sliding_min(A[i], b);
+    }
+
+    int rows = n - a +1;
+    int cols = m - b +1;
+    vector<vector<int>> min_grid(rows, vector<int>(cols, 0));
+
+    for(int j=0; j < cols; j++){
+        vector<int> column;
+        for(int i=0;i<n;i++) {
+            column.push_back(row_min[i][j]);
+        }
+        vector<int> col_min = sliding_min(column, a);
+        for(int i=0; i < rows; i++) {
+            min_grid[i][j] = col_min[i];
+        }
+    }
+
+    vector<Rectangle> rectangles;
+    rectangles.reserve(static_cast<size_t>(rows) * cols);
+    for(int i=0;i<rows;i++) {
+        for(int j=0;j<cols;j++) {
+            ll sum_rect = prefix_sum[i+a][j+b] - prefix_sum[i][j+b] - prefix_sum[i+a][j] + prefix_sum[i][j];
+            int min_h = min_grid[i][j];
+            ll removal = sum_rect - (1LL * min_h * a * b);
+            rectangles.push_back(Rectangle{removal, i+1, j+1});
+        }
+    }
+
+    sort(rectangles.begin(), rectangles.end(), cmp);
+
+    int num_words = (m +63)/64;
+    vector< vector<ull> > occupied(n, vector<ull>(num_words, 0));
+
+    vector<tuple<int, int, ll>> result;
+    result.reserve(rectangles.size());
+
+    vector< vector<pair<int, ull>> > masks(cols, vector<pair<int, ull>>());
+    for(int j=0; j < cols; j++) {
+        int word_start = j / 64;
+        int bit_start = j % 64;
+        int word_end = (j + b -1) /64;
+        int bit_end = (j + b -1) %64;
+        if(word_start == word_end){
+            ull mask = (bit_end +1 == 64) ? ~0ULL : ((1ULL << (bit_end +1)) -1);
+            mask &= (~0ULL << bit_start);
+            masks[j].emplace_back(word_start, mask);
+        }
+        else{
+            ull mask_start = ~0ULL << bit_start;
+            masks[j].emplace_back(word_start, mask_start);
+            for(int w = word_start +1; w < word_end; w++) {
+                masks[j].emplace_back(w, ~0ULL);
+            }
+            ull mask_end;
+            if(bit_end +1 == 64){
+                mask_end = ~0ULL;
+            }
+            else{
+                mask_end = (1ULL << (bit_end +1)) -1;
+            }
+            masks[j].emplace_back(word_end, mask_end);
+        }
+    }
+
+    for(auto &rect : rectangles){
+        int i = rect.row -1;
+        int j = rect.col -1;
+        if(j + b > m || i +a > n){
+            continue;
+        }
+        bool conflict = false;
+        for(int x =i; x < i +a; x++) {
+            for(auto &[word, mask] : masks[j]){
+                if(occupied[x][word] & mask){
+                    conflict = true;
+                    break;
+                }
+            }
+            if(conflict) break;
+        }
+        if(!conflict){
+            result.emplace_back(make_tuple(rect.row, rect.col, rect.removal));
+            for(int x =i; x < i +a; x++) {
+                for(auto &[word, mask] : masks[j]){
+                    occupied[x][word] |= mask;
+                }
+            }
+        }
+    }
+
+    cout << result.size() << "\n";
+    for(auto &[r, c, rem] : result){
+        cout << r << " " << c << " " << rem << "\n";
+    }
+
+    return 0;
+}
+
+
+
+
+
+2 2 1 2
+1 2
+3 5
+
+
+
+
+4 4 2 2
+1 5 3 4
+2 7 6 1
+1 1 2 2
+2 2 1 2
+
+
+
+
+For the custom test case, let us test the minimum constraints possible. Let all of \(n, m, a, b\), and the only element in the matrix be 1. In this case, the height map simplifies to a single cell matrix of size \( 1 \times 1 \). In this scenario, the city to be placed also occupies exactly one cell, matching the entire height map. The minimum height within this \( 1 \times 1 \) submatrix is naturally equal to the height of the cell itself, resulting in no ground removal being necessary (\( \text{removal} = 0 \)). Consequently, the output correctly reflects that one city has been placed at position (1, 1) with a ground removal value of 0. The output will be:
+
+\(1\)
+\(1\) \(1\) \(0\)
+
+
+
+
+1 1 1 1
+1

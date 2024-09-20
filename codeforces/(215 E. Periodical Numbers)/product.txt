@@ -1,0 +1,276 @@
+E. Periodical Numbers
+
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+A non-empty string \(s\) is called binary, if it consists only of characters "0" and "1". Let's number the characters of binary string \(s\) from 1 to the string's length and let's denote the \(i\)-th character in string \(s\) as \(s_i\).
+
+Binary string \(s\) with length \(n\) is periodical, if there is an integer \(1 ≤ k < n\) such that:
+
+\(\bullet\) \(k\) is a divisor of number \(n\)
+\(\bullet\) for all \(1 ≤ i ≤ n - k\), the following condition fulfills: \(s_i = s_{i + k}\)
+
+For example, binary strings "101010" and "11" are periodical and "10" and "10010" are not.
+
+A positive integer \(x\) is periodical, if its binary representation (without leading zeroes) is a periodic string.
+
+Your task is to calculate, how many periodic numbers are in the interval from \(l\) to \(r\) (both ends are included).
+
+<b>Input</b>
+The single input line contains two integers \(l\) and \(r\) \((1 ≤ l ≤ r ≤ 10^{18})\). The numbers are separated by a space.
+
+Please, do not use the %lld specifier to read or write 64-bit integers in С++. It is preferred to use the cin, cout streams or the %I64d specifier.
+
+<b>Output</b>
+Print a single integer, showing how many periodic numbers are in the interval from \(l\) to \(r\) (both ends are included).
+
+<b>Note</b>
+In the first sample periodic numbers are 3, 7 and 10.
+
+In the second sample periodic numbers are 31 and 36.
+
+
+
+
+
+The first thing we can notice in this problem is that the requirement for a binary string to be periodical is that for some number \(k\) such that \(k\) is divisible by \(n\) where \(n\) is the length of the binary string, every substring \([s_1, \dots, s_k], [s_{k+1}, \dots,s_{2k}], \dots,[s_{n-k}, \dots, s_{n}]\) have to be exactly the same because we want every substring of them to be equal to the last substring so that's equivalent to all the substrings being the same.
+
+Now we can see that the naive solution here is to loop over all the numbers from \(l\) to \(r\) and for every number we will store its binary representation in a binary string and check for every number if the conditions given above are true then we will increment our answer by one however, we can clearly see that this approach would be too slow.
+
+
+
+
+
+What we can see here is that it's easy if we get the numbers from \(1\) to some \(x\) that satisfy the conditions above, so from this we can see that if we get the answer for \(r\) and for \(l-1\) we can say that the numbers satisfying the conditions from \(l\) to \(r\) are \(result_r - result_{l-1}\) now we just have to calculate the result from 1 to some number \(x\).
+
+Let's first take the input and check how we can calculate the answer later.
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+int main(){
+    ll a, b;
+    cin >> a >> b;
+}
+
+
+
+
+Now to calculate the answer for some number \(x\) we will need to consider its binary representation, so let's say that the binary string representing the binary representation of \(x\) is \(s\).
+
+Now we can clearly see that any number with a binary string of size less than \(s\) will be considered, while the numbers with a binary string that's equal to \(s\) won't all be considered as we need to consider the numbers that are less than \(x\).
+
+So let's first check how to calculate the numbers that have a size that's less than \(s\).
+
+We can do that by looping over all the sizes that are less than \(s\) where for every size we will calculate the numbers that satisfy the conditions.
+
+Now for some size \(sz\) we will have to loop over its divisors that are less than \(sz\) and for each one of them we will check how many numbers have some substring of size \(sz\) that's the same across all the substrings as explained in the first block.
+
+Now we can see that \(2^{sz-1}\) is the number of numbers that we can has equal substrings of size \(sz\) this is because we will construct the first \(sz\) bits which will have \(2^{sz-1}\) ways because we will fix the first one as we can't have leading zeros and the rest of the bits are either turned on or off so we have a total of \(sz-1\) bits that we can get the combinations of, and why this is true is because if we construct the first substring we will simply repeat it over the rest of the size of the string and we will have a number that satisfies the conditions.
+
+However, we can see here that if for some \(sz = 2\) and some \(sz = 4\) we calculate the answer for both of them there will be multiple answers as \(sz = 4\) will count some numbers that are calculated in \(sz = 2\), so when we calculate the answer for some \(sz\) we will have to remove the answer for all its divisor if its divisors had some answer added to our result.
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+ll calc(ll n) {
+    int bits = __lg(n) + 1;
+    ll res = 0;
+    for (int i = 1; i <= bits; ++i) {
+        vector<ll> ans(bits + 1, 0);
+        for (int j = 1; j <= i / 2; ++j) {
+            if (i % j == 0) {
+                if (i < bits) {
+                    ans[j] += (1ll << (j - 1));
+                } else {    
+                    //calculate for i = bits
+                }
+                for (int k = 1; k < j; ++k) {
+                    if (j % k == 0)
+                        ans[j] -= ans[k];
+                }
+                res += ans[j];
+            }
+        }
+    }
+    return res;
+}
+
+int main(){
+    ll a, b;
+    cin >> a >> b;
+}
+
+
+
+
+Now all that's remaining is to calculate the answer for when the size of the string we want to find is equal to the size of the string \(s\).
+
+In this case we will also do a process similar to the above where we will check for all the divisors and calculate the answer for each one of them and remove the duplicate answers if a divisor had divisors that had their answers calculated before.
+
+However, we won't be simply adding \(2^{sz-1}\) like we did above as we won't be adding all the strings as some of the strings could have a larger value than \(s\).
+
+So how we will calculate the answer here is that for some \(sz\) we will check the first \(sz\) bits in the string \(s\) for which bits are turned on, however we also won't consider the first bit as it we can't use it in the combinations of the answer as explained above because the first bit cannot be 0 as we cannot have leading zeros, so we will consider the bits from the second bit up to the \(sz\)-th bit.
+
+For every one of these bits if one of them are turned on we will add the decimal representation of this bit to the answer however, we will consider the bit from the substring \([s_1, \dots, s_{sz}]\) so the \(sz\)-th bit will be equivalent to 1 in the decimal system.
+
+Why we do this is because if some substring \(t\) = 100110 that means that we can use all the strings that are smaller than it, so we will have the substrings from 100000 to 100101 available which is \(2^1 + 2^2 = 6\) substrings.
+
+However, we can notice here that we didn't consider the substring 100110, this is because if we consider it we could have the string \(s\) = 100110<b>100101</b> which means that we cannot use the string 100110100110 as it would be larger than \(s\) so we would have to check if after we concatenate the substring \(t\) up to the size of the string \(s\) if it would be larger than \(s\) or not, if not we will add 1 to our answer otherwise we won't.
+
+Now we will create a function to calculate what we stated above.
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+ll f(ll n, int bits, int j) {
+    ll res = 0;
+    for (int i = 1; i <= j; ++i) {
+        if (n & (1ll << (bits - i)))
+            res += (1ll << (j - i));
+    }
+    ll val = res;
+    for (int i = 1; i < bits / j; i++) {
+        val <<= j;
+        val += res;
+    }
+    res = res - (1ll << (j - 1));
+    if (val <= n)
+        res++;
+    return res;
+}
+
+ll calc(ll n) {
+    int bits = __lg(n) + 1;
+    ll res = 0;
+    for (int i = 1; i <= bits; ++i) {
+        vector<ll> ans(bits + 1, 0);
+        for (int j = 1; j <= i / 2; ++j) {
+            if (i % j == 0) {
+                if (i < bits) {
+                    ans[j] += (1ll << (j - 1));
+                } else {    
+                    ans[j] += f(n, bits, j);
+                }
+                for (int k = 1; k < j; ++k) {
+                    if (j % k == 0)
+                        ans[j] -= ans[k];
+                }
+                res += ans[j];
+            }
+        }
+    }
+    return res;
+}
+
+int main(){
+    ll a, b;
+    cin >> a >> b;
+}
+
+
+
+
+Now all that's remaining is to output the answer we will simply do this by calculating the answer for \(r\) and subtracting it from the answer for \(l-1\).
+
+
+
+
+#include <bits/stdc++.h>
+
+#define ll long long
+
+using namespace std;
+
+ll f(ll n, int bits, int j) {
+    ll res = 0;
+    for (int i = 1; i <= j; ++i) {
+        if (n & (1ll << (bits - i)))
+            res += (1ll << (j - i));
+    }
+    ll val = res;
+    for (int i = 1; i < bits / j; i++) {
+        val <<= j;
+        val += res;
+    }
+    res = res - (1ll << (j - 1));
+    if (val <= n)
+        res++;
+    return res;
+}
+
+ll calc(ll n) {
+    int bits = __lg(n) + 1;
+    ll res = 0;
+    for (int i = 1; i <= bits; ++i) {
+        vector<ll> ans(bits + 1, 0);
+        for (int j = 1; j <= i / 2; ++j) {
+            if (i % j == 0) {
+                if (i < bits) {
+                    ans[j] += (1ll << (j - 1));
+                } else {    
+                    ans[j] += f(n, bits, j);
+                }
+                for (int k = 1; k < j; ++k) {
+                    if (j % k == 0)
+                        ans[j] -= ans[k];
+                }
+                res += ans[j];
+            }
+        }
+    }
+    return res;
+}
+
+int main(){
+    ll a, b;
+    cin >> a >> b;
+    cout << calc(b) - calc(a - 1) << endl;
+}
+
+
+
+
+1 10
+
+
+
+
+25 38
+
+
+
+
+Now let's test our code on the minimum possible values to make sure it works on the boundary values.
+
+<code>
+1 1
+</code>
+
+The expected output would be 0.
+
+This is because there's only the integer 1 in the range and we can see that its binary representation is 1, so there's no divisor \(k\) that's less than its size so we can clearly see that it doesn't satisfy the conditions given in the problem statement.
+
+
+
+
+
+1 1

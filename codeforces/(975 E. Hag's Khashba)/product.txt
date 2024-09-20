@@ -1,0 +1,923 @@
+E. Hag's Khashba
+time limit per test: 3 seconds
+memory limit per test: 256 megabytes
+
+Hag is a very talented person. He has always had an artist inside him but his father forced him to study mechanical engineering.
+
+Yesterday he spent all of his time cutting a giant piece of wood trying to make it look like a goose. Anyway, his dad found out that he was doing arts rather than studying mechanics and other boring subjects. He confronted Hag with the fact that he is a spoiled son that does not care about his future, and if he continues to do arts he will cut his 25 Lira monthly allowance.
+
+Hag is trying to prove to his dad that the wooden piece is a project for mechanics subject. He also told his dad that the wooden piece is a strictly convex polygon with n vertices.
+
+Hag brought two pins and pinned the polygon with them in the 1-st and 2-nd vertices to the wall. His dad has q queries to Hag of two types.
+
+\(\bull\) 1 f t: pull a pin from the vertex f, wait for the wooden polygon to rotate under the gravity force (if it will rotate) and stabilize. And then put the pin in vertex t.
+\(\bull\) 2 v: answer what are the coordinates of the vertex v.
+
+Please help Hag to answer his father's queries.
+
+You can assume that the wood that forms the polygon has uniform density and the polygon has a positive thickness, same in all points. After every query of the 1-st type Hag's dad tries to move the polygon a bit and watches it stabilize again.
+
+Input
+The first line contains two integers n and q (3≤n≤10000, 1≤q≤200000) — the number of vertices in the polygon and the number of queries.
+
+The next n lines describe the wooden polygon, the i-th line contains two integers \(x_i\) and \(y_i (|x_i|,|y_i|≤10^8)\) — the coordinates of the i-th vertex of the polygon. It is guaranteed that polygon is strictly convex and the vertices are given in the counter-clockwise order and all vertices are distinct.
+
+The next q lines describe the queries, one per line. Each query starts with its type 1 or 2. Each query of the first type continues with two integers f and t (1≤f,t≤n) — the vertex the pin is taken from, and the vertex the pin is put to and the polygon finishes rotating. It is guaranteed that the vertex f contains a pin. Each query of the second type continues with a single integer v (1≤v≤n) — the vertex the coordinates of which Hag should tell his father.
+
+It is guaranteed that there is at least one query of the second type.
+
+Output
+The output should contain the answer to each query of second type — two numbers in a separate line. Your answer is considered correct, if its absolute or relative error does not exceed \(10^{−4}\).
+
+Formally, let your answer be a, and the jury's answer be b. Your answer is considered correct if \(\frac{|a - b|}{\max{(1, |b|)}} \le 10^{-4}\)
+
+Note
+In the first test note the initial and the final state of the wooden polygon.
+<img 1>
+
+Red Triangle is the initial state and the green one is the triangle after rotation around (2,0).
+
+In the second sample note that the polygon rotates 180 degrees counter-clockwise or clockwise direction (it does not matter), because Hag's father makes sure that the polygon is stable and his son does not trick him.
+
+
+
+
+
+\(\bull\) Naive algorithm
+We can directly simulate the rotation of the polygon after each query.
+For each query of type 1, we need to calculate the new position of all vertices based on the physics of rotation.
+This means that for every query, the time complexity would be \( O(n) \) due to the need to update the position information of all vertices, resulting in a total complexity of \( O(n \cdot q) \) for \( q \) queries.
+Given the constraints (with n up to 10000 and q up to 200000), this results in a maximum of 2 billion operations, which exceeds the time limit of 3 seconds.
+Thus, this naive approach is a time limit exceed algorithm.
+
+\(\bull\) Real algorithm
+When one pin is removed, the polygon rotates around the remaining pin, changing its position relative to the rotating center. Specifically, the remaining pin and the centroid of the polygon will align vertically after the rotation.
+
+So, we only need to maintain the pinned vertices and the centroid among all queries. The reason is that these elements directly affect the polygon's stability and position during rotation, simplifying our calculations.
+
+The shape of the polygon remains unchanged, allowing us to focus solely on the positions of the pinned vertices and the centroid. Since the centroid directly influences the rotation, we must determine the position of the next pinned vertex using the centroid's position each time we rotate the polygon. 
+
+Therefore, we can save the polygon's shape by storing the direction vectors from the centroid to each vertex, along with their respective distances. With this information saved, we can easily calculate the new position of the pinned vertex after the rotation, making the algorithm efficient. (This part is about 2nd query, and I will explain how to determine the next pinned vertex after the rotation later.)
+
+The time complexity of this algorithm is \( O(q) \) (where \( q \) is the number of queries), since we only update the necessary positions without recalculating the entire polygon shape.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+My \(point\) structure represents vectors in 2D space with x, y coordinates as its components.
+Let's add some useful mandatory operators and functions in my \(point\) structure step by step.
+
+1. Vector Addition (\(\color{green}{vector\ a}\) \(\color{red}{+}\) \(\color{green}{vector\ b}\)):  
+   This operator adds the components of two vectors together to produce a new vector.
+2. Vector Subtraction (\(\color{green}{vector\ a}\) \(\color{red}{-}\) \(\color{green}{vector\ b}\)):  
+   This operator subtracts the components of one vector from another, yielding a new vector that represents the difference between them.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+3. Scalar Multiplication (\(\color{green}{vector\ a}\) \(\color{red}{*}\) \(\color{blue}{scalar}\)):  
+   This operator multiplies both the x and y components of the vector by a scalar, scaling the vector by the given factor.
+4. Scalar Division (\(\color{green}{vector\ a}\) \(\color{red}{/}\) \(\color{blue}{scalar}\)):  
+   This operator divides both components of the vector by a scalar, scaling down the vector proportionally.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+5. 2D cross Product (\(\color{green}{vector\ a}\) \(\color{red}\hat{}\) \(\color{green}{vector\ b}\)):  
+   This operator computes the 2D cross product of two vectors, returning a scalar that represents the signed area of the parallelogram formed by the two vectors.
+   This operator computes the 2D cross product of two vectors, returning a scalar that represents the signed area of the parallelogram formed by the two vectors.
+6. Dot Product (\(\color{green}{vector\ a}\) \(\color{red}{*}\) \(\color{green}{vector\ b}\)):  
+   This method computes the dot product of two vectors, resulting in a scalar that measures how much one vector aligns with the other.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+This section covers the rotation aspect:
+7. Complex Multiplication (\(\color{green}{vector\ a}\) \(\color{red}{\&}\) \(\color{green}{vector\ b}\)):  
+   This operator multiplies two vectors as if they were complex numbers, resulting in a new vector. It is often used for rotating vectors in 2D space.
+8. Rotation (\(\color{green}{vector.rotate(Cos, Sin)}\)):  
+   This method rotates the vector by applying the cosine and sine of the rotation angle, resulting in a new rotated vector.
+   
+   
+   
+   
+   #include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+9. Vector length (\(\color{green}{vector.nor()}\)):  
+   This method calculates the length of the vector, which is the distance from the origin to the vector's position in space.
+10. Normalization (\(\color{green}{vector.norm()}\)):  
+    This method returns a unit vector in the same direction as the original vector, ensuring it has a length of 1. If the vector's magnitude is near zero, it returns the original vector.
+	
+	
+	
+	
+	#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+Let's first calculate the centroid of the current polygon.
+To find the centroid, break the polygon into triangles by connecting each vertex to a reference point (such as the first vertex).
+For each triangle, compute its area and centroid, then sum the centroids of all triangles, weighted by their respective areas.
+Finally, divide the total weighted centroid by the total area of the polygon.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN], C;
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    DO area = 0;
+    for(int i = 2; i < n; i++) {
+        DO triangle_area_x_2 = p[i] - p[1] ^ p[i + 1] - p[1];
+        C = C + (p[1] + p[i] + p[i + 1]) / 3 * triangle_area_x_2;
+        area += triangle_area_x_2;
+    }
+    C = C / area;
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+Let's save the polygon's shape by storing the direction vectors from the centroid to each vertex, along with their respective distances.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN], dir[NN], C;
+DO d[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    DO area = 0;
+    for(int i = 2; i < n; i++) {
+        DO triangle_area_x_2 = p[i] - p[1] ^ p[i + 1] - p[1];
+        C = C + (p[1] + p[i] + p[i + 1]) / 3 * triangle_area_x_2;
+        area += triangle_area_x_2;
+    }
+    C = C / area;
+    
+    for(int i = 1; i <= n; i++) {
+        dir[i] = p[i] - C;
+        d[i] = dir[i].nor();
+    }
+    
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+Let's simulate the rotation of the polygon after each query.
+We only need to maintain the pinned vertices and the centroid throughout all the queries. (I briefly explained the reason for this in block 1.)
+
+We can save the indices of the pinned vertices as variables \(a\) and \(b\). The initial state is \(a = 1\) and \(b = 2\), as stated in the problem.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN], dir[NN], C;
+DO d[NN];
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    DO area = 0;
+    for(int i = 2; i < n; i++) {
+        DO triangle_area_x_2 = p[i] - p[1] ^ p[i + 1] - p[1];
+        C = C + (p[1] + p[i] + p[i + 1]) / 3 * triangle_area_x_2;
+        area += triangle_area_x_2;
+    }
+    C = C / area;
+    
+    for(int i = 1; i <= n; i++) {
+        dir[i] = p[i] - C;
+        d[i] = dir[i].nor();
+    }
+    
+    int a = 1, b = 2;
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+        }
+        else {
+            int v; scanf("%d", &v);
+        }
+    }
+}
+
+
+
+
+\(\bull\) If we encounter the first query, we must first ensure that the index of \(f\) is the same among \(a\) and \(b\). Without loss of generality, we can assume that vertex \(a\) is one of the pinned vertices (otherwise, we can swap \(a\) and \(b\)).
+When we remove another pin, the polygon rotates, and after the rotation, the centroid of the polygon should align vertically with the pinned point \(a\). In this case, the centroid will be positioned at \((p[a].x, p[a].y - d[a])\), where \(d[a]\) is the distance between the centroid and the \(a\)-th polygon vertex. 
+Since we know the position of \(p[a]\) and the centroid, we can easily determine the next pinned vertex's position \(p[t]\) by calling the get(a, t) function (I will explain this function later).
+Then, we can update \(p[t]\), and adjust \(a\) and \(b\) as the indices of the pinned vertices change.
+
+\(\bull\) If we encounter the second query, we simply need to find the position of the \(v\)-th vertex by calling get(a, v), and then print the coordinates of \(p[v]\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN], dir[NN], C;
+DO d[NN];
+
+point get(int f, int u) {
+    // returned update p[u]
+}
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    DO area = 0;
+    for(int i = 2; i < n; i++) {
+        DO triangle_area_x_2 = p[i] - p[1] ^ p[i + 1] - p[1];
+        C = C + (p[1] + p[i] + p[i + 1]) / 3 * triangle_area_x_2;
+        area += triangle_area_x_2;
+    }
+    C = C / area;
+    
+    for(int i = 1; i <= n; i++) {
+        dir[i] = p[i] - C;
+        d[i] = dir[i].nor();
+    }
+    
+    int a = 1, b = 2;
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+            if(a == f) swap(a, b);
+            
+            C = p[a], C.y -= d[a];
+            p[t] = get(a, t);
+            b = t;
+        }
+        else {
+            int v; scanf("%d", &v);
+            p[v] = get(a, v);
+            p[v].print();
+        }
+    }
+}
+
+
+
+
+Finally, let's implement the get(f, u) function.
+The get(f, u) function determines the position of point \( p[u] \) after the polygon rotates around the pinned center at \( p[f] \).
+
+First, it calculates the cosine (\(\cos(\alpha)\)) and sine (\(\sin(\alpha)\)) of the angle \(\alpha\) between the direction vectors \( \text{dir}[f] \) and \( \text{dir}[u] \).
+\(\bull\) \(\cos(\alpha)\)
+The cosine of the angle \( \alpha \) between two vectors \( \text{dir}[f] \) and \( \text{dir}[u] \) is computed using the dot product formula:
+\(\text{dir}[f] \cdot \text{dir}[u] = \|\text{dir}[f]\| \cdot \|\text{dir}[u]\| \cdot \cos(\alpha)\)
+Rearranging this gives:
+\(\cos(\alpha) = \frac{\text{dir}[f] \cdot \text{dir}[u]}{\|\text{dir}[f]\| \cdot \|\text{dir}[u]\|} = \frac{\text{dir}[f] * \text{dir}[u]}{d[f] \cdot d[u]}\)
+\(\bull\) \(\sin(\alpha)\)
+The sine of the angle \( \alpha \) is calculated using the 2D cross product. The cross product in 2D gives a scalar value representing the signed area of the parallelogram formed by the two vectors:
+\(\text{dir}[f] \times \text{dir}[u] = \|\text{dir}[f]\| \cdot \|\text{dir}[u]\| \cdot \sin(\alpha)\)
+Rearranging this gives:
+\(\sin(\alpha) = \frac{\text{dir}[f] \times \text{dir}[u]}{\|\text{dir}[f]\| \cdot \|\text{dir}[u]\|} = \frac{\text{dir}[f] \, \hat{} \, \text{dir}[u]}{d[f] \cdot d[u]}\)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN], dir[NN], C;
+DO d[NN];
+
+point get(int f, int u) {
+    DO Cos = dir[f] * dir[u] / (d[f] * d[u]);
+    DO Sin = dir[f] ^ dir[u] / d[f] / d[u];
+}
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    DO area = 0;
+    for(int i = 2; i < n; i++) {
+        DO triangle_area_x_2 = p[i] - p[1] ^ p[i + 1] - p[1];
+        C = C + (p[1] + p[i] + p[i + 1]) / 3 * triangle_area_x_2;
+        area += triangle_area_x_2;
+    }
+    C = C / area;
+    
+    for(int i = 1; i <= n; i++) {
+        dir[i] = p[i] - C;
+        d[i] = dir[i].nor();
+    }
+    
+    int a = 1, b = 2;
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+            if(a == f) swap(a, b);
+            
+            C = p[a], C.y -= d[a];
+            p[t] = get(a, t);
+            b = t;
+        }
+        else {
+            int v; scanf("%d", &v);
+            p[v] = get(a, v);
+            p[v].print();
+        }
+    }
+}
+
+
+
+
+\(\bull\) Before applying the rotation, the vector \( p[f] - C \) is normalized to make it a unit vector. This is achieved by dividing the vector by its magnitude \( \|p[f] - C\| \). The normalization step ensures that the vector has a length of 1:
+\(\frac{p[f] - C}{\|p[f] - C\|} = (p[f] - C).norm()\)
+\(\bull\) After the vector is rotated, the unit vector is scaled back to its original length, \( d[u] \), which is the distance from the centroid \( C \) to point \( p[u] \). The scaling is done by multiplying the rotated unit vector by \( d[u] \):
+\(\left( (p[f] - C).norm().rotate(\cos(\alpha), \sin(\alpha)) \right) \times d[u]\)
+\(\bull\) To find the final position of \( p[u] \), the scaled and rotated vector is added to the centroid \( C \). This gives us the new position of point \( p[u] \):
+\(p[u] = C + \left( (p[f] - C).norm().rotate(\cos(\alpha), \sin(\alpha)) \times d[u] \right)\)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+using DO = double;
+
+const DO eps = 1e-7;
+
+struct point {
+	DO x, y;
+	point(DO x = 0, DO y = 0) : x(x), y(y) {}
+	point operator + (point a) {return point(x + a.x, y + a.y);}
+	point operator - (point a) {return point(x - a.x, y - a.y);}
+	point operator * (DO a) {return point(x * a, y * a);}
+	point operator / (DO a) {return point(x / a, y / a);}
+	DO operator ^ (point a) {return x * a.y - y * a.x;}
+	DO operator * (point a) {return x * a.x + y * a.y;}
+	point operator & (point a) {
+		return point(x * a.x - y * a.y, x * a.y + y * a.x);
+	}
+	point rotate (DO Cos, DO Sin) {return *this & point(Cos, Sin);}
+	DO nor() {return sqrt(*this * *this);}
+	point norm() {
+		DO s = nor();
+		return s < eps ? *this : point(x / s, y / s);
+	}
+	void input() {scanf("%lf %lf", &x, &y);}
+	void print() {printf("%lf %lf\n", x, y);}
+};
+
+const int NN = 10101;
+
+point p[NN], dir[NN], C;
+DO d[NN];
+
+point get(int f, int u) {
+    DO Cos = dir[f] * dir[u] / (d[f] * d[u]);
+    DO Sin = dir[f] ^ dir[u] / d[f] / d[u];
+    return C + (p[f] - C).norm().rotate(Cos, Sin) * d[u];
+}
+
+int main() {
+    int n, q; scanf("%d %d", &n, &q);
+    for(int i = 1; i <= n; i++) p[i].input();
+    
+    DO area = 0;
+    for(int i = 2; i < n; i++) {
+        DO triangle_area_x_2 = p[i] - p[1] ^ p[i + 1] - p[1];
+        C = C + (p[1] + p[i] + p[i + 1]) / 3 * triangle_area_x_2;
+        area += triangle_area_x_2;
+    }
+    C = C / area;
+    
+    for(int i = 1; i <= n; i++) {
+        dir[i] = p[i] - C;
+        d[i] = dir[i].nor();
+    }
+    
+    int a = 1, b = 2;
+    while(q--) {
+        int tp; scanf("%d", &tp);
+        if(tp == 1) {
+            int f, t; scanf("%d %d", &f, &t);
+            if(a == f) swap(a, b);
+            
+            C = p[a], C.y -= d[a];
+            p[t] = get(a, t);
+            b = t;
+        }
+        else {
+            int v; scanf("%d", &v);
+            p[v] = get(a, v);
+            p[v].print();
+        }
+    }
+}
+
+
+
+
+3 4
+0 0
+2 0
+2 2
+1 1 2
+2 1
+2 2
+2 3
+
+
+
+
+This answer is considered correct because the absolute or relative error between the sample test cases does not exceed \(10^{-4}\).
+
+
+
+
+3 2
+-1 1
+0 0
+1 1
+1 1 2
+2 1
+
+
+
+
+This answer is considered correct because the absolute or relative error between the sample test cases does not exceed \(10^{-4}\).
+
+
+
+
+Let's examine the custom corner case where there are only second-type queries and \(n = q\). Here, I will select the polygon as a square and ask for the positions of all the vertices using second-type queries.
+
+<code>
+4 4
+0 0
+1 0
+1 1
+0 1
+2 1
+2 2
+2 3
+2 4
+</code>
+
+In this test case, there is no first query, so we only need to print the original positions of the vertices. Here, I asked for all the vertices in the order of 1, 2, 3, 4, so I will simply print the vertices 1, 2, 3, and 4 without any changes. Therefore, my answer will look as follows:
+<code>
+0 0
+1 0
+1 1
+0 1
+</code>
+
+
+
+
+4 4
+0 0
+1 0
+1 1
+0 1
+2 1
+2 2
+2 3
+2 4
+
+
+
+
+This answer is considered correct because the absolute or relative error between the sample test cases does not exceed \(10^{-4}\).

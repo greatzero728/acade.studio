@@ -1,0 +1,642 @@
+E. Quick Tortoise
+time limit per test: 3 seconds
+memory limit per test: 512 megabytes
+
+John Doe has a field, which is a rectangular table of size n × m. We assume that the field rows are numbered from 1 to n from top to bottom, and the field columns are numbered from 1 to m from left to right. Then the cell of the field at the intersection of the x-th row and the y-th column has coordinates (x; y).
+
+We know that some cells of John's field are painted white, and some are painted black. Also, John has a tortoise, which can move along the white cells of the field. The tortoise can get from a white cell with coordinates (x; y) into cell (x + 1; y) or (x; y + 1), if the corresponding cell is painted white. In other words, the turtle can move only along the white cells of the field to the right or down. The turtle can not go out of the bounds of the field.
+
+In addition, John has q queries, each of them is characterized by four numbers \(x_1, y_1, x_2, y_2 (x_1 ≤ x_2, y_1 ≤ y_2)\). For each query John wants to know whether the tortoise can start from the point with coordinates \((x_1; y_1)\), and reach the point with coordinates \((x_2; y_2)\), moving only along the white squares of the field.
+
+Input
+The first line contains two space-separated integers n and m (1 ≤ n, m ≤ 500) — the field sizes.
+
+Each of the next n lines contains m characters "#" and ".": the j-th character of the i-th line equals "#", if the cell (i; j) is painted black and ".", if it is painted white.
+
+The next line contains integer \(q (1 ≤ q ≤ 6·10^5)\) — the number of queries. Next q lines contain four space-separated integers \(x_1, y_1, x_2\) and \(y_2 (1 ≤ x_1 ≤ x_2 ≤ n, 1 ≤ y_1 ≤ y_2 ≤ m)\) — the coordinates of the starting and the finishing cells. It is guaranteed that cells \((x_1; y_1)\) and \((x_2; y_2)\) are white.
+
+Output
+For each of q queries print on a single line "Yes", if there is a way from cell \((x_1; y_1)\) to cell \((x_2; y_2)\), that meets the requirements, and "No" otherwise. Print the answers to the queries in the order, in which the queries are given in the input.
+
+
+
+
+\(\bull\) Naive algorithm
+We can solve this problem using dynamic programming.
+First, let's define \( \text{can}[xmn][ymn][x][y] \) as a validator indicating whether we can reach from cell \( (xmn, ymn) \) to cell \( (x, y) \).
+If \( \text{can}[xmn][ymn][x][y] \) is true, it means we can move from cell \( (xmn, ymn) \) to cell \( (x, y) \). Conversely, if \( \text{can}[xmn][ymn][x][y] \) is false, it means we cannot move from cell \( (xmn, ymn) \) to cell \( (x, y) \).
+We can calculate all values of \( \text{can}[xmn][ymn][x][y] \), and then for each query, we can check if we can move from cell \( (xmn, ymn) \) to cell \( (x, y) \) within \(O(1)\) time complexity.
+
+
+Let's calculate \( \text{can}[xmn][ymn][x][y] \) using the inductive method.
+At the moment of calculating \( \text{can}[xmn][ymn][x][y] \), let's assume we have already calculated all \( \text{can}[XMN][YMN][X][Y] \), where the cells \( (XMN, YMN) \) are located in the bottom-right direction of the cell \( (xmn, ymn) \). The state (XMN, YMN, X, Y) represents the cells located in the bottom-right direction of (xmn, ymn), as we can only move to the right or downward. To calculate the state (xmn, ymn, x, y), we must first compute all states (XMN, YMN, X, Y) before determining state (xmn, ymn, x, y).
+(How can we maintain this order? It's simple: we can calculate \( \text{can}[xmn][ymn][x][y] \) by iterating over \( xmn \) in the order of \( n, n - 1, \ldots, 2 \) and \( ymn \) in the order of \( m, m - 1, \ldots, 2, 1 \).)
+
+
+Let's represent the given rectangular table as \( s \), where \( s[x][y] \) represents the state of cell \( (x, y) \).
+
+
+We only need to calculate \( \text{can}[xmn][ymn][x][y] \) now. There are two possible cases:
+
+1) The case where \( s[xmn][ymn] \) is '#'. In this case, we can't start from cell \( (xmn, ymn) \), so for all possible cells \( (x, y) \), \( \text{can}[xmn][ymn][x][y] = 0 \). This uses \( O(n \cdot m) \) time complexity as we have to iterate through all possible cells \( (x, y) \).
+
+2) The case where \( s[xmn][ymn] \) is '.'. We can start movement from cell \( (xmn, ymn) \), and we can also end movement at cell \( (xmn, ymn) \). So, \( \text{can}[xmn][ymn][xmn][ymn] = 1 \).
+
+Then, there are two possible subcases here:
+
+2.1) The case where we make the first movement downward, specifically to cell \( (xmn + 1, ymn) \). There are two possibilities:
+
+2.1.1) If \( s[xmn + 1][ymn] \) is '#', we can't move from cell \( (xmn, ymn) \) to cell \( (xmn + 1, ymn) \) because cell \( (xmn + 1, ymn) \) is black. Thus, there is no update in \( \text{can}[xmn][ymn][x][y] \).
+
+2.1.2) If \( s[xmn + 1][ymn] \) is '.', we can move from cell \( (xmn, ymn) \) to cell \( (xmn + 1, ymn) \) because cell \( (xmn + 1, ymn) \) is white. In this case, if we can move from cell \( (xmn, ymn) \) to cell \( (x, y) \), our movements can be represented as follows:
+\((xmn, ymn) \to (xmn + 1, ymn) \to (x, y)\)
+This means for all possible cells \( (x, y) \), if \( \text{can}[xmn + 1][ymn][x][y] = 1 \), then \( \text{can}[xmn][ymn][x][y] \) should also be 1. This uses \( O(n \cdot m) \) time complexity as we have to iterate through all possible cells \( (x, y) \).
+
+2.2) The case where we make the first movement to the right, specifically to cell \( (xmn, ymn + 1) \). There are two possibilities:
+
+2.2.1) If \( s[xmn][ymn + 1] \) is '#', we can't move from cell \( (xmn, ymn) \) to cell \( (xmn, ymn + 1) \) because cell \( (xmn, ymn + 1) \) is black. Thus, there is no update in \( \text{can}[xmn][ymn][x][y] \).
+
+2.2.2) If \( s[xmn][ymn + 1] \) is '.', we can move from cell \( (xmn, ymn) \) to cell \( (xmn, ymn + 1) \) because cell \( (xmn, ymn + 1) \) is white. In this case, if we can move from cell \( (xmn, ymn) \) to cell \( (x, y) \), our movements can be represented as follows:
+\((xmn, ymn) \to (xmn, ymn + 1) \to (x, y)\)
+This means for all possible cells \( (x, y) \), if \( \text{can}[xmn][ymn + 1][x][y] = 1 \), then \( \text{can}[xmn][ymn][x][y] \) should also be 1. This uses \( O(n \cdot m) \) time complexity as we have to iterate through all possible cells \( (x, y) \).
+
+To calculate all \( \text{can}[xmn][ymn][x][y] \), we should iterate through all \( xmn, ymn, x, y \), which requires \( O(n^2 \cdot m^2) \) time complexity. For each query \( q \), we can answer according to \( \text{can}[x_1][y_1][x_2][y_2] \) in \( O(1) \) time complexity. Thus, the total time complexity of this naive algorithm is \( O(n^2 \cdot m^2 + q) \).
+
+Since \( n, m \) can be up to 500 and \( q \) can be up to \( 6 \cdot 10^5 \), this naive algorithm will likely result in a time limit exceeding error. Additionally, we cannot declare \( \text{can}[xmn][ymn][x][y] \) as it would produce a memory limit error.
+
+
+
+
+\(\bull\) Real algorithm
+To prevent exceeding memory limits, let's reduce our \( \text{can} \) array from a space complexity of \( O(n^2 \cdot m^2) \) to \( O(n \cdot m^2) \). All transitions remain the same as in the previous naive approach.
+
+Let's suppose we are in the \( xmn \) state. This means we have already calculated all \( XMN \) (where \( XMN > xmn \)) up to this point, and we are calculating the state where the starting point's x-coordinate is \( xmn \). In this case, we will use \( \text{can}[ymn][x][y] \) instead of \( \text{can}[xmn][ymn][x][y] \). 
+
+Specifically, we will maintain the method where the current state \( (xmn, ymn, x, y) \) serves as the previous state \( (xmn + 1, ymn, x, y) \) if there are no updates. If there are updates, we will only change the updated states.
+Again, we can omit the method of replacing all possible states \( (xmn + 1, ymn, x, y) \) with \( (xmn, ymn, x, y) \). Instead, we will maintain the state of \( xmn + 1 \) and only update the affected states.
+
+
+Here, we need to confirm how to handle the queries and provide answers. Since we reduced our state from \( \text{can}[xmn][ymn][x][y] \) to \( \text{can}[ymn][x][y] \), there is no way to retrieve the state of \( \text{can}[x_1][y_1][x_2][y_2] \) for each query.
+
+To address this issue, we can change our method of handling queries from the general approach. For each \( i \)-th query \( (x_1, y_1, x_2, y_2) \), we can save the information regarding the \( i \)-th query \( (y_1, x_2, y_2) \) in the \( x_1 \)-th row.
+Then, after calculating \( \text{can}[ymn][x][y] \) in the \( xmn \)-th row, we can iterate through all saved queries \( (ymn, x, y, id) \) to store \( \text{ans}[id] \) as \( \text{can}[ymn][x][y] \).
+
+Once all processes are complete, we only need to print the \( \text{ans} \) array.
+
+
+Let's confirm the completed transition formula for \( \text{can}[ymn][x][y] \) again.
+
+1) The case where \( s[xmn][ymn] \) is '#':
+For all possible cells \( (x, y) \), \( \text{can}[ymn][x][y] = 0 \).
+
+2) The case where \( s[xmn][ymn] \) is '.':
+\( \text{can}[ymn][xmn][ymn] = 1 \).
+
+Then, there are two possible subcases here:
+
+2.1) The case where we make the first movement downward, specifically to cell \( (xmn + 1, ymn) \). There are two possibilities:
+
+2.1.1) If \( s[xmn + 1][ymn] \) is '#', there is no update in \( \text{can}[ymn][x][y] \).
+
+2.1.2) If \( s[xmn + 1][ymn] \) is '.', for all possible cells \( (x, y) \):
+In our previous version, if \( \text{can}[xmn + 1][ymn][x][y] = 1 \), then \( \text{can}[xmn][ymn][x][y] \) should also be 1. Therefore, in our new version, we can simply use \( \text{state}(xmn + 1, ymn, x, y) \) as \( \text{state}(xmn, ymn, x, y) \) because there is no update to \( \text{can}[ymn][x][y] \).
+
+2.2) The case where we make the first movement to the right, specifically to cell \( (xmn, ymn + 1) \). There are two possibilities:
+
+2.2.1) If \( s[xmn][ymn + 1] \) is '#', there is no update in \( \text{can}[xmn][ymn][x][y] \).
+
+2.2.2) If \( s[xmn][ymn + 1] \) is '.', for all possible cells \( (x, y) \):
+In our previous version, if \( \text{can}[xmn][ymn + 1][x][y] = 1 \), then \( \text{can}[xmn][ymn][x][y] \) should also be 1. In this transition, the variable \( xmn \) remains the same in both states \( xmn + 1 \) and \( xmn \). Thus, in our new version, if \( \text{can}[ymn + 1][x][y] = 1 \), then \( \text{can}[ymn][x][y] \) should also be 1.
+
+We reduced our \( \text{can} \) array from a space complexity of \( O(n^2 \cdot m^2) \) to \( O(n \cdot m^2) \).
+
+However, for every starting cell \( (xmn, ymn) \), we are still calculating all \( \text{can}[ymn][x][y] \) with a time complexity of \( O(n \cdot m) \). So the time complexity of current algorithm is still \(O(n ^ 2 \cdot m ^ 2)\).
+
+
+We can reduce the time complexity of calculating \( \text{can}[ymn][x][y] \) by using a bitset. Instead of iterating through all possible \( y \) values to check or update reachability, we can perform bitwise operations (like OR) in \( O(1) \) time.
+
+Let's assume we are storing all information from \( \text{can}[ymn][x][y] \) in the bitset \( \text{cell}[ymn][x] \), where \( \text{can}[ymn][x] \) has a length of \( m \).
+
+
+Now, let's confirm our algorithm using the bitset \( \text{can}[ymn][x] \).
+
+1) When \( s[xmn][ymn] \) is '#':
+For all possible rows \( x \), initialize the bitset \( \text{can}[ymn][x] \) as an empty bitset.
+
+2) When \( s[xmn][ymn] \) is '.':
+Set the \( ymn \)-th element of the bitset \( \text{can}[ymn][xmn] \) to 1.
+
+2.1) If we move downward to cell \( (xmn + 1, ymn) \), there is no update to the bitset \( \text{can}[ymn][x] \).
+
+2.2) If we move to the right to cell \( (xmn, ymn + 1) \), there are two possibilities:
+
+2.2.1) If \( s[xmn][ymn + 1] \) is '#', there is no update to \( \text{can}[ymn][x][y] \).
+
+2.2.2) If \( s[xmn][ymn + 1] \) is '.', for all possible cells \( (x, y) \):
+In our previous version, if \( \text{can}[ymn + 1][x][y] = 1 \), then \( \text{can}[ymn][x][y] \) should also be 1. Using a bitset, this can be represented as \( \text{can}[ymn][x] = \text{can}[ymn][x] | \text{can}[ymn + 1][x] \).
+
+By using a bitset as described above, we reduce the time complexity from \( O(n^2 \cdot m^2) \) to \( O(n^2 \cdot m) \).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505;
+
+char s[NN][NN];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+    }
+}
+
+
+
+
+Let's declare the bitset \( \text{can}[ymn][x] \) and build the structure to update all affected bitsets \( \text{can}[ymn][x] \) if we start from the cell \( (xmn, ymn) \).
+
+As I mentioned in block 1, we have to calculate all bitsets \( \text{can}[ymn][x] \) by iterating over \( xmn \) in the order of \( n, n - 1, \ldots, 2 \) and \( ymn \) in the order of \( m, m - 1, \ldots, 2, 1 \).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 505;
+
+char s[NN][NN];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            // update all affected bitsets can[ymn][x] if we start from the cell(xmn, ymn).
+        }
+    }
+}
+
+
+
+
+As I mentioned in block 2, we need to change our method of handling queries from the general approach. Let's implement this step by step.
+
+For each \( i \)-th query \( (x_1, y_1, x_2, y_2) \), let's save the information regarding the \( i \)-th query \( (y_1, x_2, y_2) \) in the \( x_1 \)-th row.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using pii = pair<int, int>;
+using ppp = pair<pii, pii>;
+
+const int NN = 505;
+
+char s[NN][NN];
+vector<ppp> query[NN];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+        query[x1].push_back({{i, y1}, {x2, y2}});
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            // update all affected bitsets can[ymn][x] if we start from the cell(xmn, ymn).
+        }
+    }
+}
+
+
+
+
+After calculating \( \text{can}[ymn][x][y] \) in the \( xmn \)-th row, we can iterate through all saved queries \( (ymn, x, y, id) \) to store \( \text{ans}[id] \) as \( \text{can}[ymn][x][y] \).
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppp = pair<pii, pii>;
+
+const int NN = 505, MM = 606060;
+
+char s[NN][NN];
+vector<ppp> query[NN];
+
+bool ans[MM];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+        query[x1].push_back({{i, y1}, {x2, y2}});
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            // update all affected bitsets can[ymn][x] if we start from the cell(xmn, ymn).
+        }
+        for(ppp p : query[xmn]) {
+            ans[p.x.x] = can[p.x.y][p.y.x][p.y.y];
+        }
+    }
+}
+
+
+
+
+Once all processes are complete, we can print the saved answer array \( \text{ans} \).
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppp = pair<pii, pii>;
+
+const int NN = 505, MM = 606060;
+
+char s[NN][NN];
+vector<ppp> query[NN];
+
+bool ans[MM];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+        query[x1].push_back({{i, y1}, {x2, y2}});
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            // update all affected bitsets can[ymn][x] if we start from the cell(xmn, ymn).
+        }
+        for(ppp p : query[xmn]) {
+            ans[p.x.x] = can[p.x.y][p.y.x][p.y.y];
+        }
+    }
+    for(int i = 1; i <= q; i++) {
+        if(ans[i]) puts("Yes");
+        else puts("No");
+    }
+}
+
+
+
+
+Let's implement the logic mentioned in block 2 step by step.
+
+1) When \( s[xmn][ymn] \) is '#':
+For all possible rows \( x \), initialize the bitset \( \text{can}[ymn][x] \) as an empty bitset.
+
+2) When \( s[xmn][ymn] \) is '.':
+Set the \( ymn \)-th element of the bitset \( \text{can}[ymn][xmn] \) to 1.
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppp = pair<pii, pii>;
+
+const int NN = 505, MM = 606060;
+
+char s[NN][NN];
+vector<ppp> query[NN];
+
+bool ans[MM];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+        query[x1].push_back({{i, y1}, {x2, y2}});
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            if(s[xmn][ymn] == '.') {
+                can[ymn][xmn].set(ymn);
+            }
+            else {
+                for(int x = xmn; x <= n; x++) {
+                    can[ymn][x].reset();
+                }
+            }
+        }
+        for(ppp p : query[xmn]) {
+            ans[p.x.x] = can[p.x.y][p.y.x][p.y.y];
+        }
+    }
+    for(int i = 1; i <= q; i++) {
+        if(ans[i]) puts("Yes");
+        else puts("No");
+    }
+}
+
+
+
+
+2.1) If we move downward to cell \( (xmn + 1, ymn) \), there is no update to the bitset \( \text{can}[ymn][x] \).
+
+2.2) If we move to the right to cell \( (xmn, ymn + 1) \), there are two possibilities:
+
+2.2.1) If \( s[xmn][ymn + 1] \) is '#', there is no update to \( \text{can}[ymn][x][y] \).
+
+2.2.2) If \( s[xmn][ymn + 1] \) is '.', for all possible cells \( (x, y) \):
+In our previous version, if \( \text{can}[ymn + 1][x][y] = 1 \), then \( \text{can}[ymn][x][y] \) should also be 1. Using a bitset, this can be represented as \( \text{can}[ymn][x] = \text{can}[ymn][x] | \text{can}[ymn + 1][x] \).
+
+Among all the cases mentioned, we only need to consider case 2.2.2; all the others are in a no-update state.
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppp = pair<pii, pii>;
+
+const int NN = 505, MM = 606060;
+
+char s[NN][NN];
+vector<ppp> query[NN];
+
+bool ans[MM];
+
+int main() {
+    int n, m; scanf("%d %d", &n, &m);
+    for(int i = 1; i <= n; i++) scanf("%s", s[i] + 1);
+    int q; scanf("%d", &q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+        query[x1].push_back({{i, y1}, {x2, y2}});
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            if(s[xmn][ymn] == '.') {
+                can[ymn][xmn].set(ymn);
+                if(s[xmn][ymn + 1] == '.') {
+                    for(int x = xmn; x <= n; x++) {
+                        can[ymn][x] = can[ymn][x] | can[ymn + 1][x];
+                    }
+                }
+            }
+            else {
+                for(int x = xmn; x <= n; x++) {
+                    can[ymn][x].reset();
+                }
+            }
+        }
+        for(ppp p : query[xmn]) {
+            ans[p.x.x] = can[p.x.y][p.y.x][p.y.y];
+        }
+    }
+    for(int i = 1; i <= q; i++) {
+        if(ans[i]) puts("Yes");
+        else puts("No");
+    }
+}
+
+
+
+
+3 3
+...
+.##
+.#.
+5
+1 1 3 3
+1 1 1 3
+1 1 3 1
+1 1 1 2
+1 1 2 1
+
+
+
+
+5 5
+.....
+.###.
+.....
+.###.
+.....
+5
+1 1 5 5
+1 1 1 5
+1 1 3 4
+2 1 2 5
+1 1 2 5
+
+
+
+
+Let's examine a custom corner case where \(n, m, q, x_1, y_1, x_2, y_2\) are at their minimum values: \(n = m = q = x_1 = y_1 = x_2 = y_2 = 1\).
+
+<code>
+1 1
+.
+1
+1 1 1 1
+</code>
+
+In this case, there is one query, and the starting point and end point are the same.
+So, the tortoise can move from the starting point to the ending point, which means there is a way from cell \((x_1, y_1)\) to cell \((x_2, y_2)\).
+Therefore, the answer should be "Yes".
+
+
+
+
+1 1
+.
+1
+1 1 1 1
+
+
+
+
+To reduce execution time, we can use the \(fread\) input method, as there is a large amount of input data.
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+using ppp = pair<pii, pii>;
+
+static char fjf[1010];
+char gc() {
+	static char *L = fjf, *R = L;
+	if(L == R) {
+		int n = fread(fjf, 1, 1010, stdin);
+		if(!n) return -1; L = fjf, R = L + n;
+	}
+	return *L++;
+}
+void gn(int &x) {
+    char c; while(c = gc(), (c < 48 || 57 < c) && ~c);
+	for(x = c - 48; c = gc(), 48 <= c && c <= 57; x = 10 * x + c - 48);
+}
+bool gn(char &c) {while(c = gc(), ~c && isspace(c)); return ~c;}
+bool gn(char *s) {
+	char c; while(c = gc(), ~c && isspace(c)); if(!~c) return 0;
+	for(*s++ = c; c = gc(), ~c && !isspace(c); *s++ = c); return *s = 0, 1;
+}
+
+const int NN = 505, MM = 606060;
+
+char s[NN][NN];
+vector<ppp> query[NN];
+
+bool ans[MM];
+
+int main() {
+    int n, m; gn(n), gn(m);
+    for(int i = 1; i <= n; i++) gn(s[i] + 1);
+    int q; gn(q);
+    
+    for(int i = 1; i <= q; i++) {
+        int x1, y1, x2, y2; gn(x1), gn(y1), gn(x2), gn(y2);
+        query[x1].push_back({{i, y1}, {x2, y2}});
+    }
+    
+    bitset<501> can[m + 1][n + 1];
+    for(int xmn = n; xmn >= 1; xmn--) {
+        for(int ymn = m; ymn >= 1; ymn--) {
+            if(s[xmn][ymn] == '.') {
+                can[ymn][xmn].set(ymn);
+                if(s[xmn][ymn + 1] == '.') {
+                    for(int x = xmn; x <= n; x++) {
+                        can[ymn][x] = can[ymn][x] | can[ymn + 1][x];
+                    }
+                }
+            }
+            else {
+                for(int x = xmn; x <= n; x++) {
+                    can[ymn][x].reset();
+                }
+            }
+        }
+        for(ppp p : query[xmn]) {
+            ans[p.x.x] = can[p.x.y][p.y.x][p.y.y];
+        }
+    }
+    for(int i = 1; i <= q; i++) {
+        if(ans[i]) puts("Yes");
+        else puts("No");
+    }
+}
+
+
+
+
+3 3
+...
+.##
+.#.
+5
+1 1 3 3
+1 1 1 3
+1 1 3 1
+1 1 1 2
+1 1 2 1
+
+
+
+
+5 5
+.....
+.###.
+.....
+.###.
+.....
+5
+1 1 5 5
+1 1 1 5
+1 1 3 4
+2 1 2 5
+1 1 2 5
+
+
+
+
+Let's examine a custom corner case where \(n, m, q, x_1, y_1, x_2, y_2\) are at their minimum values: \(n = m = q = x_1 = y_1 = x_2 = y_2 = 1\).
+
+<code>
+1 1
+.
+1
+1 1 1 1
+</code>
+
+In this case, there is one query, and the starting point and end point are the same.
+So, the tortoise can move from the starting point to the ending point, which means there is a way from cell \((x_1, y_1)\) to cell \((x_2, y_2)\).
+Therefore, the answer should be "Yes".
+
+
+
+
+1 1
+.
+1
+1 1 1 1

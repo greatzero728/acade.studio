@@ -1,0 +1,170 @@
+E. Cashback
+
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Since you are the best Wraith King, Nizhniy Magazin «Mir» at the centre of Vinnytsia is offering you a discount.
+
+You are given an array \(a\) of length \(n\) and an integer \(c\).
+
+The value of some array \(b\) of length \(k\) is the sum of its elements except for the \(\lfloor \dfrac{k}{c}\rfloor\) smallest. For example, the value of the array \([3, 1, 6, 5, 2]\) with \(c = 2\) is \(3 + 6 + 5 = 14\).
+
+Among all possible partitions of \(a\) into contiguous subarrays output the smallest possible sum of the values of these subarrays.
+
+<b>Input</b>
+The first line contains integers \(n\) and \(c\) \((1 ≤ n, c ≤ 100 000)\).
+
+The second line contains \(n\) integers \(a_i (1 ≤ a_i ≤ 10^9)\) — elements of \(a\).
+
+<b>Output</b>
+Output a single integer — the smallest possible sum of values of these subarrays of some partition of \(a\).
+
+<b>Note</b>
+In the first example any partition yields 6 as the sum.
+
+In the second example one of the optimal partitions is [1, 1], [10, 10, 10, 10, 10, 10, 9, 10, 10, 10] with the values 2 and 90 respectively.
+
+In the third example one of the optimal partitions is [2, 3], [6, 4, 5, 7], [1] with the values 3, 13 and 1 respectively.
+
+In the fourth example one of the optimal partitions is [1], [3, 4, 5, 5, 3, 4], [1] with the values 1, 21 and 1 respectively.
+
+
+
+
+The naive solution to this problem is to try every possible way of splitting the array \(a\) into subarrays and from every possible way we will check the way that gives us the minimum sum however, we can clearly see that this approach would be too slow given the current constraints.
+
+We can see that we would sum every element and only consider reducing the sum if we have some subarray of size \(c\) why we would only consider reducing the sum with subarrays of size \(c\) and not of a greater size is because if for some subarray it has size \(x \cdot c\) where \(x > 1\) we would be able to split that subarray into multiple subarrays reducing a sum equivalent to the sum reduced from the whole subarray or a greater sum.
+
+This is because when splitting that subarray into many subarrays of size \(c\) we would see that for every subarray of size \(c\) we would reduce the minimum element in that subarray, while in a subarray of size \(x \cdot c\) we would reduce the minimum \(x\) elements so we can see that splitting the subarray into multiple subarrays would give us a answer that's greater than or equal to the subarray without splitting.
+
+Also, for some subarray that's of size \(x \cdot c + y\) we wouldn't need to consider it because the \(y\) wouldn't result in taking a new element so we would split it into two subarrays one of size \(x \cdot c\) and the other of size \(y\), so we don't need to consider this case.
+
+So from what we explained above we can see that we would need to check the ways to split the array into subarrays of size \(c\) and the remaining subarrays that aren't of size \(c\) wouldn't affect our answer at all as they wouldn't reduce the sum.
+
+This makes our problem a basic dp pick or leave problem, where from some element \(i\) we have two options, either start a subarray of size \(c\) from there or not.
+
+Let's first take the input and explain our dp in more details later.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main(){
+    int n, c;
+    cin >> n >> c;
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+}
+
+
+
+
+Now we will explain our dp, we will do dp on the array where \(dp[i]\) is the minimum answer we could get starting from index \(i\) and considering all the elements after \(i\) so it's the minimum answer for the range \([i, n]\).
+
+Now from some index \(i\) we can see that the transition will be like the following:
+\(dp[i] = min(dp[i+1] + a_i, dp[i+c] + sum(i, i+c-1) - min(i, i+c-1))\)
+where \(sum(i, i+c-1)\) is the the sum of elements in the range \([i, i+c-1]\), and \(min(i, i+c-1)\) is the minimum element in the range \([i, i+c-1]\).
+
+This is because of what we explained above as from some index \(i\) we can either create a subarray of size \(c\) from it or not create it, so we will take the minimum of both options and store it as the value \(dp[i]\).
+
+Also note that we can only create a subarray of size \(c\) if \(i+c \le n\) otherwise \(dp[i] = d[i+1] + a_i\), because we would only have one operation available.
+
+
+
+
+
+Now we can see that we need to store the sum in range and min in range to do our dp in \(O(nlog(n))\) instead of \(O(n^2)\) so we will simply do this by keeping track of the sum of the \(c\) elements starting from index \(i\) where for some index \(i\) we will do the following:
+
+\(sum = sum + a_i - a_{i+c}\)
+
+We will do this if \(i+c \le n\) otherwise we will just increase the sum by the current element as there aren't enough elements to take a subarray of size \(c\).
+
+Now for the minimum in the range \([i, i+c-1]\) we will keep track of it using a multiset, we will do it exactly like the sum where from some index \(i\) we will insert the element \(a_i\) to the multiset and remove the element \(a_{i+c}\) from the multiset, however we can also see that we would only remove an element \(a_{i+c}\) if \(i+c \le n\) otherwise we will just add the element \(a_i\) to the multiset.
+
+We can see that calculating the dp will occur in \(O(n)\) but due to the usage of a multiset as we insert and delete from the multiset for each index the complexity will become \(O(nlog(n))\)
+
+Now let's implement this.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define ll long long
+
+int main(){
+    int n, c;
+    cin >> n >> c;
+    vector<int> a(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> a[i];
+    }
+    vector<ll> dp(n+5, 0);
+    multiset<int> st;
+    ll sum = 0;
+    for (int i = n-1; i >= 0; --i) {
+        dp[i] = dp[i+1]+a[i];
+        st.insert(a[i]);
+        sum += a[i];
+        if(st.size() > c){
+            st.erase(st.find(a[i+c]));
+            sum -= a[i+c];
+        }
+        if(st.size() == c){
+            ll newSum = sum-*st.begin();
+            dp[i] = min(dp[i], newSum + dp[i+c]);
+        }
+    }
+    cout << dp[0] << endl;
+}
+
+
+
+
+3 5
+1 2 3
+
+
+
+
+12 10
+1 1 10 10 10 10 10 10 9 10 10 10
+
+
+
+
+7 2
+2 3 6 4 5 7 1
+
+
+
+
+8 4
+1 3 4 5 5 3 4 1
+
+
+
+
+Now let's create a test with the minimum possible values to make sure our code works correctly with the boundary values.
+
+<code>
+1 1
+1
+</code>
+
+The expected output would be 0.
+
+This is because there's only one subarray available which is {1} since it's of size 1 and \(\lfloor \dfrac{k}{c}\rfloor = \lfloor \dfrac{1}{1}\rfloor = 1\) then that means we would remove the smallest element in that subarray which is 1 so the total sum would be 0.
+
+
+
+
+1 1
+1

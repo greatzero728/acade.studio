@@ -1,0 +1,555 @@
+E. Optimal Insertion
+time limit per test: 3 seconds
+memory limit per test: 512 megabytes
+
+You are given two arrays of integers \(a_1,a_2,…,a_n\) and \(b_1,b_2,…,b_m\).
+
+You need to insert all elements of b into a in an arbitrary way. As a result you will get an array \(c_1,c_2,…,c_{n+m}\) of size n+m.
+
+Note that you are not allowed to change the order of elements in a, while you can insert elements of b at arbitrary positions. They can be inserted at the beginning, between any elements of a, or at the end. Moreover, elements of b can appear in the resulting array in any order.
+
+What is the minimum possible number of inversions in the resulting array c? Recall that an inversion is a pair of indices (i,j) such that i<j and \(c_i>c_j\).
+
+Input
+Each test contains multiple test cases. The first line contains the number of test cases \(t (1≤t≤10^4)\). Description of the test cases follows.
+
+The first line of each test case contains two integers n and \(m (1≤n,m≤10^6)\).
+
+The second line of each test case contains n integers \(a_1,a_2,…,a_n (1≤a_i≤10^9)\).
+
+The third line of each test case contains m integers \(b_1,b_2,…,b_m (1≤b_i≤10^9)\).
+
+It is guaranteed that the sum of n for all tests cases in one input doesn't exceed \(10^6\). The sum of m for all tests cases doesn't exceed \(10^6\) as well.
+
+Output
+For each test case, print one integer — the minimum possible number of inversions in the resulting array c.
+
+Note
+Below is given the solution to get the optimal answer for each of the example test cases (elements of a are underscored).
+
+In the first test case, \(c=[\underline{1},1,\underline{2},2,\underline{3},3,4]\).
+In the second test case, \(c=[1,2,\underline{3},\underline{2},\underline{1},3]\).
+In the third test case, \(c=[\underline{1},1,3,\underline{3},\underline{5},\underline{3},\underline{1},4,6]\).
+
+
+
+
+\(\bullet\) Naive Algorithm
+We need to find the minimum possible number of inversions in the resulting array \(c\) after inserting all elements of \(b\) into \(a\).
+
+To determine the minimum possible number of inversions in the resulting array \(c\), we can consider all possible candidate arrays \(c\). This means we can iterate through all possible insertion options. By iterating through all candidate arrays \(c\), we can calculate the number of inversions by examining all pairs \(i, j\) and counting the pairs where \(c_i > c_j\) with \(i < j\), and the maximize the answer with this inversion number. To compute the inversion count for the current array \(c\), we need \(O((n + m)^2)\) time complexity. (This is because the length of array \(c\) is \(n + m\).)
+
+First, for array \(b\), we determine the order of inserting elements, which will take \(O(m!)\) time complexity since the size of array \(b\) is \(m\). Once we establish the insertion order, we can implement all possible options as follows:
+
+We first insert the first element of \(b\) into the current array \(a\). There are a total of \(n + 1\) positions where the first element can be inserted: to the left of \(a_1\), between \(a_1\) and \(a_2\), between \(a_2\) and \(a_3\), ..., between \(a_{n-1}\) and \(a_n\), and to the right of \(a_n\).
+
+After inserting the first element of \(b\), we can insert the second element of \(b\), which can be placed in \(n + 2\) positions. The reasoning is similar to the previous case. Continuing this way, we can insert the third element of \(b\) into \(n + 3\) possible positions, and so on.
+
+Overall, after fixing the order of insertion, there are \((n + 1) \cdot (n + 2) \cdots (n + m)\) possible candidate arrays \(c\). Since there are \(m!\) possible orders, the time complexity for iterating through all possible candidate arrays \(c\) is \(O((n + 1) \cdot (n + 2) \cdots (n + m) \cdot m!)\). For every candidate array \(c\), we also need to calculate the number of inversions for the current array \(c\), which requires \(O((n + m)^2)\). Therefore, the total time complexity of our naive algorithm is \(O((n + 1) \cdot (n + 2) \cdots (n + m) \cdot m! \cdot (n + m)^2)\), which is very slow, given that \(n\) and \(m\) can be as large as \(10^6\).
+
+
+
+
+\(\bull\) Real algorithm
+It's clear that in the final array \(c\), the elements of \(b\) must be sorted in non-decreasing order. If the elements of \(b\) are not sorted, it implies that there are pairs \((i, j)\) where \(b_i > b_j\) and \(i < j\). In such cases, we can swap these elements to reduce the number of inversions in array \(c\). This means that for every pair \((i, j)\) satisfying \(b_i > b_j\), swapping them will decrease the inversion count in \(c\).
+Therefore, we can identify all such pairs and swap them to minimize the inversion count. Since we can insert elements of \(b\) into the original array \(a\) in any position and order, sorting the elements of \(b\) is the optimal strategy. 
+Thus, to minimize the number of inversions when merging the two arrays \(a\) and \(b\), we should start by sorting array \(b\) in non-decreasing order.
+
+Let's define a recursive function to help us find the optimal way to insert elements from \(b\) into \(a\) while maintaining the relative order of the elements in both arrays and minimizing inversions. We denote the state of solve(L, R, st, ed) as follows:
+- We are going to add \(b_{st}, b_{st + 1}, \ldots, b_{ed}\) to the range \([L, R]\) of the original array \(a\).
+- At the end of this function, we should determine the positions of \(b_{st}, b_{st + 1}, \ldots, b_{ed}\). For example, after this function, we can obtain all \(pos_j\) that represent where we need to add \(b_j\) in relation to the original \(a_i\). (Here, \(L \leq i \leq R\) and \(st \leq j \leq ed\).)
+
+Then, we can get optimal assigning strategy by just calling solve(1, n, 1, m).
+
+In the solve function, we first determine the position of the middle element \( b[md] \) to minimize the number of inversions. Without loss of generality, we can set \( md \) as \(\lfloor \frac{st + ed}{2} \rfloor\). This is crucial as it allows us to effectively split the current recursive segment into two parts: \( (L, pos_{md}, st, md - 1) \) and \( (pos_{md}, R, md + 1, R) \). By finding the optimal position for \( b[md] \), we can reduce the range to \( (st, md - 1) \) and \( (md + 1, R) \).
+The recursive nature of this approach ensures that at every depth of the recursion, we reduce the range by at least half. This logarithmic reduction leads to a recursion depth of \( \log_2(m) \), making the algorithm efficient.
+
+Let's confirm the method to determine the optimal position of \( b[md] \). As we iterate through the elements in the segment of \( a \), we compare each element with \( b[md] \). If \( b[md] \) is less than an element in \( a \), we increment the inversion count; if it’s greater, we decrement it. Whenever we find that the current inversion count is less than the minimum recorded \( mn \), we update \( mn \) and set \( pos[md] \) to the current index.
+
+We've already built the optimal array \(c\). The remaining task is to calculate the number of inversions in the current array \(c\). We can iterate through all elements of \(c\) from left to right, adding them to a Binary Indexed Tree (Fenwick tree). Each time before we add an element, we can count the number of elements that are greater than the current element being added. Both operations are standard BIT operations that can be performed in time complexity \(O(\log(n + m))\).
+Since we need to add \(n + m\) elements and calculate the number of elements greater than each element for a total of \(n + m\) times, the time complexity to calculate the inversions in the current array \(c\) is \(O((n + m) \cdot \log_2(n + m))\).
+
+The total time complexity of your algorithm is \(O((n + m) \cdot \log_2(n + m))\). This accounts for the sorting of array \(b\), the recursive function calls in solve function, and the calculation of inversions using a Binary Indexed Tree (Fenwick tree).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN];
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+        }
+    }
+}
+
+
+
+
+To minimize the number of inversions when merging the two arrays \(a\) and \(b\), we should start by sorting array \(b\) in non-decreasing order. (Proof is in block 1.)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN];
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+        }
+        
+        sort(b + 1, b + m + 1);
+    }
+}
+
+
+
+
+Let's define a recursive function: solve(L, R, st, ed) to help us find the optimal way to insert elements from \(b\) into \(a\) while maintaining the relative order of the elements in both arrays and minimizing inversions. After calling this function, we should be able to obtain all \(pos_j\) that represent where we need to add \(b_j\) in relation to the original \(a_i\). (Here, \(L \leq i \leq R\) and \(st \leq j \leq ed\).)
+Then, we can obtain the optimal assigning strategy by simply calling solve(1, n, 1, m).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN];
+
+int pos[NN];
+
+void solve(int L, int R, int st, int ed) {
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+        }
+        
+        sort(b + 1, b + m + 1);
+        
+        solve(1, n, 1, m);
+    }
+}
+
+
+
+
+In the solve function, we first determine the position of the middle element \( b[md] \) to minimize the number of inversions. Without loss of generality, we can set \( md \) as \(\lfloor \frac{st + ed}{2} \rfloor\). This is crucial as it allows us to effectively split the current recursive segment into two parts: \( (L, pos_{md}, st, md - 1) \) and \( (pos_{md}, R, md + 1, R) \). By finding the optimal position for \( b[md] \), we can reduce the range to \( (st, md - 1) \) and \( (md + 1, R) \).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN];
+
+int pos[NN];
+
+void solve(int L, int R, int st, int ed) {
+    int md = st + ed >> 1;
+    
+    //Find out optimal pos[md], here.
+    
+    if(st < md) solve(L, pos[md], st, md - 1);
+    if(md < ed) solve(pos[md], R, md + 1, ed);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+        }
+        
+        sort(b + 1, b + m + 1);
+        
+        solve(1, n, 1, m);
+    }
+}
+
+
+
+
+Let's confirm the method to determine the optimal position of \( b[md] \). As we iterate through the elements in the segment of \( a \), we compare each element with \( b[md] \). If \( b[md] \) is less than an element in \( a \), we increment the inversion count; if it’s greater, we decrement it. Whenever we find that the current inversion count is less than the minimum recorded \( mn \), we update \( mn \) and set \( pos[md] \) to the current index.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN];
+
+int pos[NN];
+
+void solve(int L, int R, int st, int ed) {
+    int md = st + ed >> 1;
+    pos[md] = L - 1;
+    int inv = 0, mn = 0;
+    for(int i = L; i <= R; i++) {
+        if(b[md] < a[i]) inv++;
+        if(b[md] > a[i]) inv--;
+        if(inv < mn) mn = inv, pos[md] = i;
+    }
+    if(st < md) solve(L, pos[md], st, md - 1);
+    if(md < ed) solve(pos[md], R, md + 1, ed);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+        }
+        
+        sort(b + 1, b + m + 1);
+        
+        solve(1, n, 1, m);
+    }
+}
+
+
+
+
+We've already constructed the optimal array \(c\). The next step is to calculate the number of inversions in this array. We can iterate through all elements of \(c\) from left to right, adding them to a Binary Indexed Tree (Fenwick tree). Before adding each element, we will count how many elements are greater than the current one.
+However, since both \(a_i\) and \(b_j\) can be as large as \(10^9\), we first need to reduce their range to a more manageable scale. We can do this by saving all elements in another array, \(arr\), sorting it, and then replacing the values of each \(a_i\) and \(b_j\) with their corresponding indices in the sorted array \(arr\). (Here, \(1 \leq i \leq n, 1 \leq j \leq m\).)
+
+Let's reduce the range of \(a_i, b_j\), first.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN], arr[NN << 1], nn;
+
+int pos[NN];
+
+void solve(int L, int R, int st, int ed) {
+    int md = st + ed >> 1;
+    pos[md] = L - 1;
+    int inv = 0, mn = 0;
+    for(int i = L; i <= R; i++) {
+        if(b[md] < a[i]) inv++;
+        if(b[md] > a[i]) inv--;
+        if(inv < mn) mn = inv, pos[md] = i;
+    }
+    if(st < md) solve(L, pos[md], st, md - 1);
+    if(md < ed) solve(pos[md], R, md + 1, ed);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        nn = 0;
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+            arr[nn++] = a[i];
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+            arr[nn++] = b[i];
+        }
+        
+        sort(arr, arr + nn);
+        nn = unique(arr, arr + nn) - arr;
+        
+        for(int i = 1; i <= n; i++) {
+            a[i] = upper_bound(arr, arr + nn, a[i]) - arr;
+        }
+        
+        sort(b + 1, b + m + 1);
+        for(int i = 1; i <= m; i++) {
+            b[i] = upper_bound(arr, arr + nn, b[i]) - arr;
+        }
+        
+        solve(1, n, 1, m);
+    }
+}
+
+
+
+
+The final step is to calculate the number of inversions in this array. We can iterate through all elements of \(c\) from left to right, adding them to a Binary Indexed Tree (Fenwick tree). Before adding each element, we will count how many elements are greater than the current one.
+Both operations are standard BIT operations that can be performed in time complexity \(O(\log(nn))\). 
+ (Here, there are a total of \(nn\) different \(a_i\) and \(b_j\), so this is the maximum limit of elements in \(c\). \(nn \leq n + m\))
+ 
+ 
+ 
+ 
+ #include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN], arr[NN << 1], nn;
+int B[NN << 1];
+
+void update(int u) {
+    for(; u; u ^= u & -u) B[u]++;
+}
+int calc(int u) {
+    int ans = 0;
+    for(; u <= nn; u += u & -u) ans += B[u];
+    return ans;
+}
+
+int pos[NN];
+
+void solve(int L, int R, int st, int ed) {
+    int md = st + ed >> 1;
+    pos[md] = L - 1;
+    int inv = 0, mn = 0;
+    for(int i = L; i <= R; i++) {
+        if(b[md] < a[i]) inv++;
+        if(b[md] > a[i]) inv--;
+        if(inv < mn) mn = inv, pos[md] = i;
+    }
+    if(st < md) solve(L, pos[md], st, md - 1);
+    if(md < ed) solve(pos[md], R, md + 1, ed);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        nn = 0;
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+            arr[nn++] = a[i];
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+            arr[nn++] = b[i];
+        }
+        
+        sort(arr, arr + nn);
+        nn = unique(arr, arr + nn) - arr;
+        
+        for(int i = 1; i <= n; i++) {
+            a[i] = upper_bound(arr, arr + nn, a[i]) - arr;
+        }
+        
+        sort(b + 1, b + m + 1);
+        for(int i = 1; i <= m; i++) {
+            b[i] = upper_bound(arr, arr + nn, b[i]) - arr;
+        }
+        
+        solve(1, n, 1, m);
+        
+        INT ans = 0;
+        for(int i = 1; i <= nn; i++) B[i] = 0;
+        for(int i = 0, mm = 1; i <= n; i++) {
+            if(i) {
+                update(a[i]);
+                ans += calc(a[i] + 1);
+            }
+            for(;mm <= m && pos[mm] == i; mm++) {
+                update(b[mm]);
+                ans += calc(b[mm] + 1);
+            }
+        }
+    }
+}
+
+
+
+
+Finally, let's print the answer.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+int n, m;
+
+const int NN = 1010101;
+
+int a[NN], b[NN], arr[NN << 1], nn;
+int B[NN << 1];
+
+void update(int u) {
+    for(; u; u ^= u & -u) B[u]++;
+}
+int calc(int u) {
+    int ans = 0;
+    for(; u <= nn; u += u & -u) ans += B[u];
+    return ans;
+}
+
+int pos[NN];
+
+void solve(int L, int R, int st, int ed) {
+    int md = st + ed >> 1;
+    pos[md] = L - 1;
+    int inv = 0, mn = 0;
+    for(int i = L; i <= R; i++) {
+        if(b[md] < a[i]) inv++;
+        if(b[md] > a[i]) inv--;
+        if(inv < mn) mn = inv, pos[md] = i;
+    }
+    if(st < md) solve(L, pos[md], st, md - 1);
+    if(md < ed) solve(pos[md], R, md + 1, ed);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        scanf("%d %d", &n, &m);
+        
+        nn = 0;
+        for(int i = 1; i <= n; i++) {
+            scanf("%d", a + i);
+            arr[nn++] = a[i];
+        }
+        for(int i = 1; i <= m; i++) {
+            scanf("%d", b + i);
+            arr[nn++] = b[i];
+        }
+        
+        sort(arr, arr + nn);
+        nn = unique(arr, arr + nn) - arr;
+        
+        for(int i = 1; i <= n; i++) {
+            a[i] = upper_bound(arr, arr + nn, a[i]) - arr;
+        }
+        
+        sort(b + 1, b + m + 1);
+        for(int i = 1; i <= m; i++) {
+            b[i] = upper_bound(arr, arr + nn, b[i]) - arr;
+        }
+        
+        solve(1, n, 1, m);
+        
+        INT ans = 0;
+        for(int i = 1; i <= nn; i++) B[i] = 0;
+        for(int i = 0, mm = 1; i <= n; i++) {
+            if(i) {
+                update(a[i]);
+                ans += calc(a[i] + 1);
+            }
+            for(;mm <= m && pos[mm] == i; mm++) {
+                update(b[mm]);
+                ans += calc(b[mm] + 1);
+            }
+        }
+        cout<<ans<<endl;
+    }
+}
+
+
+
+
+3
+3 4
+1 2 3
+4 3 2 1
+3 3
+3 2 1
+1 2 3
+5 4
+1 3 5 3 1
+4 3 6 1
+
+
+
+
+Let's examine a custom corner case where \(t, n, m, a_i, b_i\) are at their minimum values: \(t = n = m = a_i = b_i = 1\).
+<code>
+1
+1 1
+1
+1
+</code>
+In this scenario, all elements of arrays \(a\) and \(b\) are 1, making them identical. Therefore, the final array \(c\) is \(\{1, 1\}\). There are no other cases to consider.
+In this situation, the number of inversions in \(\{1, 1\}\) is 0.
+Thus, for this test case, the answer will be "0".
+
+
+
+
+1
+1 1
+1
+1

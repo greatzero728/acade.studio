@@ -1,0 +1,160 @@
+<b>A. Stable Arrangement of Rooks</b>
+time limit per test1 second
+memory limit per test256 megabytes
+
+You have an \(n \times n\) chessboard and \(k\) rooks. Rows of this chessboard are numbered by integers from \(1\) to \(n\) from top to bottom and columns of this chessboard are numbered by integers from \(1\) to \(n\) from left to right. The cell \((x, y)\) is the cell on the intersection of row \(x\) and collumn \(y\) for \(1 \leq x \leq n\) and \(1 \leq y \leq n\).
+
+The arrangement of rooks on this board is called <b>good</b>, if no rook is beaten by another rook.
+
+A rook beats all the rooks that shares the same row or collumn with it.
+
+The <b>good</b> arrangement of rooks on this board is called <b>not stable</b>, if it is possible to move one rook to the adjacent cell so arrangement becomes not good. Otherwise, the <b>good</b> arrangement is <b>stable</b>. Here, adjacent cells are the cells <b>that share a side</b>.
+
+<img chessboard>
+Such arrangement of \(3\) rooks on the \(4 \times 4\) chessboard is good, but it is not stable: the rook from \((1, 1)\) can be moved to the adjacent cell \((2, 1)\) and rooks on cells \((2, 1)\) and \((2, 4)\) will beat each other.
+
+Please, find any stable arrangement of \(k\) rooks on the \(n \times n\) chessboard or report that there is no such arrangement.
+
+<b>Input</b>
+The first line contains a single integer \(t\) (\(1 \leq t \leq 1000\))--- the number of test cases.
+
+The first line of each test case contains two integers \(n\), \(k\) (\(1 \leq k \leq n \leq 400\))--- the size of the chessboard and the number of rooks.
+
+<b>Output</b>
+If there is a stable arrangement of \(k\) rooks on the \(n \times n\) chessboard, output \(n\) lines of symbols \(.\) and \(R\) . The \(j\)-th symbol of the \(i\)-th line should be equals \(R\) if and only if there is a rook on the cell \((i, j)\) in your arrangement.
+
+If there are multiple solutions, you may output any of them.
+
+If there is no stable arrangement, output \(-1\).
+
+
+<b>Note</b>
+In the first test case, you should find stable arrangement of \(2\) rooks on the \(3 \times 3\) chessboard. Placing them in cells \((3, 1)\) and \((1, 3)\) gives stable arrangement.
+
+In the second test case it can be shown that it is impossbile to place \(3\) rooks on the \(3 \times 3\) chessboard to get stable arrangement.
+
+
+
+
+
+The naive solution is to try all possible arrangements for \(k\) rooks and check whether it's stable or not, but this is too slow.
+
+We can observe that there should be an empty row and column between any two rooks so we can locate the rook on the diagonal of the chessboard but one empty cell between any two rooks in the diagonal.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr), cout.tie(nullptr);
+    int t,n,k; cin>>t;
+    while(t--){
+        cin>>n>>k;
+    }
+  return 0;
+ }
+ 
+ 
+ 
+ 
+ Because it is a square chessboard the number of the diagonal cells is equal to \(n\) so the maximum number of rooks is ceil(\(n\) /2) if it is greater than that number we should print -1.
+ 
+ 
+ 
+ 
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr), cout.tie(nullptr);
+    int t,n,k; cin>>t;
+    while(t--){
+        cin>>n>>k;
+        if((n+1)/2<k) cout<<"-1\n";
+    }
+  return 0;
+ }
+
+
+
+
+
+then If the number of rooks is suitable for placement in the diagonal of the chessboard to be stable we put them like this if for example \(n\) =7 :
+R......
+.......
+..R....
+.......
+....R..
+.......
+......R
+so as we can see there is an empty row and column between any two rooks we stile print R in this pattern until print all rooks.
+note in the diagonal, the number of row equals the number of column.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr), cout.tie(nullptr);
+    int t,n,k; cin>>t;
+    while(t--){
+        cin>>n>>k;
+        if((n+1)/2<k) cout<<"-1\n";
+        else {
+            for(int i=0;i<n;i++){
+                for(int j=0;j<n;j++){
+                    if(i==j&&i%2==0&&k){
+                        cout<<'R';
+                        k--;
+                    }
+                    else{
+                        cout<<'.';
+                    }
+
+                }
+                cout<<'\n';
+            }
+        }
+
+    }
+  return 0;
+ }
+
+
+
+
+
+5
+3 2
+3 3
+1 1
+5 2
+40 33
+
+
+
+
+The output sample is different from the statement but it is also true because there is an empty row and column between each two rooks so the board is stable.
+
+
+
+
+Now, let's try a custom test when \(n\) and \(k\) is minimal like
+<code>
+1
+1 1
+</code>
+The output should be R because we have one square and one rook
+<code>
+R
+</code>
+
+
+
+
+1
+1 1
