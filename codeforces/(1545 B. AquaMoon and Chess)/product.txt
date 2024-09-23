@@ -1,0 +1,189 @@
+B. AquaMoon and Chess
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+Cirno gave AquaMoon a chessboard of size \(1×n\). Its cells are numbered with integers from \(1\) to \(n\) from left to right. In the beginning, some of the cells are occupied with at most one pawn, and other cells are unoccupied.
+
+In each operation, AquaMoon can choose a cell i with a pawn, and do either of the following (if possible):
+
+\(\bull\) Move pawn from it to the \((i+2)\)-th cell, if \(i+2≤n\) and the \((i+1)\)-th cell is occupied and the \((i+2)\)-th cell is unoccupied.
+\(\bull\) Move pawn from it to the \((i−2)\)-th cell, if \(i−2≥1\) and the \((i−1)\)-th cell is occupied and the \((i−2)\)-th cell is unoccupied.
+
+You are given an initial state of the chessboard. AquaMoon wants to count the number of states reachable from the initial state with some sequence of operations. But she is not good at programming. Can you help her? As the answer can be large find it modulo 998244353.
+
+Input
+The input consists of multiple test cases. The first line contains a single integer \(t (1≤t≤10000)\) — the number of test cases.
+
+The first line contains a single integer \(n (1≤n≤10^5)\) — the size of the chessboard.
+
+The second line contains a string of \(n\) characters, consists of characters "0" and "1". If the \(i\)-th character is "1", the \(i\)-th cell is initially occupied; otherwise, the \(i\)-th cell is initially unoccupied.
+
+It is guaranteed that the sum of \(n\) over all test cases does not exceed \(10^5\).
+
+Output
+For each test case, print the number of states that reachable from the initial state with some sequence of operations modulo 998244353.
+
+Note
+In the first test case the strings "1100", "0110" and "0011" are reachable from the initial state with some sequence of operations.
+
+
+
+
+\(\bull\) naive approach
+We can generate all possible configurations of pawns on the chessboard and check each one to see if it can be reached from the initial state.
+This would require iterating through every possible arrangement of pawns and empty cells, leading to a combinatorial explosion in the number of states to evaluate.
+For a chessboard of size \(n\), this results in \(O(2^n)\) possible configurations, which is infeasible for larger values of \(n\).
+Finally, this naive approach would exceed the time limit due to excessive computations, especially when \(n\) approaches its upper limit of \(10^5\).
+
+
+
+
+The task can be solved by using a combinatorial approach, let's denote the number of pairs of pawns as \(p\), and the number of empty cells as \(e\). The answer is equal to the number of ways to choose \(p\) positions from \(e + p\) positions, which is given by the formula \(\binom{e+p}{p}\). We need to calculate this value modulo 998244353.
+
+We can use the property of binomial coefficients: \(\binom{n}{k} = \frac{n!}{k!(n-k)!}\). We will use the multiplicative inverse of a number modulo 998244353, which can be calculated using the extended Euclidean algorithm.
+
+Since we are working with large numbers, we need to be careful about integer overflow. We will use the modulo operator to prevent overflow.
+
+We will iterate over the string and count the number of pairs of pawns and empty cells. Then we will calculate the binomial coefficient using the formula above.
+
+
+
+
+The answer is equal to the number of ways to choose \(p\) positions from \(e + p\) positions, which is given by the formula \(\binom{e+p}{p}\).
+It's obvious thing, however, we need to prove why the answer is given \(\binom{e+p}{p}\) in detail.
+
+
+
+
+To prove why the answer is given by the formula \(\binom{e+p}{p}\), let's consider the process of moving pawns. When we move a pair of pawns, we essentially "jump" over one empty cell. This means that the relative order of the pawns and empty cells remains the same, but the absolute positions change.
+
+Think of it as arranging \(e\) empty cells and \(p\) pairs of pawns in a line. We can arrange these objects in \(\binom{e+p}{p}\) ways. This is because we are choosing \(p\) positions out of \(e+p\) positions for the pairs of pawns, and the remaining positions will be occupied by empty cells.
+
+Once we have arranged the objects in a particular way, we can "unwrap" the pairs of pawns to get the final configuration. The number of ways to arrange the objects is equal to the number of ways to get the final configuration, which is why the answer is given by the formula \(\binom{e+p}{p}\).
+
+This reasoning assumes that the order of the pairs of pawns and empty cells does not change during the process of moving pawns. This is a valid assumption because the relative order of the pawns and empty cells remains the same after each move.
+
+In summary, the number of ways to arrange \(e\) empty cells and \(p\) pairs of pawns in a line is equal to the number of ways to get the final configuration, which is why the answer is given by the formula \(\binom{e+p}{p}\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 101010;
+
+char s[NN];
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        int n; scanf("%d %s", &n, s);
+    }
+}
+
+
+
+
+Now, let's think about how to count the number of pairs of pawns and empty cells. We can iterate over the string and count the number of pairs of pawns and empty cells. When we encounter a pair of pawns, we increment the count of pairs of pawns. When we encounter an empty cell, we increment the count of empty cells.
+
+After counting the number of pairs of pawns and empty cells, we can calculate the binomial coefficient using the formula above. We need to be careful about integer overflow when calculating the binomial coefficient.
+
+Let's also think about how to handle the modulo operation. We need to take the modulo at each step of the calculation to prevent overflow.
+
+Now, let's write the code to count the number of pairs of pawns and empty cells and calculate the binomial coefficient. We will use a loop to iterate over the string and count the number of pairs of pawns and empty cells. Then, we will use another loop to calculate the binomial coefficient.
+
+We will also use a helper function to calculate the multiplicative inverse of a number modulo 998244353. This function will use the extended Euclidean algorithm to calculate the inverse.
+
+We will also use a helper function to calculate the power of a number modulo 998244353. This function will use the exponentiation by squaring algorithm to calculate the power.
+
+Let's write the code now.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 101010;
+const int mod = 998244353;
+
+int powmod(int a, int b) {
+    int res = 1;
+    while(b) {
+        if(b & 1) res = (1LL * res * a) % mod;
+        a = (1LL * a * a) % mod;
+        b >>= 1;
+    }
+    return res;
+}
+
+int inv(int a) {
+    return powmod(a, mod - 2);
+}
+
+int C(int n, int k) {
+    if(n < k) return 0;
+    int res = 1;
+    for(int i = 1; i <= k; i++) {
+        res = (1LL * res * (n - i + 1)) % mod;
+        res = (1LL * res * inv(i)) % mod;
+    }
+    return res;
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        int n; scanf("%d", &n);
+        char s[NN]; scanf("%s", s);
+        int p = 0, e = 0;
+        for(int i = 0; i < n; i++) {
+            if(s[i] == '0') e++;
+            else if(i + 1 < n && s[i + 1] == '1') {
+                p++;
+                i++;
+            }
+        }
+        printf("%d\n", C(e + p, p));
+    }
+}
+
+
+
+
+6
+4
+0110
+6
+011011
+5
+01010
+20
+10001111110110111000
+20
+00110110100110111101
+20
+11101111011000100010
+
+
+
+
+
+Let's examine a custom corner case where \(t, n\) are at their minimum value: \(t = n = 1\).
+
+1
+1
+0
+
+In this case, there is only one cell on the chessboard, which is unoccupied (represented by "0").
+Since there are no pawns present, the only reachable state is the initial state itself, resulting in an output of 1.
+
+
+
+
+1
+1
+0

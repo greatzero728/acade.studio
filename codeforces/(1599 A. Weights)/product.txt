@@ -1,0 +1,281 @@
+<b>Weights
+time limit per test: 1 second
+memory limit per test: 256 megabytes</b>
+
+You are given an array \(A\) of length \(N\) weights of masses \(A_1\), \(A_2\)...\(A_N\). No two weights have the same mass. You can put every weight on one side of the balance (left or right). You don't have to put weights in order \(A_1\),...,\(A_N\). There is also a string \(S\) consisting of characters ''L'' and ''R'', meaning that after putting the \(i-th\) weight (not \(A_i\), but \(i-th\) weight of your choice) left or right side of the balance should be heavier. Find the order of putting the weights on the balance such that rules of string \(S\) are satisfied. 
+
+<b>Input</b>
+The first line contains one integer \(N\) (\(1 \leq N \leq 2*10^5\)) - the length of the array \(A\)
+The second line contains \(N\) distinct integers: \(A_1\), \(A_2\),...,\(A_N\) (\(1 \leq A_i \leq 10^9\)) - the weights given
+The third line contains string \(S\) of length \(N\) consisting only of letters ''L'' and ''R'' - string determining which side of the balance should be heavier after putting the \(i-th\) weight of your choice
+
+<b>Output</b>
+The output contains \(N\) lines. In every line, you should print one integer and one letter - integer representing the weight you are putting on the balance in that move and the letter representing the side of the balance where you are putting the weight. If there is no solution, print \(-1\).
+
+<b>Note</b>
+Explanation for the test case: 
+
+after the 1st weight: 3 L (left side is heavier)
+
+after the 2nd weight: 2 R (left side is heavier)
+
+after the 3rd weight: 8 R (right side is heavier)
+
+after the 4th weight: 13 L (left side is heavier)
+
+after the 5th weight: 7 L (left side is heavier)
+
+So, the rules given by string \(S\) are fulfilled and our order of putting the weights is correct.
+
+
+
+
+The naive approach would be to try all possible ways to assign weights to the left and right sides of the balance, verifying whether the conditions are satisfied at each step. However, this would involve generating all permutations of the weights, which results in factorial time complexity \(O(N!)\), making it unfeasible for large \(N\). Therefore, we need a more efficient strategy.
+
+Let's first consider a simple case where the string consists entirely of 'L's, such as "LLLL".
+
+<b>1) Place all weights on the left side.</b>
+In this case, the left side would naturally be heavier than the right side, which is empty.
+
+<b>2) A better approach:</b>
+We can sort the weights in descending order and place them alternately on the left and right sides. For example, place the heaviest weight on the left, the second heaviest on the right, and continue this pattern. This ensures that the left side is always heavier after placing weights in accordance with 'L'. This strategy minimizes the difference between the total weights on both sides, ensuring that the left remains heavier after each step.
+
+This same reasoning applies if the string is entirely 'R', like "RRRR".
+
+While both approaches work for uniform strings (all 'L's or all 'R's), the second method is more optimal because it keeps the difference between the total weights on the two sides as small as possible. This helps in situations where we need to switch sides (from 'L' to 'R' or vice versa). A smaller weight difference between the sides allows us to make the switch with smaller increments in weight.
+
+<b>Switching sides:</b>
+When switching from 'L' to 'R' or vice versa, we need to add a weight larger than any weight we've previously placed on the other side. Here's why:
+
+Suppose we have weights \(A_x > A_1 > A_2 > A_3\) and the string "LLLR".
+- We can place \(A_1\) and \(A_3\) on the left, and \(A_2\) on the right. This satisfies the first three 'L's because the left side remains heavier.
+- To switch to the right side ('R'), we add \(A_x\) to the right, making it heavier since \(A_x > A_1\) and \(A_2 > A_3\).
+
+Now, consider the string "LLLRL" and weights \(A_y > A_x > A_1 > A_2 > A_3 > A_4\).
+- The first part ("LLLR") works the same way, with \(A_1\) and \(A_3\) on the left and \(A_2\) and \(A_x\) on the right.
+- To switch back to the left ('L'), we add \(A_y\) to the left side, making it heavier because \(A_y > A_x\) and \(A_1 > A_2\).
+
+Thus, whenever we switch sides, we need to place a heavier weight than any previously placed weights.
+
+So we need to count the number of switches from one side to the other. Keep enough of the heaviest weights reserved for these switches, and use the rest of the weights to maintain balance in descending order while alternating between left and right while adding these rest of weights to keep the minimum difference as we discussed before.
+
+Now, let's implement this:
+
+
+
+
+
+First, we input the data: the number of weights \(n\), the array \(a\) of weights, and the string \(s\) which specifies the required side (left or right) for each weight. Then, we sort the array of weights \(a\) in descending order, as this allows us to efficiently select the heaviest weights for maintaining the balance.
+
+After that, we loop through the string \(s\) to count the number of switches between the left ('L') and right ('R') sides. The variable \(cnt\) will store the total number of switches.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+signed main() {
+    int n;
+    cin >> n;
+    int a[n];
+    for(auto &x : a) {
+        cin >> x;
+    }
+    string s;
+    cin >> s;
+    sort(a, a+n, greater<>());
+    int cnt = 0;
+    for(int i = 1; i < n; i++) {
+        if(s[i] != s[i-1]) {
+            cnt++;
+        }
+    }
+}   
+
+
+
+
+We will create two pointers: \(left\) and \(right\). The \(left\) pointer will be used to select the maximum weights we need for the switching, as discussed earlier. Since the weight array is sorted in descending order, we initialize the \(left\) pointer at \(cnt-1\), because we need the first \(cnt\) elements from the descending sorted weight array for the switches. The \(right\) pointer will be used for the other weights that maintain the balance, as we also discussed.
+
+Next, we create an array \(ans\) to hold the final answer. A useful trick here is to multiply any weight that should be placed on the right side by \(-1\), making it negative. When we later print the result, we can easily determine which side the weight should be added to by checking the sign.
+
+We start by adding the first weight (pointed to by the \(right\) pointer) to the \(ans\) array, ensuring that it satisfies the first character in the given string \(S\). It’s clear that this weight should be placed on the side required by the string.
+
+We also initialize a boolean variable \(prev\) to store the side to which the last weight was added (whether it was the left or right side).
+
+Additionally, we create a \(sum\) variable to keep track of the total sum of the weights added to each side. We will use this \(sum\) to check whether the conditions in the string \(S\) are being met. If they are not, we will output \(-1\) to indicate that the answer is impossible.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+signed main() {
+    int n;
+    cin >> n;
+    int a[n];
+    for(auto &x : a) {
+        cin >> x;
+    }
+    string s;
+    cin >> s;
+    sort(a, a+n, greater<>());
+    int cnt = 0;
+    for(int i = 1; i < n; i++) {
+        if(s[i] != s[i-1]) {
+            cnt++;
+        }
+    }
+    int right = cnt, left = cnt-1;
+    vector<int> ans = {(s[0] == 'R'? -1 : 1)*a[right++]};
+    bool prev = s[0] == 'R';
+    int sum = ans.back();
+}   
+
+
+
+
+Next, we loop through the string \(S\) to check for switches between sides. A switch occurs when the current character is different from the previous one (i.e., 'L' to 'R' or 'R' to 'L'). If the current character is the same as the previous one, there is no switch between sides.
+
+In such cases (no switch), we first toggle the \(prev\) variable using \(prev \oplus= 1\). This flipping mechanism allows us to alternate between the left and right sides, minimizing the difference between the total weights on both sides, as we discussed earlier. Then, we add the next weight to our answer and assign it a sign based on the side it's placed on ('L' or 'R').
+
+If there is a switch (i.e., the current character in the string is different from the previous one), we directly place the weight on the appropriate side based on whether the character is 'L' or 'R'. We use a positive sign for the left side and a negative sign for the right side.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+signed main() {
+    int n;
+    cin >> n;
+    int a[n];
+    for(auto &x : a) {
+        cin >> x;
+    }
+    string s;
+    cin >> s;
+    sort(a, a+n, greater<>());
+    int cnt = 0;
+    for(int i = 1; i < n; i++) {
+        if(s[i] != s[i-1]) {
+            cnt++;
+        }
+    }
+    int right = cnt, left = cnt-1;
+    vector<int> ans = {(s[0] == 'R'? -1 : 1)*a[right++]};
+    bool prev = s[0] == 'R';
+    int sum = ans.back();
+    for(int i = 1; i < n; i++) {
+        if(s[i] == s[i-1]) {
+            prev ^= 1;
+            ans.push_back((prev? -1 : 1)*a[right++]);
+        } else {
+            ans.push_back((s[i] == 'R'? -1 : 1)*a[left--]);
+        } 
+    }
+}   
+
+
+
+
+We maintain the balance difference using a variable called \(sum\). When we add a weight to the right side, we multiply it by \(-1\), effectively treating it as negative. This way, when we update the \(sum\), it tracks the difference between the total weights on the left and right sides. Using this approach, we can check whether the current balance satisfies the conditions given by the string \(S\). If at any point the conditions are not met, we output \(-1\) to indicate that it's impossible to achieve the required configuration.
+
+We can check the conditions by:
+- If the current character in the string \(S\) is 'L' and the \(sum\) is less than or equal to zero, it means the left side is not heavier, violating the condition.
+- If the character is 'R' and the \(sum\) is greater than or equal to zero, it means the right side is not heavier, also violating the condition.
+
+If either of these conditions is violated, we print \(-1\) and terminate the program, as no valid solution can be found.
+
+Finally, if a valid solution exists, we loop through the answer and print the absolute value of each weight (removing the negative sign we added to weights placed on the right side). We then print the corresponding side ('L' or 'R') using the sign of each weight to determine its position.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+signed main() {
+    int n;
+    cin >> n;
+    int a[n];
+    for(auto &x : a) {
+        cin >> x;
+    }
+    string s;
+    cin >> s;
+    sort(a, a+n, greater<>());
+    int cnt = 0;
+    for(int i = 1; i < n; i++) {
+        if(s[i] != s[i-1]) {
+            cnt++;
+        }
+    }
+    int right = cnt, left = cnt-1;
+    vector<int> ans = {(s[0] == 'R'? -1 : 1)*a[right++]};
+    bool prev = s[0] == 'R';
+    int sum = ans.back();
+    for(int i = 1; i < n; i++) {
+        if(s[i] == s[i-1]) {
+            prev ^= 1;
+            ans.push_back((prev? -1 : 1)*a[right++]);
+        } else {
+            ans.push_back((s[i] == 'R'? -1 : 1)*a[left--]);
+        }
+        sum += ans.back();
+        if(s[i] == 'L' && sum <= 0 || s[i] == 'R' && sum >= 0) {
+            cout << -1;
+            return 0;
+        } 
+    }
+    for(int i = 0; i < n; i++) {
+        cout << abs(ans[i]) << " " << (ans[i] < 0? "R" : "L") << endl;
+    }
+}   
+
+
+
+
+5
+3 8 2 13 7
+LLRLL
+
+
+
+
+Our code works correctly for the sample test case, even though the output sequence may differ from the provided sample output, but our solution is still valid. Here’s why:
+
+- We first add \(7\) to the left side, and the right side is empty, making the left side heavier ("L").
+- Next, we add \(3\) to the right side while the left side has \(7\), so the left side remains heavier ("LL").
+- Then, we add \(8\) to the right side, so the right side now totals \(11\) while the left side has \(7\), making the right side heavier ("LLR").
+- After that, we add \(13\) to the left side, bringing the left side total to \(20\) and the right side still at \(11\), making the left side heavier again ("LLRL").
+- Finally, we add \(2\) to the left side, giving the right side a total of \(11\) and the left side \(22\), leaving the left side heavier ("LLRLL").
+
+Thus, our output correctly fulfills the conditions specified by the string \(S\). Therefore, our output is correct.
+
+
+
+
+Now let's test our code against some custom test cases with minimal constraints as a corner test case.
+
+<b>Test Case</b>
+<code>1
+1
+L</code>
+
+<b>Expected Output</b>
+<code>1 L</code>
+
+<b>Explanation:</b> We have only one weight, and we add it to the left side to make it heavier and achieve the given string. So, the answer should be: 1 L
+
+
+
+
+
+1
+1
+L

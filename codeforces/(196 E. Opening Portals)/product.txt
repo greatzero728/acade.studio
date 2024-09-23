@@ -1,0 +1,888 @@
+<b>Opening Portals</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Pavel plays a famous computer game. A player is responsible for a whole country and he can travel there freely, complete quests and earn experience.
+
+This country has \(n\) cities connected by \(m\) bidirectional roads of different lengths so that it is possible to get from any city to any other one. There are portals in \(k\) of these cities. At the beginning of the game all portals are closed. When a player visits a portal city, the portal opens. Strange as it is, one can teleport from an open portal to an open one. The teleportation takes no time and that enables the player to travel quickly between rather remote regions of the country.
+
+At the beginning of the game Pavel is in city number \(1\). He wants to open all portals as quickly as possible. How much time will he need for that?
+
+<b>Input</b>
+The first line contains two space-separated integers \(n\) and \(m\) (\(1 \le n \le 10^5\), \(0 \le m \le 10^5\)) that show how many cities and roads are in the game.
+
+Each of the next \(m\) lines contains the description of a road as three space-separated integers \(x_i\), \(y_i\), \(w_i\) (\(1 \le x_i, y_i \le n\), \(x_i \ne y_i\), \(1 \le w_i \le 10^9\)) \(-\) the numbers of the cities connected by the \(i\)-th road and the time needed to go from one city to the other one by this road. Any two cities are connected by no more than one road. It is guaranteed that we can get from any city to any other one, moving along the roads of the country.
+
+The next line contains integer \(k\) (\(1 \le k \le n\)) \(-\) the number of portals.
+
+The next line contains \(k\) space-separated integers \(p_1\), \(p_2\), \(\dots\), \(p_k\) \(-\) numbers of the cities with installed portals. Each city has no more than one portal.
+
+<b>Output</b>
+Print a single number \(-\) the minimum time a player needs to open all portals.
+
+Please, do not use the \(\texttt{\%lld}\) specifier to read or write 64-bit integers in C++. It is preferred to use the \(\texttt{cin}\), \(\texttt{cout}\) streams or the \(\texttt{\%I64d}\) specifier.
+
+<b>Note</b>
+In the second sample the player has to come to city \(2\), open a portal there, then go to city \(3\), open a portal there, teleport back to city \(2\) and finally finish the journey in city \(4\).
+
+
+
+
+
+A naive solution that may come to mind is to try all possible actions at each node starting from node 1: we can either go to any adjacent node with the cost of the edge, or if we are on a portal, we can use the portal to go to any open portal and terminate when visiting all portals. But this solution will be slow and inefficient.
+
+We can reach a better approach by saving the closest portal from each node (using Dijkstra with multiple-source nodes) and the distance to this portal. To consider connecting the portals for the first time, say that we have an edge between \(u,v\) with cost \(w\) such that the shortest portal to \(u\) is not the shortest portal to \(v\); now we can connect these two portals by an edge that costs the distance from \(u\) to the closest portal plus the distance from \(v\) to the closest portal plus \(w\) (the cost of the edge connecting \(u,v\)).
+
+After adding these edges, we will need to find a minimal cost combination to make all the portals connected, which can be done using a straightforward MST (minimal spanning tree).
+
+Let's start by taking the input, and for each portal, we will mark it as a source for the Dijkstra by adding it with distance \(0\) in a priority queue.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+}
+
+
+
+
+
+Now we will implement the basic Dijkstra algorithm from the portals and maintain saving the closest portal for each node \(u\) in \(parent[u]\) and the shortest distance from node \(u\) to any portal in \(dist[u]\).
+
+We will store the edges with negative weight in a way that maintains the smallest weight at the top for simplicity.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!pq.empty()){
+        int u = pq.top().second;
+        pq.pop();
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                pq.push({-dist[v], v});
+            }
+        }
+    }
+}
+
+
+
+
+
+Now, before saving the new edges between the portals, we will need to implement the \(MST\) structure based on Kruskal's algorithm and a Disjoint Union Set Structure \(DSU\) for merging the components.
+
+Let's start by implementing an edge struct that connects \(u,v\) by an edge that costs \(w\) and implementing the \(MST\) struct, which will have a parent vector (to tell us the connected component we are in), a size vector that tells us the size of each component, and a \(minCost\) variable that will carry the minimum spanning tree cost. Also, we will make a parametrized constructor for resizing the parent and size vectors and initializing \(minCost\) to 0.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+
+struct Edge {
+    int u, v;
+    long long c;
+};
+
+struct MST {
+    int n;
+    vector<int> parent, size;
+    long long minCost;
+
+    MST(int sz) {
+        n = sz;
+        parent.resize(n + 1);
+        size.resize(n + 1);
+        minCost = 0;
+    }
+};
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!pq.empty()){
+        int u = pq.top().second;
+        pq.pop();
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                pq.push({-dist[v], v});
+            }
+        }
+    }
+}
+
+
+
+
+
+For initializing the \(DSU\) as \(n\) disjoint components, we will initialize the parent of each node to itself and the size of the connected component of each node to one.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+
+struct Edge {
+    int u, v;
+    long long c;
+};
+
+struct MST {
+    int n;
+    vector<int> parent, size;
+    long long minCost;
+
+    MST(int sz) {
+        n = sz;
+        parent.resize(n + 1);
+        size.resize(n + 1);
+        minCost = 0;
+    }
+    
+    void init() {
+        for(int u = 1; u <= n; ++u){
+            parent[u] = u;
+            size[u] = 1;
+        }
+    }
+};
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!pq.empty()){
+        int u = pq.top().second;
+        pq.pop();
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                pq.push({-dist[v], v});
+            }
+        }
+    }
+}
+
+
+
+
+Now we will implement the \(find\) function, which returns the parent of the node indicating the connected component. Also, the \(merge\) function merges the connected component of node \(u\) with the connected component of node \(v\) using a small-to-large approach.
+
+Note that the merge function will return true or false, which indicates whether the merging process was done correctly or not (They were already in the same connected component).
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+
+struct Edge {
+    int u, v;
+    long long c;
+};
+
+struct MST {
+    int n;
+    vector<int> parent, size;
+    long long minCost;
+
+    MST(int sz) {
+        n = sz;
+        parent.resize(n + 1);
+        size.resize(n + 1);
+        minCost = 0;
+    }
+    
+    void init() {
+        for(int u = 1; u <= n; ++u){
+            parent[u] = u;
+            size[u] = 1;
+        }
+    }
+    
+    int find(int u) {
+        if(u == parent[u])
+            return u;
+        return parent[u] = find(parent[u]);
+    }
+
+    bool merge(int u, int v) {
+        int uP = find(u);
+        int vP = find(v);
+
+        if(vP == uP) return false;
+
+        if(size[vP] > size[uP]) swap(uP, vP);
+        size[uP] += size[vP];
+        parent[vP] = uP;
+        return true;
+    }
+};
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!pq.empty()){
+        int u = pq.top().second;
+        pq.pop();
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                pq.push({-dist[v], v});
+            }
+        }
+    }
+}
+
+
+
+
+
+Now we will make the last function \(build\) which builds the Minimum Spanning Tree (MST) of the given edges. Simply, it will sort the edges based on the weight and keep picking the smaller edges that don't form a cycle (don't connect two nodes that are in the same connected component).
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+
+struct Edge {
+    int u, v;
+    long long c;
+};
+
+struct MST {
+    int n;
+    vector<int> parent, size;
+    long long minCost;
+
+    MST(int sz) {
+        n = sz;
+        parent.resize(n + 1);
+        size.resize(n + 1);
+        minCost = 0;
+    }
+    
+    void init() {
+        for(int u = 1; u <= n; ++u){
+            parent[u] = u;
+            size[u] = 1;
+        }
+    }
+    
+    int find(int u) {
+        if(u == parent[u])
+            return u;
+        return parent[u] = find(parent[u]);
+    }
+
+    bool merge(int u, int v) {
+        int uP = find(u);
+        int vP = find(v);
+
+        if(vP == uP) return false;
+
+        if(size[vP] > size[uP]) swap(uP, vP);
+        size[uP] += size[vP];
+        parent[vP] = uP;
+        return true;
+    }
+    
+    void build(vector<Edge> & edgs) {
+        sort(edgs.begin(), edgs.end(), [&](Edge &l, Edge &r) {
+            return l.c < r.c;
+        });
+
+        for(auto [u, v, c] : edgs) {
+            if(merge(u, v)) {
+                minCost += c;
+            }
+        }
+    }
+};
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!pq.empty()){
+        int u = pq.top().second;
+        pq.pop();
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                pq.push({-dist[v], v});
+            }
+        }
+    }
+}
+
+
+
+
+
+Finally, we can now add the edges between the portals as discussed before. For each edge \(u,v,w\), if the closest portal from \(u\) is different from the closest to \(v\) (i.e., \(parent[u] \ne parent[v]\)), then we can go from portal \(parent[u]\) to portal \(parent[v]\) by following the path \(parent[u] \rightarrow u \rightarrow v \rightarrow parent[v]\), and then the cost becomes \(dist[u] + dist[v] + w\).
+
+After that, we will make our disjoint-set union (DSU) using the minimum spanning tree (MST) structure we have built and initialize it to disjoint components, and then build the MST using the edges.
+
+Finally, the answer will be the \(minCost\), which is the cost of building the minimum spanning tree, and because we are starting from node \(1\), we will add its \(dist[1]\) to handle if it is not a portal.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+
+struct Edge {
+    int u, v;
+    long long c;
+};
+
+struct MST {
+    int n;
+    vector<int> parent, size;
+    long long minCost;
+
+    MST(int sz) {
+        n = sz;
+        parent.resize(n + 1);
+        size.resize(n + 1);
+        minCost = 0;
+    }
+    
+    void init() {
+        for(int u = 1; u <= n; ++u){
+            parent[u] = u;
+            size[u] = 1;
+        }
+    }
+    
+    int find(int u) {
+        if(u == parent[u])
+            return u;
+        return parent[u] = find(parent[u]);
+    }
+
+    bool merge(int u, int v) {
+        int uP = find(u);
+        int vP = find(v);
+
+        if(vP == uP) return false;
+
+        if(size[vP] > size[uP]) swap(uP, vP);
+        size[uP] += size[vP];
+        parent[vP] = uP;
+        return true;
+    }
+    
+    void build(vector<Edge> & edgs) {
+        sort(edgs.begin(), edgs.end(), [&](Edge &l, Edge &r) {
+            return l.c < r.c;
+        });
+
+        for(auto [u, v, c] : edgs) {
+            if(merge(u, v)) {
+                minCost += c;
+            }
+        }
+    }
+};
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    priority_queue<pair<long long, int>> pq;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        pq.push({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!pq.empty()){
+        int u = pq.top().second;
+        pq.pop();
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                pq.push({-dist[v], v});
+            }
+        }
+    }
+    
+    vector<Edge> edges;
+    for (int u = 1; u <= n; ++u) {
+        for(auto [v, w] : adj[u]){
+            if(parent[u] != parent[v]){
+                edges.push_back({parent[u], parent[v], dist[u] + dist[v] + w});
+            }
+        }
+    }
+
+    MST dsu(n);
+    dsu.init();
+    dsu.build(edges);
+
+    cout << dsu.minCost + dist[1] << "\n";
+}
+
+
+
+
+3 3
+1 2 1
+1 3 1
+2 3 1
+3
+1 2 3
+
+
+
+
+
+4 3
+1 2 1
+2 3 5
+2 4 10
+3
+2 3 4
+
+
+
+
+4 3
+1 2 1000000000
+2 3 1000000000
+3 4 1000000000
+4
+1 2 3 4
+
+
+
+
+let's add a custom test which test the minimum possible boundary input
+<code>
+1 0
+1
+1
+</code>
+here there is only one node which we are starting at it so the answer should be 0.
+
+
+
+
+1 0
+1
+1
+
+
+
+
+We got TLE on a far test. We can do an optimization in the Dijkstra by saving only one node on the priority queue (which is the best till now) and delete the old one.
+
+We can do this easily by using a set.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+void fastIO() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+}
+
+const long long oo = 1e15;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> parent;
+vector<long long> dist;
+
+
+struct Edge {
+    int u, v;
+    long long c;
+};
+
+struct MST {
+    int n;
+    vector<int> parent, size;
+    long long minCost;
+
+    MST(int sz) {
+        n = sz;
+        parent.resize(n + 1);
+        size.resize(n + 1);
+        minCost = 0;
+    }
+    
+    void init() {
+        for(int u = 1; u <= n; ++u){
+            parent[u] = u;
+            size[u] = 1;
+        }
+    }
+    
+    int find(int u) {
+        if(u == parent[u])
+            return u;
+        return parent[u] = find(parent[u]);
+    }
+
+    bool merge(int u, int v) {
+        int uP = find(u);
+        int vP = find(v);
+
+        if(vP == uP) return false;
+
+        if(size[vP] > size[uP]) swap(uP, vP);
+        size[uP] += size[vP];
+        parent[vP] = uP;
+        return true;
+    }
+    
+    void build(vector<Edge> & edgs) {
+        sort(edgs.begin(), edgs.end(), [&](Edge &l, Edge &r) {
+            return l.c < r.c;
+        });
+
+        for(auto [u, v, c] : edgs) {
+            if(merge(u, v)) {
+                minCost += c;
+            }
+        }
+    }
+};
+
+int main() {
+    fastIO();
+    int n, m; cin >> n >> m;
+    adj.assign(n + 1, {});
+    dist.assign(n + 1, oo);
+    parent.assign(n + 1, -1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, w; cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    set<pair<long long, int>> s;
+
+    int k; cin >> k;
+    for (int i = 0; i < k; ++i) {
+        int u; cin >> u;
+        s.insert({0, u});
+        dist[u] = 0;
+        parent[u] = u;
+    }
+
+    while (!s.empty()){
+        int u = s.begin()->second;
+        s.erase(s.begin());
+        for(auto [v, w] : adj[u]){
+            if(dist[v] > dist[u] + w){
+                s.erase({dist[v], v});
+                dist[v] = dist[u] + w;
+                parent[v] = parent[u];
+                s.insert({dist[v], v});
+            }
+        }
+    }
+    
+    vector<Edge> edges;
+    for (int u = 1; u <= n; ++u) {
+        for(auto [v, w] : adj[u]){
+            if(parent[u] != parent[v]){
+                edges.push_back({parent[u], parent[v], dist[u] + dist[v] + w});
+            }
+        }
+    }
+
+    MST dsu(n);
+    dsu.init();
+    dsu.build(edges);
+
+    cout << dsu.minCost + dist[1] << "\n";
+}
+
+
+
+
+
+3 3
+1 2 1
+1 3 1
+2 3 1
+3
+1 2 3
+
+
+
+
+4 3
+1 2 1
+2 3 5
+2 4 10
+3
+2 3 4
+
+
+
+
+
+4 3
+1 2 1000000000
+2 3 1000000000
+3 4 1000000000
+4
+1 2 3 4
+
+
+
+
+1 0
+1
+1

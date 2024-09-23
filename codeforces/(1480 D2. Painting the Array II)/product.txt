@@ -1,0 +1,331 @@
+Painting the Array II
+time limit per test : 2 seconds
+memory limit per test : 512 megabytes
+
+
+Homer likes arrays a lot. Today he is painting an array \(a_1, a_2, \dots, a_n\) with two kinds of colors, \(\textbf{white}\) and \(\textbf{black}\). A painting assignment for \(a_1, a_2, \dots, a_n\) is described by an array \(b_1, b_2, \dots, b_n\) that \(b_i\) indicates the color of \(a_i\) (\(0\) for white and \(1\) for black).
+
+According to a painting assignment \(b_1, b_2, \dots, b_n\), the array \(a\) is split into two new arrays \(a^{(0)}\) and \(a^{(1)}\), where \(a^{(0)}\) is the sub-sequence of all white elements in \(a\) and \(a^{(1)}\) is the sub-sequence of all black elements in \(a\). For example, if \(a = [1,2,3,4,5,6]\) and \(b = [0,1,0,1,0,0]\), then \(a^{(0)} = [1,3,5,6]\) and \(a^{(1)} = [2,4]\).
+
+The number of segments in an array \(c_1, c_2, \dots, c_k\), denoted \(\mathit{seg}(c)\), is the number of elements if we merge all adjacent elements with the same value in \(c\). For example, the number of segments in \([1,1,2,2,3,3,3,2]\) is \(4\), because the array will become \([1,2,3,2]\) after merging adjacent elements with the same value. Especially, the number of segments in an empty array is \(0\).
+
+Homer wants to find a painting assignment \(b\), according to which the number of segments in both \(a^{(0)}\) and \(a^{(1)}\), i.e. \(\mathit{seg}(a^{(0)})+\mathit{seg}(a^{(1)})\), is as \(\textbf{small}\) as possible. Find this number.
+
+
+<b>Input</b>
+The first line contains an integer \(n\) \((1 \leq n \leq 10^5)\).
+
+The second line contains \(n\) integers \(a_1, a_2, \dots, a_n\) \((1 \leq a_i \leq n\)).
+
+<b>Output</b>
+
+Output a single integer, indicating the \(\textbf{minimal}\) possible total number of segments.
+
+
+<b>Note</b>
+
+In the first example, we can choose \(a^{(0)} = [1,1,2,2]\), \(a^{(1)} = [2,3]\) and \(\mathit{seg}(a^{(0)}) = \mathit{seg}(a^{(1)}) = 2\). So the answer is \(2+2 = 4\).
+
+In the second example, we can choose \(a^{(0)} = [1,1,1,1]\), \(a^{(1)} = [2,2,2]\) and \(\mathit{seg}(a^{(0)}) = \mathit{seg}(a^{(1)}) = 1\). So the answer is \(1+1 = 2\).
+
+
+
+
+
+We are given an array of integers \(a = [a_1, a_2, \dots, a_n]\). Our task is to assign each element \(a_i\) to one of two colors: white or black. Based on this coloring, we create two subsequences:
+
+- \(a^{(0)}\): The subsequence of all white elements in their original order.
+- \(a^{(1)}\): The subsequence of all black elements in their original order.
+
+In each subsequence, we can merge adjacent identical elements into a single element. The number of segments in a subsequence is the number of elements after this merging process.
+
+Our goal is to find a coloring of the original array that minimizes the total number of segments in both subsequences combined, i.e., minimize \(\mathit{seg}(a^{(0)}) + \mathit{seg}(a^{(1)})\).
+
+
+A straightforward approach to solve this problem is to consider all possible ways to color the array elements. Since each element can be colored either white or black independently, there are \(2^n\) possible colorings.
+
+For each coloring:
+
+1. Construct the subsequences \(a^{(0)}\) and \(a^{(1)}\) by collecting the white and black elements, respectively, while maintaining their original order.
+2. Merge adjacent identical elements in each subsequence.
+3. Count the number of segments in both subsequences.
+4. Keep track of the coloring that results in the minimal total number of segments.
+
+However, this brute force method is computationally infeasible for large \(n\) (where \(n\) can be up to \(10^5\)), as it would require examining an exponential number of colorings.
+
+
+Our Approach:
+
+To solve the problem of minimizing the total number of segments after painting an array with two colors (white and black), we use a strategy that assigns colors to elements based on their future occurrences in the array.
+
+What We Will Do?
+
+1. Maintain Two Active Elements:
+
+- We keep track of two elements, active_white and active_black, representing the last elements assigned to the white and black colors, respectively.
+- Initially, these can be set to values that are not present in the array.
+
+2. Iterate Through the Array:
+
+- For each element in the array, we attempt to assign it to a color in a way that extends existing segments whenever possible, thereby minimizing new segments.
+
+3. Assigning Colors:
+
+- If the current element matches active_white or active_black:
+- We assign it to the corresponding color.
+- This extends an existing segment without increasing the segment count.
+
+- If the current element does not match either active element:
+- We need to decide which active element to replace with the current element.
+- This replacement starts a new segment in that color.
+
+4. Deciding Which Active Element to Replace:
+
+- Determine Next Occurrences:
+- For both active_white and active_black, we find their next occurrence positions in the array after the current index.
+- If an active element does not appear again, it's optimal to replace it since keeping it won't help extend future segments.
+
+- Choose the Element to Replace:
+- If one active element does not appear again while the other does, we replace the one that does not reappear.
+- If both active elements appear again, we compare their next occurrence positions.
+- We replace the active element whose next occurrence is farther in the future because it is less immediately useful.
+
+- Update Active Elements:
+- We assign the current element to the color of the replaced active element.
+- We update the active element to the current element.
+
+5. Counting Segments:
+
+- Each time we replace an active element (which means starting a new segment in that color), we increment the segment count for that color.
+- When we extend an existing segment (no active element replacement), the segment count remains unchanged.
+
+Why This Approach Is Correct?
+
+- Extending Segments Whenever Possible:
+- By assigning elements to the colors of matching active elements, we extend existing segments, which helps in keeping the segment counts low.
+
+- Optimal Replacement Based on Future Use:
+- Replacing the active element that is used later in the future (or not at all) allows us to retain the active element that is needed sooner.
+- This increases the likelihood of extending segments in upcoming steps, further minimizing new segments.
+
+- Minimizing Segment Creation:
+- By carefully choosing which active element to replace, we ensure that we are starting new segments only when necessary.
+- This strategic replacement leads to the minimal possible total number of segments across both colors.
+
+
+
+
+Let's read a sequence of numbers and record the positions where each unique number appears in the sequence. It creates a mapping from each number to a list of indices indicating all the positions where that number occurs.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+    vector<int> array(n);
+    vector<vector<int>> positions(n + 1);
+    for (int i = 0; i < n; ++i) {
+        cin >> array[i];
+        positions[array[i]].push_back(i);
+    }
+
+
+    return 0;
+}
+
+
+
+
+This code implements a strategy to assign colors to the elements of the array in order to minimize the total number of segments formed after merging adjacent identical elements in each colored subsequence.
+
+Conceptual Steps:
+
+1. Maintain Two Active Elements (Colors):
+
+- The algorithm keeps track of two elements currently associated with the two colors (let's call them Color A and Color B).
+- These active elements represent the last elements assigned to each color and are used to decide how to assign colors to subsequent elements to extend segments whenever possible.
+
+2. Iterate Through the Array:
+
+- For each element in the array, the algorithm considers whether it can assign it to one of the two colors without starting a new segment.
+- The total segment count is incremented initially for each element, assuming a new segment may start.
+
+3. Extend Existing Segments if Possible:
+
+- If the current element matches one of the active elements (i.e., it's the same as the last element assigned to that color), it can be assigned to that color without starting a new segment.
+- In this case, the algorithm adjusts the segment count to reflect that no new segment was created.
+
+4. Decide When to Start a New Segment:
+
+- If the current element does not match either active element, assigning it to either color would start a new segment.
+- The algorithm must decide which active element to replace with the current element, effectively starting a new segment in that color.
+
+5. Use Future Occurrences to Make Optimal Decisions:
+
+- The algorithm looks ahead in the array to find the next occurrence positions of the current active elements.
+- If an active element does not appear again in the array:
+- It is less useful for extending future segments, so the algorithm replaces it with the current element.
+- If both active elements appear again:
+- The algorithm compares their next occurrence positions.
+- It replaces the active element whose next occurrence is further in the future, since keeping the element that reappears sooner maximizes the chance to extend segments in upcoming steps.
+
+6. Update Active Elements:
+
+- The chosen active element is updated to the current element.
+- The current element is assigned to the corresponding color, starting a new segment in that color.
+
+Overall Idea:
+
+- Minimize New Segments:
+- By extending existing segments whenever possible and carefully choosing when to start new segments, the algorithm minimizes the total number of segments across both colors.
+- Strategic Replacement:
+- Using knowledge of future occurrences allows the algorithm to make informed decisions about which active element to replace, ensuring that the most immediately useful elements are kept active.
+- Balance Between Colors:
+- The algorithm balances the assignment of elements to the two colors to optimize segment extension opportunities.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+    vector<int> array(n);
+    vector<vector<int>> positions(n + 1);
+    for (int i = 0; i < n; ++i) {
+        cin >> array[i];
+        positions[array[i]].push_back(i);
+    }
+    int total_segments = 0;
+    int active_element1 = 0, active_element2 = 0;
+ 
+    for (int i = 0; i < n; ++i) {
+        ++total_segments;
+ 
+        if (array[i] == active_element1 || array[i] == active_element2) {
+            --total_segments;
+            continue;
+        }
+ 
+        auto it1 = upper_bound(positions[active_element1].begin(), positions[active_element1].end(), i);
+        auto it2 = upper_bound(positions[active_element2].begin(), positions[active_element2].end(), i);
+ 
+        int next_pos1 = (it1 != positions[active_element1].end()) ? *it1 : n;
+        int next_pos2 = (it2 != positions[active_element2].end()) ? *it2 : n;
+ 
+        if (next_pos1 == n) {
+            active_element1 = array[i];
+        } else if (next_pos2 == n) {
+            active_element2 = array[i];
+        } else if (next_pos1 > next_pos2) {
+            active_element1 = array[i];
+        } else {
+            active_element2 = array[i];
+        }
+    }
+
+
+    return 0;
+}
+
+
+
+
+Let's print our answer.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+    vector<int> array(n);
+    vector<vector<int>> positions(n + 1);
+    for (int i = 0; i < n; ++i) {
+        cin >> array[i];
+        positions[array[i]].push_back(i);
+    }
+
+    int total_segments = 0;
+    int active_element1 = 0, active_element2 = 0;
+
+    for (int i = 0; i < n; ++i) {
+        ++total_segments;
+
+        if (array[i] == active_element1 || array[i] == active_element2) {
+            --total_segments;
+            continue;
+        }
+
+        auto it1 = upper_bound(positions[active_element1].begin(), positions[active_element1].end(), i);
+        auto it2 = upper_bound(positions[active_element2].begin(), positions[active_element2].end(), i);
+
+        int next_pos1 = (it1 != positions[active_element1].end()) ? *it1 : n;
+        int next_pos2 = (it2 != positions[active_element2].end()) ? *it2 : n;
+
+        if (next_pos1 == n) {
+            active_element1 = array[i];
+        } else if (next_pos2 == n) {
+            active_element2 = array[i];
+        } else if (next_pos1 > next_pos2) {
+            active_element1 = array[i];
+        } else {
+            active_element2 = array[i];
+        }
+    }
+
+    cout << total_segments << "\n";
+
+    return 0;
+}
+
+
+
+
+6
+1 2 3 1 2 2
+
+
+
+
+7
+1 2 1 2 1 2 1
+
+
+
+
+Let's test our code with the smallest constraints \(n=1\) to check if our code is correct or not.
+
+The input will be:
+
+1
+1
+
+The output will be:
+
+1
+
+Because there is only one element, assigning it to either color will create exactly one segment. We cannot reduce the number of segments below one, so the minimal total number of segments is 1.
+
+
+
+
+1
+1

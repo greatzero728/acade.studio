@@ -1,0 +1,287 @@
+Grid Xor
+time limit per test : 2 seconds
+memory limit per test : 256 megabytes
+
+
+Note: The XOR-sum of set \(\{s_1,s_2,\ldots,s_m\}\) is defined as \(s_1 \oplus s_2 \oplus \ldots \oplus s_m\), where \(\oplus\) denotes the bitwise XOR operation.
+
+After almost winning IOI, Victor bought himself an \(n\times n\) grid containing integers in each cell.\(n\) is an even integer. The integer in the cell in the \(i\)-th row and \(j\)-th column is \(a_{i,j}\).
+
+Sadly, Mihai stole the grid from Victor and told him he would return it with only one condition: Victor has to tell Mihai the XOR-sum of \(\textbf{all}\) the integers in the whole grid.
+
+Victor doesn't remember all the elements of the grid, but he remembers some information about it: For each cell, Victor remembers the XOR-sum of all its neighboring cells.
+
+Two cells are considered neighbors if they share an edge --- in other words, for some integers \(1 \le i, j, k, l \le n\), the cell in the \(i\)-th row and \(j\)-th column is a neighbor of the cell in the \(k\)-th row and \(l\)-th column if \(|i - k| = 1\) and \(j = l\), or if \(i = k\) and \(|j - l| = 1\).
+
+To get his grid back, Victor is asking you for your help. Can you use the information Victor remembers to find the XOR-sum of the whole grid?
+
+It can be proven that the answer is unique.
+
+
+<b>Input</b>
+The first line of the input contains a single integer \(t\) \((1 \le t \le 100)\) --- the number of test cases. The description of test cases follows.
+
+The first line of each test case contains a single \(\textbf{even}\) integer \(n\) \((2 \leq n \leq 1000)\) --- the size of the grid.
+
+Then follows \(n\) lines, each containing \(n\) integers. The \(j\)-th integer in the \(i\)-th of these lines represents the XOR-sum of the integers in all the neighbors of the cell in the \(i\)-th row and \(j\)-th column.
+
+It is guaranteed that the sum of \(n\) over all test cases doesn't exceed \(1000\) and in the original grid \(0 \leq a_{i, j} \leq 2^{30} - 1\).
+
+
+
+<b>Output</b>
+
+For each test case, output a single integer --- the XOR-sum of the whole grid.
+
+
+
+<b>Note</b>
+
+For the first test case, one possibility for Victor's original grid is:
+
+1 3
+2 4
+
+For the second test case, one possibility for Victor's original grid is:
+
+
+3 8 8 5
+9 5 5 1
+5 5 9 9
+8 4 2 9
+
+
+For the third test case, one possibility for Victor's original grid is:
+
+4 3 2 1
+1 2 3 4
+5 6 7 8
+8 9 9 1
+
+
+
+
+
+We are given an \( n \times n \) grid (with even \( n \)) where each cell contains an integer, but we only know, for each cell, the XOR-sum of its neighboring cells (cells adjacent horizontally or vertically). Our task is to determine the XOR-sum of all the integers in the entire grid using only this information.
+
+A straightforward approach would be to reconstruct the entire grid by formulating and solving a system of equations based on the given neighbor XOR-sums. Each cell's value is related to its neighbors, leading to \( n^2 \) equations with \( n^2 \) unknowns. Solving such a large system requires \( O(n^3) \) time using Gaussian elimination, which is computationally infeasible for \( n \leq 1000 \) and would exceed the time limit.
+
+Our Approach and Justification:
+
+To solve the problem efficiently, we leverage the properties of XOR operations and the grid's structure:
+
+- Observation 1: In the total XOR-sum of all neighbor sums provided, each cell's value appears a number of times equal to its degree (number of neighbors). Specifically:
+- Corner cells have 2 neighbors (degree 2) and thus their values appear twice.
+- Edge cells (excluding corners) have 3 neighbors (degree 3) and their values appear three times.
+- Inner cells have 4 neighbors (degree 4) and their values appear four times.
+
+- Observation 2: In XOR operations, a value XOR-ed an even number of times cancels out (since \( a \oplus a = 0 \)). Therefore, values from cells with even degrees (corners and inner cells) do not affect the total XOR-sum of neighbor sums because they appear an even number of times. Only the values from edge cells (excluding corners) contribute to the total XOR-sum.
+
+- Key Insight: The total XOR-sum of the neighbor sums equals the XOR of all edge cell values (excluding corners). However, since we lack information about the corner cells, we need a method to compute the overall grid XOR-sum without directly knowing their values.
+
+Algorithm Steps:
+
+1. Initialization: Create a boolean grid \(isActivated\) of the same size as the input grid to track whether a cell has been "activated" or toggled during the process. Initialize all cells to `false`.
+
+2. Processing Cells:
+- Start from the second row (since we need to consider the cell above for activation).
+- For each cell in rows \( 2 \) to \( n \):
+- If the cell directly above (\(isActivated[row - 1][col]\)) is false, we "activate" the current cell.
+- Activation Process: When we activate a cell at position \((row, col)\), we toggle the \(isActivated\) state of all its neighboring cells (up, down, left, right).
+- Accumulating XOR-sum: We XOR the value of the current cell with our `totalXor` variable.
+
+3. Final XOR-sum:
+- After processing all cells, the `totalXor` variable holds the XOR-sum of all the necessary cell values to compute the overall grid XOR-sum.
+
+
+- By activating cells where the cell above hasn't been activated, we ensure that every activation affects cells in a pattern that accounts for the contributions of edge cells (excluding corners).
+- The activation toggling mimics the parity of contributions from each cell based on their positions and degrees.
+- This method efficiently accumulates the required XOR-sum without needing to know individual cell values or solve a system of equations.
+- The algorithm operates in \( O(n^2) \) time, suitable for the given constraints.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const int MAX_N = 1005;
+bool isActivated[MAX_N][MAX_N];
+int gridSize;
+int neighborXorSums[MAX_N][MAX_N];
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int testCases;
+    cin >> testCases;
+    while (testCases--) {
+        cin >> gridSize;
+        for (int row = 1; row <= gridSize; row++) {
+            for (int col = 1; col <= gridSize; col++) {
+                cin >> neighborXorSums[row][col];
+                isActivated[row][col] = false;
+            }
+        }
+       
+    }
+    return 0;
+}
+
+
+
+
+this code describes a fundamental mechanism involving a grid where each cell can influence its immediate neighbors — the cells directly adjacent to it vertically or horizontally (up, down, left, right). The main idea is that when we perform an action on a specific cell (let's call this "activating" the cell), it causes a change in the state of all its neighboring cells.
+
+Imagine each cell as having a switch that, when toggled, flips the state of its adjacent cells. Activating a cell doesn't just affect itself; it has a ripple effect that alters the states of its neighbors. This concept is crucial because it allows us to model how local interactions between cells can impact the overall state of the grid.
+
+In practical terms, this mechanism helps us track and manage the cumulative effects of activating certain cells, which is essential for calculating a value that depends on the collective state of the grid. By understanding how activating one cell influences others, we can devise a strategy to manipulate the grid's state to achieve our desired outcome.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const int MAX_N = 1005;
+bool isActivated[MAX_N][MAX_N];
+int gridSize;
+int neighborXorSums[MAX_N][MAX_N];
+
+const int deltaX[] = {-1, 1, 0, 0};
+const int deltaY[] = {0, 0, -1, 1};
+void toggleNeighbors(int row, int col) {
+    for (int direction = 0; direction < 4; direction++) {
+        int neighborRow = row + deltaX[direction];
+        int neighborCol = col + deltaY[direction];
+        if (neighborRow >= 1 && neighborRow <= gridSize && neighborCol >= 1 && neighborCol <= gridSize) {
+            isActivated[neighborRow][neighborCol] ^= 1;
+        }
+    }
+}
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int testCases;
+    cin >> testCases;
+    while (testCases--) {
+        cin >> gridSize;
+        for (int row = 1; row <= gridSize; row++) {
+            for (int col = 1; col <= gridSize; col++) {
+                cin >> neighborXorSums[row][col];
+                isActivated[row][col] = false;
+            }
+        }
+
+    }
+    return 0;
+}
+
+
+
+
+This part outlines a strategic process of traversing the grid to determine which cells need to be activated to compute the final result we are interested in (such as the total XOR-sum of all cells). The key idea is to systematically move through the grid, starting from the second row, and decide whether to activate a cell based on the activation state of the cell directly above it.
+
+Here's how it works:
+
+- Traversal Strategy: We iterate over each cell in the grid, row by row, beginning from the second row. This sequential approach ensures that we consider the relationship between a cell and the one above it.
+
+- Activation Condition: For each cell, we check if the cell directly above has not been activated yet. If the cell above is inactive, it signals that we need to activate the current cell. This condition creates a dependency chain, where the activation of cells in one row depends on the activation states of the row above.
+
+- Activation Process: When we decide to activate a cell based on the condition, we apply the mechanism from the first part — activating the cell causes its immediate neighbors to change their states. This step is crucial because it propagates the activation effect through the grid, ensuring that the necessary cells are influenced to achieve the correct final result.
+
+- Accumulating the Result: As we activate cells, we also accumulate a running total of a specific value associated with each activated cell (for instance, by performing an XOR operation with the cell's value). This running total aggregates the contributions of all the cells we activate, leading us toward the final computation we aim to perform.
+
+The underlying idea of this strategy is to create a cascading effect where activating certain cells based on the states of their neighbors leads to the correct overall state of the grid. By carefully choosing which cells to activate (those below inactive cells), we ensure that all required interactions between cells are accounted for in our computation.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+const int MAX_N = 1005;
+bool isActivated[MAX_N][MAX_N];
+int gridSize;
+int neighborXorSums[MAX_N][MAX_N];
+
+const int deltaX[] = {-1, 1, 0, 0};
+const int deltaY[] = {0, 0, -1, 1};
+void toggleNeighbors(int row, int col) {
+    for (int direction = 0; direction < 4; direction++) {
+        int neighborRow = row + deltaX[direction];
+        int neighborCol = col + deltaY[direction];
+        if (neighborRow >= 1 && neighborRow <= gridSize && neighborCol >= 1 && neighborCol <= gridSize) {
+            isActivated[neighborRow][neighborCol] ^= 1;
+        }
+    }
+}
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int testCases;
+    cin >> testCases;
+    while (testCases--) {
+        cin >> gridSize;
+        for (int row = 1; row <= gridSize; row++) {
+            for (int col = 1; col <= gridSize; col++) {
+                cin >> neighborXorSums[row][col];
+                isActivated[row][col] = false;
+            }
+        }
+
+        int totalXor = 0;
+        for (int row = 2; row <= gridSize; row++) {
+            for (int col = 1; col <= gridSize; col++) {
+                if (!isActivated[row - 1][col]) {
+                    toggleNeighbors(row, col);
+                    totalXor ^= neighborXorSums[row][col];
+                }
+            }
+        }
+        cout << totalXor << '\n';
+    }
+    return 0;
+}
+
+
+
+
+3
+2
+1 5
+5 1
+4
+1 14 8 9
+3 1 5 9
+4 13 11 1
+1 15 4 11
+4
+2 4 1 6
+3 7 3 10
+15 9 4 2
+12 7 15 1
+
+
+
+
+Let's test our code with make all grid with value \(0\) to check our code correct or not.
+
+the input will be:
+
+1
+2
+0 0
+0 0
+
+the output will be:
+
+0
+
+In this test case, we have a single \(2 \times 2\) grid where all neighbor XOR-sums are zero. This means that for each cell, the XOR of its neighboring cells is zero, implying that opposite cells must have equal values (since \(a \oplus b = 0\) leads to \(a = b\) when working with XOR). Specifically, the cells satisfy \(a = d\) and \(b = c\). When calculating the total XOR-sum of all cells (\(a \oplus b \oplus c \oplus d\)), the equal values cancel out due to the property \(x \oplus x = 0\), resulting in a total XOR-sum of zero. Therefore, the output for this test case is 0.
+
+
+
+
+1
+2
+0 0
+0 0

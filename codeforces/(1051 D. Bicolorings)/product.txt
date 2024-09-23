@@ -1,0 +1,175 @@
+<b>Bicolorings</b>
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+You are given a grid, consisting of \(2\) rows and \(n\) columns. Each cell of this grid should be colored either black or white.
+
+Two cells are considered neighbours if they have a <b>common border</b> and share the same color. Two cells \(A\) and \(B\) belong to the same component if they are neighbours, or if there is a neighbour of \(A\) that belongs to the same component with \(B\).
+
+Let's call some bicoloring <i>beautiful</i> if it has exactly \(k\) components.
+
+Count the number of <i>beautiful</i> bicolorings. The number can be big enough, so print the answer modulo \(998244353\).
+
+<b>Input</b>
+The only line contains two integers \(n\) and \(k (1≤n≤1000, 1≤k≤2n)—\) the number of columns in a grid and the number of components required.
+
+<b>Output</b>
+Print a single integer — the number of <i>beautiful</i> bicolorings modulo \(998244353\).
+
+<b>Note</b>
+One of possible bicolorings in sample 1:
+<img img1>
+
+
+
+
+The simple solution to the problem is to check all possible grid colorings. Since each cell has two possible colors, we can treat them as a bit (which can be 0 or 1) and use bit masking to find all possible grids. For each grid, we count the number of components. If the number of components equals \(k\), we label it as a beautiful bicoloring. To generate all grids, each cell can be either black or white. For a grid of size \(2\cdot n\), this process takes \(O(2^{2\cdot n})\) time, which is inefficient within the given constraints.
+
+
+
+
+Let's consider one thing: There are only 2 rows, so each column has 2 cells, and there are 4 possible colorings. More simply, we can describe the coloring of the two cells as either having the same color or different colors. So for each column, there are two possible colorings (same color or different color). There are \(n\) columns in total. We can use dynamic programming to count the possible grid colorings with \(k\) components.
+
+Let \(dp[i][j][flg]\) represents the number of possible beautiful bicolorings after the \(i-\)th column with exactly \(j\) components. The \(flg\) indicates whether the previous column (the \((i-1)-\)th column) has the same or different colors. If \(flg = 1\), the previous column contains two different colors; otherwise, \(flg = 0\), meaning the previous column contains the same color.
+
+Now let's look at the transitions :
+If \(flg = 1\), the previous column has a different color. In this case, you can make the following moves:
+\(\bullet\) We can make the current column the same as the previous one(Here, no new component will be created)..
+\(\bullet\) We can also color the current column with two different colors, but opposite to the previous one (i.e., if the previous column is "WB," we can make this one "BW" and vice versa). This creates two separate components, so we'll use this move if \(j >= 2\).
+\(\bullet\) Another option is to color the current column (i-th column) a solid color. Since the previous column has different colors, no new components are created. The solid color can either be "WW" or "BB."
+
+\(dp[i][j][1] = dp[i+1][j][1] + dp[i+1][j-2][1] (if, j >= 2) + 2\cdot dp[i+1][j][0]\).
+
+Now If \(flg = 0\), the previous column has the same coloring. In this case, you can make the following moves:
+\(\bullet\) Color the current column match the previous one (Here, no new component will be created).
+\(\bullet\) Color the current column's cells with same color but the opposite of the previous one (if the previous column is "WW", make the current one "BB", or vice versa). This creates one component.
+\(\bullet\) Color the current column with two different colors ("BW" or "WB"), which also creates one component.
+
+\( dp[i][j][0] = dp[i+1][j][0] + dp[i+1][j-1][0] + dp[i+1][j-1][1].\)
+
+While moving if we go outside the grid, we will check if it creates \(k\) components. If \(j = 0\), then \(k\) components have been created(return 1); other, they have not (return 0).
+
+Now let's write then code.
+
+
+
+
+First, take the inputs. We are starting by coloring the first column. The coloring of the next columns will depend on this.
+
+The first column can be colored in two ways:
+
+\(\bullet\) The same color (this creates one component).
+\(\bullet\) Different colors (this creates two components).
+
+We multiply by 2 because a solid color can be one of two possible colorings ("WW" or "BB"). Different colors can also be one of two possible colorings ("BW" or "WB").
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+long long const mod = 998244353;
+int n, k;
+long long dp[1001][2001][2]; 
+
+long long sol(int i, int j, int flg) {
+    
+}
+
+int32_t main() {
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    cin >> n >> k;
+    memset(dp, -1, sizeof dp);
+
+    long long ans = 0;
+
+    ans = 2 * sol(2, k-1, 0);
+    if(k >= 2) {
+        ans = (ans + 2 * sol(2, k-2, 1)) % mod;
+    }
+
+    return 0;
+}
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+long long const mod = 998244353;
+int n, k;
+long long dp[1001][2001][2]; 
+
+long long sol(int i, int j, int flg) {
+    if(i > n) return j == 0;
+    long long &ret = dp[i][j][flg];
+    if(ret != -1) return ret;
+
+    ret = sol(i+1, j, flg);
+    if(flg) {
+        ret = (ret + 2 * sol(i + 1, j, !flg)) % mod;
+        if(j >= 2) {
+            ret = (ret + sol(i + 1, j - 2, flg)) % mod;
+        }
+    } else {
+        ret = (ret + sol(i + 1, j - 1, flg)) % mod;
+        ret = (ret + 2 * sol(i + 1, j - 1, !flg)) % mod;
+    }
+
+    return ret;
+}
+
+int32_t main() {
+
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    cin >> n >> k;
+    memset(dp, -1, sizeof dp);
+
+    long long ans = 0;
+
+    ans = 2 * sol(2, k-1, 0);
+    if(k >= 2) {
+        ans = (ans + 2 * sol(2, k-2, 1)) % mod;
+    }
+
+    cout << ans << "\n";
+
+    return 0;
+}
+
+
+
+
+3 4
+
+
+
+
+4 1
+
+
+
+
+1 2
+
+
+
+
+The samples have been successfully passed. Now, let's consider a custom test case with smaller values of \(n\) and \(k\), which might be a corner case.
+
+1 1
+
+For \(n = 1\) and \(k = 1\), there are 2 possible colorings: 'W' or 'B'. So the expected output is 2.
+
+
+
+
+
+1 1

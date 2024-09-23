@@ -1,0 +1,444 @@
+B. Lucky Number 2
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+Petya loves lucky numbers very much. Everybody knows that lucky numbers are positive integers whose decimal record contains only the lucky digits 4 and 7. For example, numbers 47, 744, 4 are lucky and 5, 17, 467 are not.
+
+Petya loves long lucky numbers very much. He is interested in the minimum lucky number d that meets some condition. Let cnt(x) be the number of occurrences of number x in number d as a substring. For example, if d = 747747, then cnt(4) = 2, cnt(7) = 4, cnt(47) = 2, cnt(74) = 2. Petya wants the following condition to fulfil simultaneously: cnt(4) = \(a_1\), cnt(7) = \(a_2\), cnt(47) = \(a_3\), cnt(74) = \(a_4\). Petya is not interested in the occurrences of other numbers. Help him cope with this task.
+
+Input
+The single line contains four integers \(a_1, a_2, a_3\) and \(a_4 (1 ≤ a_1, a_2, a_3, a_4 ≤ 10^6)\).
+
+Output
+On the single line print without leading zeroes the answer to the problem — the minimum lucky number d such, that cnt(4) = \(a_1\), cnt(7) = \(a_2\), cnt(47) = \(a_3\), cnt(74) = \(a_4\). If such number does not exist, print the single number "-1" (without the quotes).
+
+
+
+
+\(\bull\) naive algorithm
+We can generate all possible lucky numbers composed of the digits 4 and 7 and then check each one to see if it meets the conditions specified by \(a_1\), \(a_2\), \(a_3\), and \(a_4\). We aim to find the minimum lucky number that satisfies these conditions.
+However, this approach would be extremely slow because the number of possible lucky numbers grows exponentially with the length of the number. Since \(a_1\), \(a_2\), \(a_3\), and \(a_4\) can each be as large as \(10^6\), the potential combinations to check would be far too numerous to compute within the given time limit of 2 seconds. Moreover, since there is an infinite number of lucky numbers, we cannot iterate through all possible lucky numbers.
+Additionally, counting the occurrences of each substring in every generated number adds further complexity, resulting in a time complexity that exceeds feasible limits.
+
+
+
+
+\(\bull\) real algorithm
+We need to find the minimum lucky number that satisfies the conditions specified by \(a_1\), \(a_2\), \(a_3\), and \(a_4\).
+
+Let's assume that we've already found a lucky number that meets the conditions specified by \(a_1\), \(a_2\), \(a_3\), and \(a_4\). Without loss of generality, let's assume that the number is 444774777774447.
+Here, "4" occurs 7 times, "7" occurs 8 times, "47" occurs 3 times, and "74" occurs 2 times, so in our case \(a_1 = 7\), \(a_2 = 8\), \(a_3 = 3\), and \(a_4 = 2\).
+So, our lucky number 444774777774447 meets the conditions \(a_1 = 7\), \(a_2 = 8\), \(a_3 = 3\), and \(a_4 = 2\).
+
+We need to find the minimum lucky number that meets the conditions \(a_1 = 7\), \(a_2 = 8\), \(a_3 = 3\), and \(a_4 = 2\). We can make a simple change from our candidate lucky number 444774777774447, as follows:
+a) \(444774777774447\)
+b) \(\color{red}{44}\color{yellow}{47}\color{blue}{7}\color{yellow}{47}\color{blue}{7777}\color{red}{44}\color{yellow}{47}\)
+We can move all red-colored "\(\color{red}4\)"s to the leftmost position and all blue-colored "\(\color{blue}7\)"s to the rightmost position, without breaking the conditions \(a_1 = 7\), \(a_2 = 8\), \(a_3 = 3\), and \(a_4 = 2\), as follows:
+c) \(\color{red}{4444}\color{yellow}{474747}\color{blue}{77777}\)
+
+It’s obvious that all lucky numbers a), b), and c) meet the conditions \(a_1 = 7\), \(a_2 = 8\), \(a_3 = 3\), and \(a_4 = 2\). Furthermore, it is clear that the c) lucky number is the minimum lucky number that satisfies these conditions, as we moved all possible 4s to the left and all possible 7s to the right to minimize our lucky number.
+
+According to the above approach, we can notice that we only need to focus on \(a_3\) and \(a_4\). By considering the yellow-colored part of the lucky number, we can insert the red-colored "\(\color{red}4\)"s to the left of the leftmost 4 in this yellow part and the blue-colored "\(\color{blue}7\)"s to the right of the rightmost 7 in this yellow part to minimize our lucky number.
+
+
+
+
+Let's call the yellow-colored part a unique number. The unique number of our lucky number is a string formed by removing consecutive duplicate characters, resulting in a sequence that retains only the first occurrence of each character.
+
+\(
+\begin{array}{|c|c|c|c|c|c|}
+\hline
+\textbf{unique} & \textbf{Leftmost} & \textbf{Rightmost} & \textbf{Occurrences} & \textbf{Occurrences} & \textbf{Difference of} \\
+\textbf{number} & \textbf{Digit} & \textbf{Digit} & \textbf{of 47} & \textbf{of 74} & \textbf{Occurrences} \\
+\hline
+4747474 & 4 & 4 & 3 & 3 & 0 \\
+7474747 & 7 & 7 & 3 & 3 & 0 \\
+474747 & 4 & 7 & 3 & 2 & 1 \\
+747474 & 7 & 4 & 2 & 3 & 1 \\
+\hline
+\end{array}
+\)
+
+In the above table, we can focus on the difference of occurrences between "47" and "74". (I labeled this attribute as just "Difference of Occurrences" in the table.)
+And our unique number can be considered as "47" or "74"; the difference of occurrences between "47" and "74" is at most 1.
+
+As we confirmed all possible types of the yellow-colored part (unique number), we first build a valid yellow-colored part. Then, we can insert the red-colored "\(\color{red}4\)"s to the left of the leftmost 4 in this yellow part and the blue-colored "\(\color{blue}7\)"s to the right of the rightmost 7 in this yellow part to minimize our lucky number. I will confirm the detailed method later.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    return 0;
+}
+
+
+
+
+
+As I mentioned in block 3, if the difference of occurrences between "47" and "74" exceeds 1, then we can't build a valid yellow-colored part. So we should print "-1" and exit our program.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+void end() {
+    puts("-1"), exit(0);
+}
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+    if(abs(a[3] - a[4]) > 1) end();
+    return 0;
+}
+
+
+
+
+
+Let's handle the case where the difference of occurrences between "47" and "74" is 0.
+
+There are two possible cases: the 4747474 type and the 7474747 type. In these cases, the ending (left and right) digits are both 4 or both 7.
+
+We need to minimize our lucky number, so let's check if we can build the 4747474 type yellow-colored part first. If we can't build the 4747474 type yellow-colored part, then we will try to build the 7474747 type yellow-colored part (the second candidate for the case where \(a_3 = a_4\)).
+
+
+
+
+Let's try to build the 4747474 type yellow-colored part first.
+In this type, there are \(n4 = a_3 + 1\) "4"s required, and there are \(n7 = a_4\) "7"s required.
+
+If we can use \(n4\) "4"s and \(n7\) "7"s without any issues, then we can build the 4747474 type yellow-colored part. (This applies when \(a_1 \geq n4\) and \(a_2 \geq n7\) since we need to add \(a_1\) "4"s and \(a_2\) "7"s.)
+
+After constructing the 4747474 type yellow-colored part, we need to add \( \text{extra4} = a_1 - n4 \) red-colored "\(\color{red}4\)"s to the left of the leftmost "4" in this yellow part, and we need to add \( \text{extra7} = a_2 - n7 \) blue-colored "\(\color{blue}7\)"s to the right of the rightmost "7" in the current yellow part to minimize our lucky number.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+void end() {
+    puts("-1"), exit(0);
+}
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+    if(abs(a[3] - a[4]) > 1) end();
+    
+    if(a[3] == a[4]) {
+        //4747474: a[3] = 3, a[4] = 3
+        int n4 = a[3] + 1, n7 = a[4];
+        if(a[1] >= n4 && a[2] >= n7) {
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+In case we fail to build the 4747474 type yellow-colored part, we can try to build the 7474747 type yellow-colored part. In this type, there are \(n4 = a_3\) "4"s required, and there are \(n7 = a_4 + 1\) "7"s required.
+
+If we can't use \(n4\) "4"s and \(n7\) "7"s, then we can't build the 7474747 type yellow-colored part, so we can print "-1" and exit our program. (This applies when \(a_1 < n4\) or \(a_2 < n7\) since we can only add \(a_1\) "4"s and \(a_2\) "7"s.)
+
+Otherwise, we can build the 7474747 type yellow-colored part, and then we need to add \( \text{extra4} = a_1 - n4 \) red-colored "\(\color{red}4\)"s to the left of the leftmost "4" in this yellow part, and we need to add \( \text{extra7} = a_2 - n7 \) blue-colored "\(\color{blue}7\)"s to the right of the rightmost "7" in the current yellow part to minimize our lucky number.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+void end() {
+    puts("-1"), exit(0);
+}
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+    if(abs(a[3] - a[4]) > 1) end();
+    
+    if(a[3] == a[4]) {
+        //4747474: a[3] = 3, a[4] = 3
+        int n4 = a[3] + 1, n7 = a[4];
+        if(a[1] >= n4 && a[2] >= n7) {
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+        else {
+            //we can't build 4747474 type.
+            //7474747: a[3] = 3, a[4] = 3
+            n4 = a[3], n7 = a[4] + 1;
+            if(a[1] < n4 || a[2] < n7) end();
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            printf("7"), n7--;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+        
+    }
+    return 0;
+}
+
+
+
+
+
+Let's handle the case where the occurrence of "47" is one greater than the occurrence of "74". In this case, the yellow-colored part is of the 474747 type. In this type, there are \(n4 = a_3\) "4"s required, and there are \(n7 = a_3\) "7"s required.
+
+If we can't use \(n4\) "4"s and \(n7\) "7"s, then we can't build the 474747 type yellow-colored part, so we can print "-1" and exit our program. (This applies when \(a_1 < n4\) or \(a_2 < n7\) since we can only add \(a_1\) "4"s and \(a_2\) "7"s.)
+
+Otherwise, we can build the 474747 type yellow-colored part, and then we need to add \( \text{extra4} = a_1 - n4 \) red-colored "\(\color{red}4\)"s to the left of the leftmost "4" in this yellow part, and we need to add \( \text{extra7} = a_2 - n7 \) blue-colored "\(\color{blue}7\)"s to the right of the rightmost "7" in the current yellow part to minimize our lucky number.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+void end() {
+    puts("-1"), exit(0);
+}
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+    if(abs(a[3] - a[4]) > 1) end();
+    
+    if(a[3] == a[4]) {
+        //4747474: a[3] = 3, a[4] = 3
+        int n4 = a[3] + 1, n7 = a[4];
+        if(a[1] >= n4 && a[2] >= n7) {
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+        else {
+            //we can't build 4747474 type.
+            //7474747: a[3] = 3, a[4] = 3
+            n4 = a[3], n7 = a[4] + 1;
+            if(a[1] < n4 || a[2] < n7) end();
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            printf("7"), n7--;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+        
+    }
+    else if(a[3] > a[4]) {
+        //474747: a[3] = 3, a[4] = 2
+        int n4 = a[3], n7 = a[3];
+        if(a[1] < n4 || a[2] < n7) end();
+        int extra4 = a[1] - n4, extra7 = a[2] - n7;
+        for(int i = extra4; i--; ) printf("4");
+        while(n4 || n7) {
+            if(n4) {
+                printf("4"), n4--;
+            }
+            if(n7) {
+                printf("7"), n7--;
+                if(!n7) for(int i = extra7; i--; ) printf("7");
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+Let's handle the case where the occurrence of "47" is one less than the occurrence of "74". In this case, the yellow-colored part is of the 747474 type. In this type, there are \(n4 = a_4\) "4"s required, and there are \(n7 = a_4\) "7"s required.
+
+If we can't use \(n4\) "4"s and \(n7\) "7"s, then we can't build the 747474  type yellow-colored part, so we can print "-1" and exit our program. (This applies when \(a_1 < n4\) or \(a_2 < n7\) since we can only add \(a_1\) "4"s and \(a_2\) "7"s.)
+
+Otherwise, we can build the 747474 type yellow-colored part, and then we need to add \( \text{extra4} = a_1 - n4 \) red-colored "\(\color{red}4\)"s to the left of the leftmost "4" in this yellow part, and we need to add \( \text{extra7} = a_2 - n7 \) blue-colored "\(\color{blue}7\)"s to the right of the rightmost "7" in the current yellow part to minimize our lucky number.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int a[5];
+
+void end() {
+    puts("-1"), exit(0);
+}
+
+int main() {
+    for(int i = 1; i <= 4; i++) scanf("%d", a + i);
+    
+    if(abs(a[3] - a[4]) > 1) end();
+    
+    if(a[3] == a[4]) {
+        //4747474: a[3] = 3, a[4] = 3
+        int n4 = a[3] + 1, n7 = a[4];
+        if(a[1] >= n4 && a[2] >= n7) {
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+        else {
+            //we can't build 4747474 type.
+            //7474747: a[3] = 3, a[4] = 3
+            n4 = a[3], n7 = a[4] + 1;
+            if(a[1] < n4 || a[2] < n7) end();
+            int extra4 = a[1] - n4, extra7 = a[2] - n7;
+            printf("7"), n7--;
+            for(int i = extra4; i--; ) printf("4");
+            while(n4 || n7) {
+                if(n4) {
+                    printf("4"), n4--;
+                }
+                if(n7) {
+                    printf("7"), n7--;
+                    if(!n7) for(int i = extra7; i--; ) printf("7");
+                }
+            }
+        }
+        
+    }
+    else if(a[3] > a[4]) {
+        //474747: a[3] = 3, a[4] = 2
+        int n4 = a[3], n7 = a[3];
+        if(a[1] < n4 || a[2] < n7) end();
+        int extra4 = a[1] - n4, extra7 = a[2] - n7;
+        for(int i = extra4; i--; ) printf("4");
+        while(n4 || n7) {
+            if(n4) {
+                printf("4"), n4--;
+            }
+            if(n7) {
+                printf("7"), n7--;
+                if(!n7) for(int i = extra7; i--; ) printf("7");
+            }
+        }
+    }
+    else {
+        //747474: a[3] = 2, a[4] = 3
+        int n4 = a[4], n7 = a[4];
+        if(a[1] < n4 || a[2] < n7) end();
+        int extra4 = a[1] - n4, extra7 = a[2] - n7;
+        printf("7"), n7--;
+        for(int i = extra4; i--; ) printf("4");
+        while(n4 || n7) {
+            if(n4) {
+                printf("4"), n4--;
+            }
+            if(n7) {
+                printf("7"), n7--;
+                if(!n7) for(int i = extra7; i--; ) printf("7");
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+2 2 1 1
+
+
+
+
+4 7 3 1
+
+
+
+
+Let's examine a custom corner case where \(a_1, a_2, a_3, a_4\) are at their minimum value: \(a_1 = a_2 = a_3 = a_4 = 1\).
+
+1 1 1 1
+
+In this case, we have \(a[3] = a[4]\).
+Therefore, we will enter the //4747474 case according to our algorithm.
+Since \(a[3] = a[4] = 1\), our unique string will be 474. However, the number of 4s exceeds \(a_1\) (the maximum number of 4s we can use), so we cannot use the //4747474 case.
+The only option remaining is //7474747. Given that \(a[3] = a[4] = 1\), our unique string will be 747. Yet again, the number of 7s exceeds \(a_2\) (the maximum number of 7s we can use), so we cannot use the //7474747 case either.
+
+Ultimately, we cannot use any possible cases, so the correct answer should be "-1".
+
+
+
+
+1 1 1 1

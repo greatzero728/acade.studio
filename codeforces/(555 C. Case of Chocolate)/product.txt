@@ -1,0 +1,205 @@
+Case of Chocolate
+time limit per test: 3 seconds
+memory limit per test: 256 megabytes
+
+Andrewid the Android is a galaxy-known detective. Now he does not investigate any case and is eating chocolate out of boredom.
+
+A bar of chocolate can be presented as an \(n × n\) table, where each cell represents one piece of chocolate. The columns of the table are numbered from 1 to \(n\) from left to right and the rows are numbered from top to bottom. Let's call the anti-diagonal to be a diagonal that goes the lower left corner to the upper right corner of the table. First Andrewid eats all the pieces lying below the anti-diagonal. Then he performs the following \(q\) actions with the remaining triangular part: first, he chooses a piece on the anti-diagonal and either direction 'up' or 'left', and then he begins to eat all the pieces starting from the selected cell, moving in the selected direction until he reaches the already eaten piece or chocolate bar edge.
+
+After each action, he wants to know how many pieces he ate as a result of this action.
+
+<b>Input</b>
+The first line contains integers \(n (1 ≤ n ≤ 10^9)\) and \(q (1 ≤ q ≤ 2·10^5)\) — the size of the chocolate bar and the number of actions.
+
+Next \(q\) lines contain the descriptions of the actions: the \(i\)-th of them contains numbers \(x_i\) and \(y_i (1 ≤ x_i, y_i ≤ n, x_i + y_i = n + 1)\) — the numbers of the column and row of the chosen cell and the character that represents the direction (L — left, U — up).
+
+<b>Output</b>
+Print \(q\) lines, the \(i\)-th of them should contain the number of eaten pieces as a result of the \(i\)-th action.
+
+<b>Note</b>
+Pictures to the sample tests:
+
+<img 1>
+The pieces that were eaten in the same action are painted the same color. The pieces lying on the anti-diagonal contain the numbers of the action as a result of which these pieces were eaten.
+
+In the second sample test the Andrewid tries to start eating chocolate for the second time during his fifth action, starting from the cell at the intersection of the 10-th column and the 1-st row, but this cell is already empty, so he does not eat anything.
+
+
+
+
+A naive solution could involve iterating over all the chocolate pieces in the bar and performing each query independently, which will cause a time limit because handling each query by traversing all possible pieces of chocolate in the triangular part would be far too slow. Hence, a more optimized approach is required.
+
+We start by identifying that the chocolate bar has a special structure based on the anti-diagonal. Andrew first eats all pieces below this diagonal, so we only need to focus on the remaining triangular region above the anti-diagonal. Each query will target a specific cell on this diagonal and extend either up or left, depending on the given direction. The challenge is to ensure we efficiently track which pieces have already been eaten to avoid redundant calculations in future queries.
+
+To solve this, we can use a data structure that efficiently stores the state of the chocolate pieces—whether they have been eaten or not—and ensures quick updates and lookups. A map is an ideal choice here. The key idea is that we only store the coordinates of the cells on the anti-diagonal that have been queried, and from each of these, we track how far the eating process extends (either up or left).
+
+For each query, we check whether the current piece has already been eaten by looking it up in our data structure. If it has, we immediately output that no new pieces have been eaten. If it hasn't, we calculate how many pieces will be eaten starting from this piece in the specified direction. To do this efficiently, we make use of previously stored information about the cells already eaten, reducing the need for redundant calculations.
+
+When moving in the 'left' or 'up' directions, the eating stops either at the boundary of the chocolate bar or when it encounters a piece that has already been eaten in a prior action. The stopping point for each action can be quickly determined by looking at the nearest previously eaten piece in the respective direction, which is why storing and updating the state of the chocolate pieces dynamically is important.
+
+The correctness of this approach relies on the fact that each action affects only a portion of the chocolate bar, and each portion is disjoint from those affected by previous actions. Thus, by efficiently querying and updating the state of the bar, we avoid recomputing the results for pieces that have already been eaten.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+    int n,q;
+    cin>>n>>q;
+    while(q--){
+        int y,x;
+        char dir;
+        cin>>y>>x>>dir;
+    }
+}
+
+
+
+
+After that, we create a structure that helps us track which pieces of the chocolate bar have been eaten and in which direction. The goal of this is to avoid re-eating any pieces and to efficiently calculate how much chocolate Andrewid will consume in future actions. Initially, we set boundaries to indicate the edge conditions — before any real actions occur — so we can manage how far the eating can go in both directions. By defining the boundaries at the start and beyond the edge of the chocolate bar, we ensure that no action extends outside the grid, which keeps everything within valid limits. This setup is crucial because it allows us to monitor and update the chocolate bar's state dynamically.
+
+The map serves as a memory tool that holds pairs, one part describing the direction (either up or left), and the other part telling how much chocolate has been eaten for a given action.
+
+After that, we are checking whether the current starting point has already been eaten in a previous action. We do this by searching for the closest boundary of eaten chocolate. If the current point has already been consumed, there is no chocolate left for Andrewid to eat, and so we immediately conclude that no additional pieces are eaten in this action. This prevents Andrewid from re-eating any chocolate pieces, which ensures that no unnecessary calculations are made, and we can skip actions that don't consume any new pieces.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+int main(){
+    int n,q;
+    cin>>n>>q;
+    map<int,pair<char,ll>>mp;
+    mp[0]={'U',0};
+    mp[n+1]={'L',0};
+    while(q--){
+        int y,x;
+        char dir;
+        cin>>y>>x>>dir;
+        auto it=mp.lower_bound(x);
+        if(it->first==x){
+            cout<<0<<endl;
+            continue;
+        }
+    }
+}
+
+
+
+
+After that, we adjust our boundary based on the direction of the action. If Andrewid is supposed to move upward, we need to account for the fact that the closest already-eaten piece in the upward direction might affect the amount of chocolate he can consume. By shifting our boundary reference, we can accurately determine how far the eating process will go before hitting either the edge of the chocolate bar or an already-eaten piece. This adjustment is essential to ensure that the eating is stopped at the right point and that we don’t overestimate the number of chocolate pieces consumed.
+
+After that, we calculate the number of pieces that Andrewid eats as a result of this action. The first step is to measure the distance from the starting point to the closest boundary or already-eaten piece, which tells us how many pieces he will eat in the chosen direction. If this direction is consistent with a previous action (i.e., if Andrewid has previously eaten in the same direction from a nearby point), we add the pieces already eaten to our current count. This ensures that we are correctly accumulating the total number of pieces Andrewid consumes, considering both the current action and the pieces eaten in earlier actions.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+int main(){
+    int n,q;
+    cin>>n>>q;
+    map<int,pair<char,ll>>mp;
+    mp[0]={'U',0};
+    mp[n+1]={'L',0};
+    while(q--){
+        int y,x;
+        char dir;
+        cin>>y>>x>>dir;
+        auto it=mp.lower_bound(x);
+        if(it->first==x){
+            cout<<0<<endl;
+            continue;
+        }
+        if(dir=='U'){
+            it--;
+        }
+        ll ans=abs(x-it->first);
+        if(it->second.first==dir){
+            ans+=(it->second.second);
+        }
+    }
+}
+
+
+
+
+After that, we update our tracking system to reflect the fact that Andrewid has eaten pieces from the current starting point. We store the result of the action — how much chocolate was consumed and in which direction — so that future actions can take this into account. This dynamic updating allows us to efficiently manage the state of the chocolate bar and ensures that we don’t repeat any unnecessary calculations. After that, we output the number of pieces Andrewid has eaten for this particular action.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+int main(){
+    int n,q;
+    cin>>n>>q;
+    map<int,pair<char,ll>>mp;
+    mp[0]={'U',0};
+    mp[n+1]={'L',0};
+    while(q--){
+        int y,x;
+        char dir;
+        cin>>y>>x>>dir;
+        auto it=mp.lower_bound(x);
+        if(it->first==x){
+            cout<<0<<endl;
+            continue;
+        }
+        if(dir=='U'){
+            it--;
+        }
+        ll ans=abs(x-it->first);
+        if(it->second.first==dir){
+            ans+=(it->second.second);
+        }
+        mp[x]={dir,ans};
+        cout<<ans<<endl;
+    }
+}
+
+
+
+
+6 5
+3 4 U
+6 1 L
+2 5 L
+1 6 U
+4 3 U
+
+
+
+
+10 6
+2 9 U
+10 1 U
+1 10 U
+8 3 L
+10 1 L
+6 5 U
+
+
+
+
+Let's assume a custom test case with the minimum possible constraints to test the boundaries.
+1 1
+1 1 U
+
+Before Andrewid begins his action, we know that all pieces of chocolate below the anti-diagonal are already eaten, as part of the problem's rules. However, since the bar is only \(1×1\), the only piece of chocolate on the grid is directly on the anti-diagonal itself. Therefore, no pieces are eaten at the start.
+
+Now, Andrewid is given the action 1 1 U, which means he starts from the piece at position (1,1) and tries to eat upwards. But because the bar is only one piece big, there's no space above this piece; he's already at the top. So, Andrewid cannot move upward in any meaningful way.
+
+Despite this, the piece at position (1,1) hasn't been eaten yet. So, Andrewid consumes that single piece of chocolate as part of his action. Since it's the only piece in the entire bar, Andrewid eats exactly one piece of chocolate during this action. After this action, there is no more chocolate left, hence the output is 1.
+
+
+
+
+1 1
+1 1 U
