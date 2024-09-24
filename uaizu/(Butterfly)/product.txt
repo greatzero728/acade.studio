@@ -1,0 +1,285 @@
+Butterfly
+Time Limit : 8 sec
+Memory Limit : 131072 KB
+
+Claire is a man-eater. She's a real man-eater. She's going around with dozens of guys. She's dating all the time. And one day she found some conflicts in her date schedule. D'oh!
+
+So she needs to pick some dates and give the others up. The dates are set by hours like 13:00 to 15:00. She may have more than one date with a guy. For example, she can have dates with Adam from 10:00 to 12:00 and from 14:00 to 16:00 and with Bob from 12:00 to 13:00 and from 18:00 to 20:00. She can have these dates as long as there is no overlap of time. Time of traveling, time of make-up, trouble from love triangles, and the likes are not of her concern. Thus she can keep all the dates with Adam and Bob in the previous example. All dates are set between 6:00 and 22:00 on the same day.
+
+She wants to get the maximum amount of satisfaction in total. Each guy gives her some satisfaction if he has all scheduled dates. Let's say, for example, Adam's satisfaction is 100 and Bob's satisfaction is 200. Then, since she can make it with both guys, she can get 300 in total. Your task is to write a program to satisfy her demand. Then she could spend a few hours with you... if you really want.
+
+Input
+The input consists of a sequence of datasets. Each dataset has the following format:
+
+\(N\)
+\(Guy_1\)
+...
+\(Guy_N\)
+The first line of the input contains an integer \(N (1 ≤ N ≤ 100)\), the number of guys. Then there come the descriptions of guys. Each description is given in this format:
+
+\(M\ L\)
+\(S_1\ E_1\)
+...
+\(S_M\ E_M\)
+The first line contains two integers \(M_i (1 ≤ M_i ≤ 16)\) and \(L_i (1 ≤ L_i ≤ 100,000,000)\), the number of dates set for the guy and the satisfaction she would get from him respectively. Then \(M\) lines follow. The i-th line contains two integers \(S_i\) and \(E_i (6 ≤ S_i < E_i ≤ 22)\), the starting and ending time of the i-th date.
+
+The end of input is indicated by N = 0.
+
+Output
+For each dataset, output in a line the maximum amount of satisfaction she can get.
+
+
+
+
+We need to determine the maximum satisfaction Claire can achieve by selecting a subset of guys to date without any conflicts.
+We can iterate through all possible subsets of guys and check if the current subset has any conflicts. If there are no conflicts, we can maximize the answer by summing the satisfactions from the current subset.
+However, there are at maximum 100 guys, iterating through all possible subsets is not feasible.
+Thus, this naive algorithm will exceed the time limit.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAX_TIME_SLOT = 16;
+const int MAX_N = 100;
+
+int N;
+int M[MAX_N];
+int L[MAX_N];
+int S[MAX_N][MAX_TIME_SLOT];
+int E[MAX_N][MAX_TIME_SLOT];
+
+int main() {
+    while(~scanf("%d", &N) && N) {
+        for(int i = 0; i < N; i++) {
+            scanf("%d %d", &M[i], &L[i]);
+            for(int j = 0; j < M[i]; j++) {
+                scanf("%d %d", &S[i][j], &E[i][j]);
+            }
+        }
+    }
+}
+
+
+
+
+We need to determine the maximum satisfaction Claire can achieve by selecting a subset of guys to date without any conflicts.
+Let's think about how to efficiently check for conflicts between a subset of guys. We can iterate through the time slots of each guy and check for overlaps. If there is an overlap, it means that the current subset has a conflict.
+However, this approach can still be inefficient for large inputs. We need a more efficient way to check for conflicts.
+One possible approach is to use a bitmask to represent the availability of Claire's time slots. We can then use bitwise operations to check for conflicts between a subset of guys.
+Let's think about how to implement this approach. We can create a bitmask with 16 bits, each representing a time slot from 6:00 to 22:00. We can then iterate through the time slots of each guy and set the corresponding bits in the bitmask.
+To check for conflicts, we can use the bitwise AND operation to check if there are any overlapping bits between the bitmask of the current subset and the bitmask of each guy.
+
+Let's start by implementing the bitmask representation of Claire's time slots.
+
+```
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAX_TIME_SLOT = 16;
+const int MAX_N = 100;
+
+int N;
+int M[MAX_N];
+int L[MAX_N];
+int S[MAX_N][MAX_TIME_SLOT];
+int E[MAX_N][MAX_TIME_SLOT];
+int bitmasks[MAX_N];
+
+int main() {
+    while(~scanf("%d", &N) && N) {
+        for(int i = 0; i < N; i++) {
+            scanf("%d %d", &M[i], &L[i]);
+            for(int j = 0; j < M[i]; j++) {
+                scanf("%d %d", &S[i][j], &E[i][j]);
+                S[i][j] -= 6;
+                E[i][j] -= 6;
+            }
+        }
+        for(int i = 0; i < N; i++) {
+            bitmasks[i] = 0;
+            for(int j = 0; j < M[i]; j++) {
+                for(int k = S[i][j]; k < E[i][j]; k++) {
+                    bitmasks[i] |= (1 << k);
+                }
+            }
+        }
+    }
+}
+
+
+
+
+We can use a recursive approach to generate all possible subsets of guys and check for conflicts using the bitmask representation. However, this approach can still be inefficient for large inputs. A more efficient approach would be to use dynamic programming to build up the solution incrementally.
+Let's think about how to implement the dynamic programming approach. We can create a 2D array dp where dp[i][j] represents the maximum satisfaction that can be achieved by considering the first i guys and using the bitmask j to represent the availability of Claire's time slots.
+We can then iterate through the guys and update the dp array accordingly. For each guy, we can check if there are any conflicts with the current bitmask j. If there are no conflicts, we can update dp[i][j] by taking the maximum of the current value and the value obtained by adding the satisfaction of the current guy to the maximum satisfaction that can be achieved by considering the previous guys and using the updated bitmask.
+Let's start by implementing the dynamic programming approach.
+
+```
+
+
+
+
+Let's formulate the initial state, transition, final state, and any other important requirements to implement dynamic programming (DP) in the next thinking block.
+
+
+
+
+
+The initial state is dp[0][0] = 0, which represents the maximum satisfaction that can be achieved by considering no guys and using the empty bitmask.
+The transition is dp[i][j] = max(dp[i-1][j], dp[i-1][j | bitmask[i]] + L[i]), if there are no conflicts between the bitmask j and the bitmask of the current guy i.
+The final state is dp[N-1][j], where j is the bitmask that represents the availability of Claire's time slots after considering all guys.
+However, we need to consider all possible bitmasks j, not just the ones that correspond to the availability of Claire's time slots after considering all guys.
+Therefore, we need to iterate through all possible bitmasks j and update dp[i][j] accordingly.
+
+We also need to consider the order of the guys, as different orders can result in different maximum satisfactions.
+However, we can avoid considering all permutations of guys by iterating through the guys in a particular order, such as in ascending order of their satisfaction.
+
+We need to iterate through all possible bitmasks j, which can be done using a loop that runs from 0 to (1 << MAX_TIME_SLOT) - 1.
+
+Let's start by implementing the dynamic programming approach.
+
+```
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MAX_TIME_SLOT = 16;
+const int MAX_N = 100;
+const int INF = 1e9;
+
+int N;
+int M[MAX_N];
+int L[MAX_N];
+int S[MAX_N][MAX_TIME_SLOT];
+int E[MAX_N][MAX_TIME_SLOT];
+int bitmasks[MAX_N];
+
+int dp[MAX_N + 1][1 << MAX_TIME_SLOT];
+
+int main() {
+    while(~scanf("%d", &N) && N) {
+        for(int i = 0; i < N; i++) {
+            scanf("%d %d", &M[i], &L[i]);
+            for(int j = 0; j < M[i]; j++) {
+                scanf("%d %d", &S[i][j], &E[i][j]);
+                S[i][j] -= 6;
+                E[i][j] -= 6;
+            }
+        }
+        for(int i = 0; i < N; i++) {
+            bitmasks[i] = 0;
+            for(int j = 0; j < M[i]; j++) {
+                for(int k = S[i][j]; k < E[i][j]; k++) {
+                    bitmasks[i] |= (1 << k);
+                }
+            }
+        }
+        memset(dp, -1, sizeof dp);
+        dp[0][0] = 0;
+        for(int i = 0; i < N; i++) {
+            for(int j = 0; j < (1 << MAX_TIME_SLOT); j++) {
+                if(dp[i][j] != -1) {
+                    dp[i + 1][j] = max(dp[i + 1][j], dp[i][j]);
+                    if((j & bitmasks[i]) == 0) {
+                        dp[i + 1][j | bitmasks[i]] = max(dp[i + 1][j | bitmasks[i]], dp[i][j] + L[i]);
+                    }
+                }
+            }
+        }
+        int ans = 0;
+        for(int j = 0; j < (1 << MAX_TIME_SLOT); j++) {
+            ans = max(ans, dp[N][j]);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2
+2 100
+10 12
+14 16
+2 200
+12 13
+18 20
+4
+1 100
+6 22
+1 1000
+6 22
+1 10000
+6 22
+1 100000
+6 22
+16
+1 100000000
+6 7
+1 100000000
+7 8
+1 100000000
+8 9
+1 100000000
+9 10
+1 100000000
+10 11
+1 100000000
+11 12
+1 100000000
+12 13
+1 100000000
+13 14
+1 100000000
+14 15
+1 100000000
+15 16
+1 100000000
+16 17
+1 100000000
+17 18
+1 100000000
+18 19
+1 100000000
+19 20
+1 100000000
+20 21
+1 100000000
+21 22
+0
+
+
+
+
+Let's examine a custom corner case where \(N, M_i, L_i, S_i, E_i\) are at their minimum values: \(N = M_i = L_i = 1, S_i = 6, E_i = 7\).
+
+<code>
+1
+1 1
+6 7
+0
+</code>
+
+In this test case, there is only one guy, so Claire can select him without any conflict. She will choose the time slot [6:00, 7:00] and date the first guy (the only guy), resulting in \(L_1 = 1\) satisfaction.
+Therefore, the answer will be 1.
+
+
+
+
+1
+1 1
+6 7
+0

@@ -1,0 +1,95 @@
+<b>Problem Name: A Piece of Cake
+Time Limit : 1 sec
+Memory Limit : 131072 KB</b>
+In the city, there are two pastry shops. One shop was very popular because its cakes are pretty tasty. However, there was a man who is displeased at the shop. He was an owner of another shop. Although cause of his shop's unpopularity is incredibly awful taste of its cakes, he never improved it. He was just growing hate, ill, envy, and jealousy.
+
+Finally, he decided to vandalize the rival.
+
+His vandalize is to mess up sales record of cakes. The rival shop sells \(K\) kinds of cakes and sales quantity is recorded for each kind. He calculates sum of sales quantities for all pairs of cakes. Getting \(K(K-1)/2\) numbers, then he rearranges them randomly, and replace an original sales record with them.
+
+An owner of the rival shop is bothered. Could you write, at least, a program that finds total sales quantity of all cakes for the pitiful owner?
+
+<b>Input</b>
+Input file contains several data sets. A single data set has following format:
+\(K\)
+\(c_1\ c_2\ ...\ c_{K×(K-1)/2}\)
+\(K\) is an integer that denotes how many kinds of cakes are sold. \(c_i\) is an integer that denotes a number written on the card.
+
+The end of input is denoted by a case where \(K = 0\). You should output nothing for this case.
+
+<b>Output</b>
+For each data set, output the total sales quantity in one line.
+
+<b>Constraints</b>
+Judge data contains at most 100 data sets.
+\(2 ≤ K ≤ 100\)
+\(0 ≤ c_i ≤ 100\)
+
+
+
+
+This is a fairly easy implementation problem where the naive solution is the intended solution, To solve this problem, we first need to understand how the sum of sales quantities for all pairs of cakes is related to the total sales quantity of all cakes.
+Let's denote the sales quantities of the \(K\) kinds of cakes as \(a_1, a_2, ..., a_K\). The sum of sales quantities for all pairs of cakes is then \(\sum_{i=1}^{K-1} \sum_{j=i+1}^{K} (a_i + a_j)\).
+However, the vandalized sales record contains these sums in a rearranged and random order. We can observe that each cake appears in the sum \(K-1\) times.
+So, the sum of all these pairwise sums is \((K-1) \times \sum_{i=1}^{K} a_i\).
+We are given the rearranged pairwise sums \(c_1, c_2, ..., c_{K \times (K-1)/2}\). The sum of these \(c_i\) is equal to the sum of the original pairwise sums, which is \((K-1) \times \sum_{i=1}^{K} a_i\).
+Therefore, we can calculate the total sales quantity of all cakes as \(\frac{\sum_{i=1}^{K \times (K-1)/2} c_i}{K-1}\).
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <sstream>
+
+int main() {
+    std::string line;
+    int K;
+    while (std::getline(std::cin, line)) {
+        std::istringstream iss(line);
+        iss >> K;
+        if (K == 0) break;
+
+        std::vector<int> c(K * (K - 1) / 2);
+        std::getline(std::cin, line);
+        std::istringstream iss2(line);
+        for (int i = 0; i < c.size(); ++i) {
+            iss2 >> c[i];
+        }
+
+        int sum = 0;
+        for (int i = 0; i < c.size(); ++i) {
+            sum += c[i];
+        }
+        int total_sales_quantity = sum / (K - 1);
+        std::cout << total_sales_quantity << std::endl;
+    }
+    return 0;
+}
+
+
+
+
+2
+2
+3
+5 4 3
+0
+
+
+
+
+Sample cases passed, let us check the corner case of the input having the minimal constraints possible, to ensure that the code works on the minimal constraints without any errors.
+<code>
+2
+0
+0
+</code>
+Expected answer is 0, as we only have one pair and as the sum of them is zero, each one of them is zero.
+
+
+
+
+2
+0
+0

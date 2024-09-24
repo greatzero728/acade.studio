@@ -1,0 +1,349 @@
+<b>Hanbunko
+
+Time Limit : 1 sec
+Memory Limit : 262144 KB</b>
+
+Twin siblings, Yae and Joe, received a rice cracker as a snack from their mother. The rice cracker is shaped like a convex polygon and has slits on all the diagonals to make it easier to break.
+
+They want to split the rice cracker into two pieces, but since they are not strong enough, they can only do so by clamping their hands on both sides of one of the diagonals. They started to think about which diagonal line they should divide the rice cracker into two so that it would be closest to Hanbunko and the difference between their shares would be the smallest.
+
+Write a program that reads the information about the shape of the rice cracker represented by the convex polygon and finds the smallest difference between the two people's shares. The difference between two people's shares is expressed as the absolute value of the difference in their areas when the rice cracker is divided into two along one diagonal line.
+
+<b>Input</b>
+The input is given in the following form.
+\(
+N \\
+x_1 \ y_1 \\
+x_2 \ y_2 \\
+\vdots \\
+x_N \ y_N \\
+\)
+The first line gives the number of vertices of the convex polygon \( N \ (4 \leq N \leq 60,000) \). In the following N lines, the coordinates \( x_i, \ y_i \ (0 \leq x_i, \ y_i \leq 100,000,000) \) of the vertices of the convex polygon are given as integers. The vertices of the convex polygon are given in such an order that the adjacent vertices are visited in a counterclockwise direction.
+
+<b>Output</b>
+Output the minimum difference between the two shares as a real number in a line. The error must not exceed plus or minus 0.0001.
+
+
+
+
+The simplest solution is to simply enumerate all \(\frac{N \cdot (N - 3)}{2}\) diagonals and choose the best among them. But the asymptotics of such a solution will be \(O(N^3)\), because we need to calculate the area for each diagonal in \(O(N)\) time. This will be too slow.
+
+Instead, let's find the diagonal using two pointers (these pointers are the ends of the supposed diagonal). We'll draw a random arrow on the diagonal to obtain the left and right polygons resulting from the cut. We'll shift the second end (in the direction of the arrow) clockwise, until the area of the left part does not exceed half the area of the original polygon. If at some point this becomes untrue, then there's no point in moving the second end (the difference in areas will only grow), and we'll shift the first end. We'll do this until all vertices have been the first end.
+
+Why will this algorithm work? Well, let's assume there's a diagonal \(AB\) that divides the polygon into the most equal parts by area (the left part does not exceed the right part by area). Let's consider the first moment in time when the first pointer is at \(A\). If \(B\) is to the right of our diagonal, then we'll simply consider diagonal \(AB\) by shifting the second pointer. If \(B\) is to the left, then let's look at our diagonal \(XY\) on the previous step. Since this is the first moment when the first pointer is at \(A\), then in the previous moment, the first pointer was at \(X\). Then \(Y\) cannot be to the right of \(B\), because even for \(XB\) the left part would be larger by area (if this is not true, then \(AB\) would not be the "best" diagonal). We've obtained a contradiction, which means \(B\) cannot be to the left of our diagonal.
+
+We'll read the input data and write a point structure.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+int main() {
+    int n;
+    cin >> n;
+    vector<Point> c(n);
+    for (auto& ci: c) cin >> ci.x >> ci.y;
+    return 0;
+}
+
+
+
+
+Before searching for a diagonal, let's write a function that will calculate the area of a polygon. We'll do this using the Gauss area formula.
+This function will be needed to find the area of the entire polygon and the left part when shifting the diagonal.
+Also, for now, let's discard the division by 2 in this formula to work with integers. We can simply divide the answer by 2 at the end.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+long long cross(Point& a, Point& b) {
+    return 1ll * a.x * b.y - 1ll * a.y * b.x;
+}
+
+long long get_area(vector<Point>& v) {
+    long long res = 0;
+    for (int i = 0; i < v.size(); i++) {
+        res += cross(v[i], v[(i + 1) % v.size()]);
+    }
+    return res;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    vector<Point> c(n);
+    for (auto& ci: c) cin >> ci.x >> ci.y;
+    return 0;
+}
+
+
+
+
+Now let's implement the search for the necessary diagonal. We'll run a cycle to iterate over all vertices as the first pointer. Inside, we'll shift the right pointer as far as possible. To calculate the area of the new part, we can notice that we simply added a triangle \(XYZ\) to our part, where \(X, \ Z\) are the first and second pointers, respectively, and \(Y\) is the previous position of the second pointer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+long long cross(Point& a, Point& b) {
+    return 1ll * a.x * b.y - 1ll * a.y * b.x;
+}
+
+long long get_area(vector<Point>& v) {
+    long long res = 0;
+    for (int i = 0; i < v.size(); i++) {
+        res += cross(v[i], v[(i + 1) % v.size()]);
+    }
+    return res;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    vector<Point> c(n);
+    for (auto& ci: c) cin >> ci.x >> ci.y;
+    long long area = get_area(c), tmp_area = 0;
+    int j = 1;
+    for (int i = 0; i < n; i++) {
+        while (area > 2 * tmp_area) {
+            j = (j + 1) % n;
+            vector<Point> tmp = {c[i], c[(j - 1 + n) % n], c[j]};
+            tmp_area += get_area(tmp);
+        }
+    }
+    return 0;
+}
+
+
+
+
+When shifting the first pointer, we recalculate the area analogously. This time, we cut off the triangle \(XYZ\) from the left part, where \(X, Z\) are the first and second pointers, respectively, and \(Y\) is the new position of the first pointer.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+long long cross(Point& a, Point& b) {
+    return 1ll * a.x * b.y - 1ll * a.y * b.x;
+}
+
+long long get_area(vector<Point>& v) {
+    long long res = 0;
+    for (int i = 0; i < v.size(); i++) {
+        res += cross(v[i], v[(i + 1) % v.size()]);
+    }
+    return res;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    vector<Point> c(n);
+    for (auto& ci: c) cin >> ci.x >> ci.y;
+    long long area = get_area(c), tmp_area = 0;
+    int j = 1;
+    for (int i = 0; i < n; i++) {
+        while (area > 2 * tmp_area) {
+            j = (j + 1) % n;
+            vector<Point> tmp = {c[i], c[(j - 1 + n) % n], c[j]};
+            tmp_area += get_area(tmp);
+        }
+        vector<Point> tmp = {c[i], c[(i + 1) % n], c[j]};
+        tmp_area -= get_area(tmp);
+    }
+    return 0;
+}
+
+
+
+
+Well, now it's just left to calculate the answer for each considered diagonal and select the minimum. In the end, don't forget to divide it by 2.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+long long cross(Point& a, Point& b) {
+    return 1ll * a.x * b.y - 1ll * a.y * b.x;
+}
+
+long long get_area(vector<Point>& v) {
+    long long res = 0;
+    for (int i = 0; i < v.size(); i++) {
+        res += cross(v[i], v[(i + 1) % v.size()]);
+    }
+    return res;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    vector<Point> c(n);
+    for (auto& ci: c) cin >> ci.x >> ci.y;
+    long long area = get_area(c), tmp_area = 0;
+    int j = 1;
+    long long ans = 1e18;
+    for (int i = 0; i < n; i++) {
+        while (area > 2 * tmp_area) {
+            j = (j + 1) % n;
+            vector<Point> tmp = {c[i], c[(j - 1 + n) % n], c[j]};
+            tmp_area += get_area(tmp);
+            ans = min(ans, abs(area - tmp_area * 2));
+        }
+        vector<Point> tmp = {c[i], c[(i + 1) % n], c[j]};
+        tmp_area -= get_area(tmp);
+        ans = min(ans, abs(area - tmp_area * 2));
+    }
+    cout << ans / 2.0 << "\n";
+    return 0;
+}
+
+
+
+
+4
+0 0
+1 0
+1 1
+0 1
+
+
+
+
+4
+0 0
+1 0
+1 2
+0 1
+
+
+
+
+The answer differs from the sample only in that we don't output insignificant zeros.
+
+Additionally, let's test the solution on some simple test, so we can manually understand the answer. Any rectangle will do. The diagonals divide it in half, so the answer is 0.
+
+
+
+
+
+4
+52 52
+69 52
+69 228
+52 228
+
+
+
+
+Now the problem may be that floating-point numbers are output in exponential notation.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+long long cross(Point& a, Point& b) {
+    return 1ll * a.x * b.y - 1ll * a.y * b.x;
+}
+
+long long get_area(vector<Point>& v) {
+    long long res = 0;
+    for (int i = 0; i < v.size(); i++) {
+        res += cross(v[i], v[(i + 1) % v.size()]);
+    }
+    return res;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    vector<Point> c(n);
+    for (auto& ci: c) cin >> ci.x >> ci.y;
+    long long area = get_area(c), tmp_area = 0;
+    int j = 1;
+    long long ans = 1e18;
+    for (int i = 0; i < n; i++) {
+        while (area > 2 * tmp_area) {
+            j = (j + 1) % n;
+            vector<Point> tmp = {c[i], c[(j - 1 + n) % n], c[j]};
+            tmp_area += get_area(tmp);
+            ans = min(ans, abs(area - tmp_area * 2));
+        }
+        vector<Point> tmp = {c[i], c[(i + 1) % n], c[j]};
+        tmp_area -= get_area(tmp);
+        ans = min(ans, abs(area - tmp_area * 2));
+    }
+    cout << fixed << ans / 2.0 << "\n";
+    return 0;
+}
+
+
+
+
+4
+0 0
+1 0
+1 1
+0 1
+
+
+
+
+4
+0 0
+1 0
+1 2
+0 1
+
+
+
+
+4
+52 52
+69 52
+69 228
+52 228

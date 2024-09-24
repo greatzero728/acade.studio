@@ -1,0 +1,160 @@
+<b>Kagisys
+Time limit: 2 sec
+Memory limit: 131072 KB</b>
+There is an electronic lock system in a room that uses IC cards to open and close locks. The system operates as follows:
+
+When a user holds their IC card over the door, the system receives the ID of the IC card. If the ID is registered, the system unlocks if it is currently locked, and locks if it is currently unlocked, and outputs a message accordingly. If the ID is not registered, it outputs a message saying it is not registered, and neither unlocks nor locks.
+
+Now, assume the system has <i>N</i> registered IDs \((U_1,U_2,...,U_N)\) and is currently locked. Suppose an IC card is held over the door <i>M</i> times, and the IDs are <i>\(T_1,T_2,...,T_M\)</i> in order. What messages will the system output in this case?
+
+<b>Input</b>
+The input is given in the following format:
+
+<code>
+\(N\)
+\(U_1\)
+\(U_2\)
+......
+\(U_N\)
+\(M\)
+\(T_1\)
+\(T_2\)
+......
+\(T_M\)
+</code>
+
+<b>Constraints</b>
+\(\bullet\) <i>N</i> and <i>M</i> are integers.
+\(\bullet\) <i>1≤N≤256</i>
+\(\bullet\) <i>\(U_i\)</i> is a string of lowercase English letters consisting of 1 to 10 characters.
+\(\bullet\) <i>\(U_i\)</i> is unique \((i≠j\) implies \(U_i≠U_j\)).
+\(\bullet\) <i>1≤M≤256</i>
+\(\bullet\) <i>\(T_i\)</i> is a string of lowercase English letters consisting of 1 to 10 characters.
+
+<b>Output</b>
+For each of \(T_1,T_2,...,T_M\),
+\(\bullet\) if it is unlocked, output "Opened by " followed by the ID,
+\(\bullet\) if it is locked, output "Closed by " followed by the ID,
+\(\bullet\) if the ID is not registered, output "Unknown " followed by the ID, each on a new line.
+
+Initially, the system is locked.
+
+
+
+
+The problem describes an electronic lock system that uses IC cards to open and close locks. The system has a list of registered IDs, and it outputs messages based on whether the ID is registered, and whether the lock is currently locked or unlocked. We need to write a program that simulates this system.
+
+The program should first read the number of registered IDs, and then the IDs themselves. Then, it should read the number of times an IC card is held over the door, and the IDs of the IC cards in order.
+
+For each IC card ID, the program should check if it is registered. If it is, the program should check the current state of the lock (locked or unlocked). If the lock is locked, the program should output "Opened by " followed by the ID, and then change the state of the lock to unlocked. If the lock is unlocked, the program should output "Closed by " followed by the ID, and then change the state of the lock to locked. If the ID is not registered, the program should output "Unknown " followed by the ID.
+
+The program should use a data structure to store the registered IDs, such as a set or a list. It should also use a variable to keep track of the current state of the lock.
+
+Let's start by writing a boilerplate code for reading the input and iterating over the test cases.
+
+Next step: Write the code for reading the input and iterating over the test cases.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_set>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<string> registered_ids(n);
+    for (int i = 0; i < n; i++) {
+        cin >> registered_ids[i];
+    }
+    int m;
+    cin >> m;
+    vector<string> ic_card_ids(m);
+    for (int i = 0; i < m; i++) {
+        cin >> ic_card_ids[i];
+    }
+    unordered_set<string> registered_ids_set(registered_ids.begin(), registered_ids.end());
+    bool is_locked = true;
+    for (const string& id : ic_card_ids) {
+        if (registered_ids_set.find(id) != registered_ids_set.end()) {
+            if (is_locked) {
+                cout << "Opened by " << id << endl;
+                is_locked = false;
+            } else {
+                cout << "Closed by " << id << endl;
+                is_locked = true;
+            }
+        } else {
+            cout << "Unknown " << id << endl;
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+4
+abcd
+efgh
+ijkl
+mnop
+5
+abcd
+abcc
+efgh
+abcd
+mnop
+
+
+
+
+2
+a
+abcdefghij
+9
+c
+bcdefghijk
+abcdefghij
+b
+a
+b
+a
+bcdefghijk
+c
+
+
+
+
+2
+z
+x
+2
+z
+x
+
+
+
+
+Samples are correct, so let's make a custom test where our constraints are minimal as possible and when \(U_1≠T_1\). In this case our answer should be "Unknown \(T_1\)". Because it means that ID is not registred.
+
+Input:
+1
+a
+1
+b
+Output:
+Unknown b
+
+
+
+
+1
+a
+1
+b

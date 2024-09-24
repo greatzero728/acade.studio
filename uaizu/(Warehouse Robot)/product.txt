@@ -1,0 +1,238 @@
+<b>Warehouse Robot</b>
+Time Limit : 1 sec
+Memory Limit : 262144 KB
+
+Aizu Transport is developing a warehouse guard robot. In our warehouse, points in the warehouse are managed by coordinates \( (x, y) \) as shown in the floor plan below. In the warehouse, shelves with square bottoms are arranged in a regular pattern to facilitate the management of cargo. If we represent the positions of the southwest and northeast corners of the shelves by pairs of coordinates of points in the warehouse, the shelves are \( (0,0) \) and \( (1,1) \), \( (2,0) \) and \( (3,1) \), ..., \( (0,2) \) and \( (1,3) \), \( (2,2) \) and \( (3,3) \), ..., and so on, from one end of the warehouse to the other, they are placed in such a way that they occupy a square area represented by \( (2i, 2j) \) and \( (2i+1, 2j+1) \) using zero or more integers \( i \) and \( j \).
+
+<img 1>
+
+The warehouseman robot can move freely when there are no shelves. It cannot pass through the area where shelves are placed, but it can pass over the boundary of the shelf area because of its small size. For example, to go from point \( (0,0) \) to point \( (4,3) \) in the shortest distance, you can move as follows.
+
+<img 2>
+
+You, the warehouseman robot development department, are planning to add a function to the robot to calculate the shortest distance to the target point.
+
+Given the point where the warehouse guard robot is currently located and the target point, write a program that outputs the shortest distance that the robot will travel to reach the target point.
+
+<b>Input</b>
+The input is given in the following form.
+\( x_0 \) \( y_0 \) \( x_1 \) \( y_1 \)
+
+In one line, the coordinates \( x_0, y_0 \) \( (0 \leq x_0, y_0 \leq 300) \) of the point where the warehouse guard robot is currently located and the coordinates \( x_1, y_1 \) \( (0 \leq x_1, y_1 \leq 300) \) of the target point are all given as integers. The warehouse can be thought of as a rectangle of such a size that all points with the given coordinates exist. The coordinates of the point where the robot is currently located and the target point are different \( (x_0 \neq x_1 \text{ or } y_0 \neq y_1) \).
+
+<b>Output</b>
+Output the shortest distance for the robot to reach the target point as a real number on one line. The error must not exceed plus or minus \( 0.00001 \).
+
+
+
+
+A brute-force solution for this problem would involve simulating the robot's movement across the grid by considering all possible paths from the starting point \( (x_0, y_0) \) to the target point \( (x_1, y_1) \). Since the robot cannot pass through shelves, the algorithm would check whether each move stays on free space and calculate the corresponding distance for valid moves. The robot would try all possible movements in horizontal and vertical directions while avoiding obstacles and adjusting the distance calculation accordingly. This solution would then return the minimum distance found, but it is inefficient due to the large search space and repeated path checking.
+
+To solve this problem optimally, we will use dynamic programming.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+void solve() {
+    int x0, y0, x1, y1;
+    cin >> x0 >> y0 >> x1 >> y1;
+}
+
+int main() {
+    solve();
+    return 0;
+}
+
+
+
+
+To solve this problem optimally, we will ensure that we are working with coordinates where the target point is always ahead or at the same position as the starting point. This simplifies the problem by eliminating the need to handle cases where the robot might need to move in the reverse direction. By adjusting the coordinates such that the robot always moves rightwards and upwards, we make the rest of the computation easier.
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+void solve() {
+    int x0, y0, x1, y1;
+    cin >> x0 >> y0 >> x1 >> y1;
+    if (x0 > x1) {
+        x0 = 301 - x0;
+        x1 = 301 - x1;
+    }
+    if (y0 > y1) {
+        y0 = 301 - y0;
+        y1 = 301 - y1;
+    }
+}
+
+int main() {
+    solve();
+    return 0;
+}
+
+
+
+
+
+Now, to calculate the shortest path, we set up a grid (len) where each point represents the minimum distance to that point from the starting position. Initially, every point is set to a large number (representing infinity), except the starting point, which is set to 0. This ensures that any valid path found later will replace these large values with actual distances. We also set up loops that will allow the robot to compute the distance for each cell in the grid by considering nearby cells.
+
+To find the shortest distance in a grid with obstacles (shelves), we use dynamic programming . The grid is divided into cells where each cell represents a point in the warehouse. We need to determine the shortest path from the starting point to the target point while avoiding obstacles.
+
+The state of dp is the minimum distance to reach a specific cell in the grid. We define \( dp(y, x) \) as the minimum distance to reach cell \( (x, y) \) from the starting point \( (x_0, y_0) \).
+
+
+To compute the value of \( dp(y, x) \), we need to consider several possible moves:
+
+1. <b>Move vertically</b>: If moving straight up or down from cell \( (x, y) \), we check the minimum distance from cells directly above or below in the same column. This is represented by:
+\( \text{min\_len} = \min(\text{min\_len}, dp[y - j][x] + j) \)
+where \( j \) varies from 0 to the maximum allowable range.
+
+2. <b>Move horizontally:</b> If moving straight left or right from cell \( (x, y) \), we check the minimum distance from cells directly left or right in the same row. This is represented by:
+\( \text{min\_len} = \min(\text{min\_len}, dp[y][x - j] + j) \)
+where \( j \) varies similarly.
+
+3. <b>Diagonal moves:</b> If moving diagonally across a boundary of shelves, the distance calculation includes the Euclidean distance between the cells. This is represented by:
+\( \text{min\_len} = \min(\text{min\_len}, dp[y - j][x - 1] + \sqrt{j^2 + 1}) \)
+and
+\( \text{min\_len} = \min(\text{min\_len}, dp[y - 1][x - j] + \sqrt{1^2 + j^2}) \)
+where diagonal moves are calculated using the Pythagorean theorem.
+
+The transition process updates the minimum distance required to reach each cell based on the distances from adjacent cells and the Euclidean distances when crossing boundaries.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+void solve() {
+    int x0, y0, x1, y1;
+    cin >> x0 >> y0 >> x1 >> y1;
+    if (x0 > x1) {
+        x0 = 301 - x0;
+        x1 = 301 - x1;
+    }
+    if (y0 > y1) {
+        y0 = 301 - y0;
+        y1 = 301 - y1;
+    }
+    vector<vector<double>> dp(302, vector<double>(302, 10000));
+    dp[y0][x0] = 0;
+    for (int y = y0; y <= y1; y++) {
+        for (int x = x0; x <= x1; x++) {
+            double min_len = 10000;
+            for (int j = 0; j < 301; j++) {
+                if (y - j >= 0)
+                    min_len = min(min_len, dp[y - j][x] + j);
+            }
+            if (x % 2 == 0 && x > 0) {
+                for (int j = 0; j < 301; j++) {
+                    if (y - j >= 0)
+                        min_len = min(min_len, dp[y - j][x - 1] + sqrt(j * j + 1));
+                }
+            }
+            for (int j = 0; j < 301; j++) {
+                if (x - j >= 0)
+                    min_len = min(min_len, dp[y][x - j] + j);
+            }
+            if (y % 2 == 0 && y > 0) {
+                for (int j = 0; j < 301; j++) {
+                    if (x - j >= 0)
+                        min_len = min(min_len, dp[y - 1][x - j] + sqrt(j * j + 1));
+                }
+            }
+            
+            dp[y][x] = min_len;
+        }
+    }
+}
+
+int main() {
+    solve();
+    return 0;
+}
+
+
+
+
+
+Finally, the computed shortest distance to the target point is printed with a precision of six decimal places.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+void solve() {
+    int x0, y0, x1, y1;
+    cin >> x0 >> y0 >> x1 >> y1;
+    if (x0 > x1) {
+        x0 = 301 - x0;
+        x1 = 301 - x1;
+    }
+    if (y0 > y1) {
+        y0 = 301 - y0;
+        y1 = 301 - y1;
+    }
+    vector<vector<double>> dp(302, vector<double>(302, 10000));
+    dp[y0][x0] = 0;
+    for (int y = y0; y <= y1; y++) {
+        for (int x = x0; x <= x1; x++) {
+            double min_len = 10000;
+            for (int j = 0; j < 301; j++) {
+                if (y - j >= 0)
+                    min_len = min(min_len, dp[y - j][x] + j);
+            }
+            if (x % 2 == 0 && x > 0) {
+                for (int j = 0; j < 301; j++) {
+                    if (y - j >= 0)
+                        min_len = min(min_len, dp[y - j][x - 1] + sqrt(j * j + 1));
+                }
+            }
+            for (int j = 0; j < 301; j++) {
+                if (x - j >= 0)
+                    min_len = min(min_len, dp[y][x - j] + j);
+            }
+            if (y % 2 == 0 && y > 0) {
+                for (int j = 0; j < 301; j++) {
+                    if (x - j >= 0)
+                        min_len = min(min_len, dp[y - 1][x - j] + sqrt(j * j + 1));
+                }
+            }
+            
+            dp[y][x] = min_len;
+        }
+    }
+    cout<<setprecision(6);
+    cout <<fixed<<dp[y1][x1] << endl;
+}
+
+int main() {
+    solve();
+    return 0;
+}
+
+
+
+
+All sample test cases are correct. Let's assume a custom test case to check the correctness and corner case of the solution.
+<code>
+0 0 1 1
+</code>
+For the input \( (0, 0, 1, 1) \), the task is to find the shortest distance from point \( (0, 0) \) to point \( (1, 1) \) in a grid where shelves occupy specific areas. Given the shelf configuration, both \( (0, 0) \) and \( (1, 1) \) are at the boundaries of a shelf. Hence, moving directly from \( (0, 0) \) to \( (1, 1) \) involves crossing the boundary of the shelf, which is a diagonal move. The shortest path here is to move diagonally across this boundary, which gives a distance of \(\sqrt{1^2 + 1^2} = \sqrt{2} \approx 1.414\). Since the movement across boundaries is considered, the actual shortest distance is the sum of moving horizontally and vertically, which is \(1 + 1 = 2\). Thus, the minimal distance in this case is \(2\).
+Thus, the output should be:
+<code>
+2.000000
+</code>
+
+
+
+
+0 0 1 1

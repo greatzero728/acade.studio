@@ -1,0 +1,1930 @@
+<b>General of Taiko</b>
+
+<b>Time Limit: </b>8 sec
+<b>Memory Limit: </b>131072 KB
+
+There is a game at a certain game center where you play the drum in accordance with the scrolling notes on the screen. The screen consists of cells of length \(L\), and each cell has either nothing or a note that indicates the action the player should take. There are two types of notes: "Ton" which represents hitting the drum's face, and "Kotsu" which represents hitting the drum's rim. By hitting the drum in accordance with these notes, you can earn points. If the total points exceed \(10000\), you clear the song.
+
+In this case, find the probability that the player can clear the song. However, assume that the player always takes the optimal action.
+
+The player's accuracy in hitting the drum in accordance with the notes has 11 levels, and each level corresponds to a probability of 0%, 10%, 20%, ..., 90%, 100% of hitting the drum correctly.
+
+Both of the above actions can be performed with either the right or left arm. As the player's information, 16 values are given that represent the <b>rate of stability of accuracy</b> for each arm, as shown below.
+
+\(
+lt\_lt\ \ lt\_rt\ \ lt\_lk\ \ lt\_rk\\
+rt\_lt\ \ rt\_rt\ \ rt\_lk\ \ rt\_rk\\
+lk\_lt\ \ lk\_rt\ \ lk\_lk\ \ lk\_rk\\
+rk\_lt\ \ rk\_rt\ \ rk\_lk\ \ rk\_rk
+\)
+
+Where \(lt\) represents the action of Ton with the left arm, \(rt\) represents the action of Ton with the right arm, \(lk\) represents the action of Kotsu with the left arm, and \(rk\) represents the action of Kotsu with the right arm. For example, \(lt\_rk\) indicates the degree of stability of the accuracy when performing Kotsu with the right arm after performing Ton with the left arm, and this value affects the accuracy when performing Kotsu with the right arm after performing Ton with the left arm by the formula below.
+
+Player's accuracy = max(0, (rate of stability of accuracy - 10) * 10 + previous accuracy) (%)
+
+The song information is as follows. It is indicated by \(L\), which represents the length of the song, and \(L\) numbers, \(s_i\) \((0 ≤i< L)\), which represent the musical score. The beginning of the music score is \(s_0\). There are three values for \(s_i\):
+
+0 .. no note
+1 .. Ton
+2 .. Kotsu
+
+The first time the player hits the drum, the accuracy is 100%. Players can also ignore the music score. If there are no notes or if the notes are ignored, the player's accuracy will be 100%.
+
+The scores for playing the drum in time with each note are as follows.
+
+\(score = A + B \cdot \min(\text{number of combos}, 10)\)
+
+The number of combos in this problem is the number of times you can hit the drum in time with the notes in a row. If the player hits the notes in time, points will be scored based on the above formula, and the number of combos will then increase by 1. If the drum cannot be played in time with the notes, the combo will be interrupted and the number of combos will be 0.
+
+<b>Input</b>
+
+The input consists of multiple datasets. Each dataset is as follows.
+
+\(
+lt\_lt\ \ lt\_rt\ \ lt\_lk\ \ lt\_rk\\
+rt\_lt\ \ rt\_rt\ \ rt\_lk\ \ rt\_rk\\
+lk\_lt\ \ lk\_rt\ \ lk\_lk\ \ lk\_rk\\
+rk\_lt\ \ rk\_rt\ \ rk\_lk\ \ rk\_rk\\
+L\\
+s_0\ \ s_1\ \ s_2\ \ \ldots \ \ s_{L-1}\\
+A\ \ B
+\)
+
+The end of the input consists of four negative integers.
+
+<b>Constraints</b>
+
+The input satisfies the following conditions:
+
+- \(0<L≤100\)
+- Each rate of stability of accuracy is an integer between 0 and 10.
+- \(0 <A, B≤ 10000\)
+- Both \(A\) and \(B\) are multiples of 100
+- No more than 100 datasets
+
+<b>Output</b>
+
+For each input, output the probability of clearing in one line. However, the output may contain an error of 0.001 or less.
+
+
+
+
+The obvious approach would be to generate all strategies to play the song and pick the one with greater probability of winning. A strategy is given by the choices by the player at each of the \(L\) notes in the song. Since there are three choices per note (playing with the left hand, playing with the right hand, not playing at all), this could mean trying at least \(3^L\) strategies, which is obviously too slow.
+
+The solution to this problem is a rather standard DP over a graph of states, each of which is defined over many dimensions. Each of these states represent a snapshot of the current game state for the player.
+
+The states are \((i, a, c, s)\) where \(i\) is the index of the current note in the song the player is about to hit, \(a\) is the current accuracy rate, \(c\) is the current combo counter, and \(s\) is the score goal.
+
+To avoid confusion, we will establish here that any mention of the variable name \(s\) refers to a score in a state. The variable name of the chart of notes will be changed to \(chart\). That is, the first note of the chart is \(chart_0\).
+
+To simplify our states, we note that \(A\) and \(B\) are guaranteed to be multiples of 100, and the number of combos is an integer. Thus, the value of \(score\) in the formula in the statement is always a multiple of 100, and so, we can choose \(s\) to be only numbers from 0 to 100 (we scale everything to 1/100). Also, the current accuracy rate is always one of 11 levels, so we use values from 0 to 10 for the value \(a\). Lastly, we note the value \(c\) ranges from 0 to 10 since combos over 10 are counted to be equal to 10.
+
+For example, a state \((1, 9, 3, 70)\) means the player has played the first note, and is about to play the second node (because of 0-indexing), the current accuracy rate is 9, three notes in a row have been played correctly, and there are only 70 points to go to win the level.
+
+For each of these states, we will calculate the probability of reaching a winning state using an optimal strategy. The winning states are the ones where \(s = 0\), losing states happens when \(i \leq n\) and \(s > 0\) since there are no more notes to play and the score goal was not reached. The solution will then be to compute the winning probability of the state \((0, 10, 0, 100)\).
+
+
+
+
+
+At this point we note that these four values are not enough, since the changes in the accuracy rate depend on the last hand that was used. We improve the states by adding one dimension, our new states are of the form \((h, i, a, c, s)\) , where \(h\in\{L, R, S\}\), which represent if the last hand to be used was the left, right or no note was played.
+
+For every state \((h, i, a, c, s)\), we compute the probability of winning from this state by choosing one of the three moves: playing with the left hand, playing with the right hand, not playing at all. We will explain the exact formula for this later.
+
+Since there are at most \(3\times L\times 11\times11\times 101\) states, the algorithm needs to compute at most \(3,7\times 10^6\) probabilities of winning, each of which is computed by checking at most a constant number of states, which easily fit the time limit, even for the \(T\leq 100\) test cases.
+
+
+
+
+We start by reading this input. It is a bit nonstandard, we need to read four numbers and then only keep reading the rest of the input if none of them are negative.
+
+We also divide the values of \(A\) and \(B\) by 100 as per our strategy.
+
+The values for the rate of stability of accuracy will be stored in the array "vals" in the following order:
+
+vals[0]: lt_lt
+vals[1]: lt_rt
+vals[2]: lt_lk
+vals[3]: lt_rk
+vals[4]: rt_lt
+vals[5]: rt_rt
+vals[6]: rt_lk
+vals[7]: rt_rk
+vals[8]: lk_lt
+vals[9]: lk_rt
+vals[10]: lk_lk
+vals[11]: lk_rk
+vals[12]: rk_lt
+vals[13]: rk_rt
+vals[14]: rk_lk
+vals[15]: rk_rk
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+    }
+}
+
+
+
+
+We prepare the states of our DP. We initialize them as -1 as a standard memoization technique.
+
+We use three matrices, "dpl", "dpr" and "dps" which will contain the probability of winning of our states \((L, i, a, c, s)\), \((R, i, a, c, s)\) and \((S, i, a, c, s)\) respectively.
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+We start off the functions that we will use in our DP.
+
+Each of these starts with the simplifications we explained: whenever the score reaches 0 (or lower) the state is winning, so the probability of winning is 1. Otherwise, and we have reached the last note in the level, then the state is losing, so the probability of winning is 0. We also cut down the value of \(c\) if it is higher than 10 because we only need to consider combos up to 10.
+
+We also write the memoization guard which immediately returns the winning probability of a state if we has already computed it.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+Recall that the note that we are about to play is the \(i\)-th in the level. If the \(i\)-th value in the input array is 0, then that means no note appears in the chart at position \(i\). The optimal strategy is obviously to not play a note at all. Otherwise, we would either play with the left hand or the right hand, and this would be the same as failing a note.
+
+Therefore the probability of winning of the state \((h, i, a, c, s)\) is equal to \(f(h, i, a, c, s) = f(S, i+1,10, c , s)\). This is because the accuracy becomes 100% (or rather, reaches accuracy rate 10) after not playing a note, and the combo number and current score (in the case of our solution, the points left to win) stay the same.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+For the three cases, we calculate a value d of the points that the player will win if he hits the current note correctly. As said in the statement, this is given by the formula
+
+\(d = A+B\cdot c\)
+
+where \(c\) is the combo number.
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+Now, for the \(L\) and \(R\) methods, we generate a bitmask to look up the correct index in "val" depending on the current and previous notes.
+
+We still don't know if we choose the right or left hand to play our next note, but the mask will be ready for both cases (for the right hand, we just add 1).
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+Now we compute the probabilities of winning if we hit the current note with the left hand.
+
+First, we compute the accuracy rate of hitting the next note, this is given by the formula from the statement:
+
+Player's accuracy = max(0, (rate of stability of accuracy - 10) * 10 + previous accuracy) (%)
+
+However, since we are dealing with the accuracy rates themselves, this is translated into code as
+
+Player's accuracy rate = max(0, rate of stability of accuracy - 10 + previous accuracy)
+
+This is stored in the value "aL".
+
+Using this, we can compute the winning probability assuming the current stroke hits or misses, these probabilities are stored in the variables "win_L_hits" and "win_L_miss".
+
+The value "win_L_hits" is equal to the winning probability of the state \((L, i+1, aL, c+1, s - d)\) since the combo number goes up by one (one more successful hit), and the score goal goes down by the current score (stored in "d").
+
+The value "win_L_miss" is equal to the winning probability of the state \((L, i+1, aL, 0, s)\) since the combo is broken (becomes 0), and the current score stays the same.
+
+The probability of winning after choosing to hitting the note with the right hand is given by the first variable multiplied by the chance of hitting the note correctly (aL / 10), and the second variable multiplies by the chance of missing the note (1 - aL/10).
+
+The winning probability of the current state (assuming the current stroke is with the LEFT hand) can be summarized as:
+
+\(f_L(h, i, a, c, s) = p_{hit} \cdot f(L, i+1, a', c+1, s - d) + p_{miss} \cdot f(L, i+1, a', 0, s)\)
+
+where \(a'\) is the next accuracy, \(d\) is the score obtained on a hit. Also, \(p_{hit} = \frac{a'}{10}\) and \(p_{miss} = 1 - \frac{a'}{10}\) using the conversions from rate to probability explained in the statement.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+Now we compute the probability of winning if the current stroke is given with the right hand using an analogous argument.
+
+But before showing the formula, recall that the value "mask" worked before because it assumed the current stroke was with the left hand. Now, to use the indices in "val' for a current stroke with the right hand, we have to add 1 to the value "mask". Now we can access the values "lt_rt", "lt_rk", "lk_rt" and "lk_rk".
+
+The winning probability of the current state (assuming the current stroke is with the RIGHT hand) can be summarized as:
+
+\(f_R(h, i, a, c, s) = p_{hit} \cdot f(R, i+1, a', c+1, s - d) + p_{miss} \cdot f(R, i+1, a', 0, s)\)
+
+where \(a'\) is the next accuracy, \(d\) is the score obtained on a hit. Again, \(p_{hit} = \frac{a'}{10}\) and \(p_{miss} = 1 - \frac{a'}{10}\) using the conversions from rate to probability explained in the statement.
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+The last case for the right-hand and left-hand cases are when we choose to skip the current stroke.
+
+In this case, the formula for the probability (assuming a skip) is given by
+
+\(f_S(h,i,a,c,s) = f(S,i+1,10,c,s)\)
+
+Recalling and argument shown above, the accuracy becomes 100% (or rather, reaches accuracy rate 10) after not playing a note, and the combo number and current score (in the case of our solution, the points left to win) stay the same.
+
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+The last case for the right-hand and left-hand cases are when we choose to skip the current stroke.
+
+In this case, the formula for the probability (assuming a skip) is given by
+
+\(f_S(h,i,a,c,s) = f(S,i+1,10,c,s)\)
+
+Recalling and argument shown above, the accuracy becomes 100% (or rather, reaches accuracy rate 10) after not playing a note, and the combo number and current score (in the case of our solution, the points left to win) stay the same.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+Now we compute the compute the probability of winning for the current state as the maximum of the probabilities for using the left hand, using the right hand, and skipping a stroke.
+
+In total, the actual formula for the probability of winning becomes
+
+\(f(h,i,a,c,s) = \max(f_L(h,i,a,c,s), f_R(h,i,a,c,s), f_S(h,i,a,c,s))\).
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpl[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpr[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+The third case is when the previous note was skipped, and the current note in the chart is not a 0 (it is either Ton or Katsu).
+
+The definitions in this case are:
+
+\(f_L(S,i,a,c,s) = f(L, i+1, c+1, s-d)\)
+
+\(f_R(S,i,a,c,s) = f(R, i+1, c+1, s-d)\)
+
+using the value \(d\) of the score of hitting the current note, and.
+
+\(f_S(S,i,a,c,s) = f(S, i+1, 0, s)\).
+
+In this case, we are choosing to skip a note that actually appears in the chart, so the combo breaks (the new value for it is 0).
+
+Again, the value we compute is
+
+\(f(h,i,a,c,s) = \max(f_L(h,i,a,c,s), f_R(h,i,a,c,s), f_S(h,i,a,c,s))\)
+
+which correspond to using the best strategy among those three.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpl[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpr[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        double win_L = prob_l(i+1, 10, c + 1, s - d);
+        double win_R = prob_r(i+1, 10, c + 1, s - d);
+        double win_S = prob_skip(i+1, 10, 0, s);
+
+        return dps[i][a][c][s] = max(max(win_L, win_R), win_S);
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+Having defined our DP, all that is left is calling the function from the initial state.
+
+In this case, the initial state is somewhat special, and we cannot simply call the function \(f(h,0,10,0,100)\), which should tell us the probability of winning on the initial state in the game: The starting accuracy is always 100% (or, the rate is 10), the combo starts empty, and the score goal is 100.
+
+This would result in runtime error if we simply called it on one of our methods.
+
+What we need to do is make a choice of the first hand we use. We assume that we start on each, calculate the probability of winning for the three choices, and keep the best one.
+
+The values we compute are then:
+
+\(f(L,1,10,1,s- A)\), \(f(R,1,10,1,s- A)\) and \(f(S,1,10,0,s)\),
+
+which correspond to the probabilities of winning if the first note is hit with the left or right hand (and since the first note has 100% accuracy, and the current combo is 0, the current score becomes \(A + B\cdot 0 = A\), and the next combo becomes 1) or if it is skipped (the score is unchanged and the combo stays as 0).
+
+The answer is then the best of these values.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpl[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpr[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        double win_L = prob_l(i+1, 10, c + 1, s - d);
+        double win_R = prob_r(i+1, 10, c + 1, s - d);
+        double win_S = prob_skip(i+1, 10, 0, s);
+
+        return dps[i][a][c][s] = max(max(win_L, win_R), win_S);
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+        double win_L = prob_l(1, 10, 1, 100 - A);
+        double win_R = prob_r(1, 10, 1, 100 - A);
+        double win_S = prob_skip(1, 10, 0, 100);
+        
+        cout << max(max(win_L,win_R),win_S) << endl;
+        
+    }
+}
+
+
+
+
+We get an error because we hadn't declared some functions before using them.
+
+Let us declare them at the beginning of the code.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s);
+double prob_r(int i, int a, int c, int s);
+double prob_skip(int i, int a, int c, int s);
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpl[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpr[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        double win_L = prob_l(i+1, 10, c + 1, s - d);
+        double win_R = prob_r(i+1, 10, c + 1, s - d);
+        double win_S = prob_skip(i+1, 10, 0, s);
+
+        return dps[i][a][c][s] = max(max(win_L, win_R), win_S);
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+        double win_L = prob_l(1, 10, 1, 100 - A);
+        double win_R = prob_r(1, 10, 1, 100 - A);
+        double win_S = prob_skip(1, 10, 0, 100);
+        
+        cout << max(max(win_L,win_R),win_S) << endl;
+        
+    }
+}
+
+
+
+
+We see that we obtain different <i>text</i> as output, but the values are exactly the same, so these values are correct.
+
+
+
+
+
+Custom test:
+
+<code>0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+1
+0
+10000 10000
+-1 -1 -1 -1</code>
+
+<b>Goal:</b> Check for correctness (border case with no notes).
+
+Answer should be 0.0.
+
+<b>Reason:</b> The player only gets points when the notes are hit correctly, so he cannot get any points since there are no notes to hit in the chart. It is impossible to win the level.
+
+
+
+
+
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+1
+0
+10000 10000
+-1 -1 -1 -1
+
+
+
+We have an bug in our code since we expected a 0 and got a 1.
+
+After inspection, we note that our error comes from lines 124-126, since these calls assume we can always hit a note with the left or right hand.
+
+We can fix this by looking at the first note in the chart, and if the note is a 0 (the "no note" value), then we are forced to skip the first note.
+
+
+
+
+#include <iostream>
+using namespace std;
+
+int vals[16];
+int n, A, B;
+int chart[100];
+
+double dpl[101][11][11][101];
+double dpr[101][11][11][101];
+double dps[101][11][11][101];
+
+double prob_l(int i, int a, int c, int s);
+double prob_r(int i, int a, int c, int s);
+double prob_skip(int i, int a, int c, int s);
+
+double prob_l(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpl[i][a][c][s] >= 0) return dpl[i][a][c][s];
+    if(chart[i] == 0){
+        return dpl[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 0; //lt_lt or lt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 2; //lt_lk or lt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 8; //lk_lt or lk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 10; //lk_lk or lk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpl[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_r(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dpr[i][a][c][s] >= 0) return dpr[i][a][c][s];
+    if(chart[i] == 0){
+        return dpr[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        int mask;
+        if(chart[i-1] == 1 and chart[i] == 1) mask = 4; //rt_lt or rt_rt
+        if(chart[i-1] == 1 and chart[i] == 2) mask = 6; //rt_lk or rt_rk
+        if(chart[i-1] == 2 and chart[i] == 1) mask = 12; //rk_lt or rk_rt
+        if(chart[i-1] == 2 and chart[i] == 2) mask = 14; //rk_lk or rk_rk
+        //try l
+        int aL = max(0, vals[mask] - 10 + a);
+        double win_L_hits = prob_l(i+1, aL, c + 1, s - d);
+        double win_L_miss = prob_l(i+1, aL, 0, s);
+        double win_L = win_L_hits * aL / 10 + win_L_miss * (10 - aL) / 10;
+        //try r
+        int aR = max(0, vals[mask + 1] - 10 + a);
+        double win_R_hits = prob_r(i+1, aR, c + 1, s - d);
+        double win_R_miss = prob_r(i+1, aR, 0, s);
+        double win_R = win_R_hits * aR / 10 + win_R_miss * (10 - aR) / 10;
+        //try skip
+        double win_S = prob_skip(i+1, 10, 0, s);
+        
+        return dpr[i][a][c][s] = max(max(win_R, win_L), win_S);
+    }
+}
+
+double prob_skip(int i, int a, int c, int s){
+    if(s <= 0) return 1.0;
+    else if(i == n) return 0.0;
+    if(c > 10) c = 10;
+    if(dps[i][a][c][s] >= 0) return dps[i][a][c][s];
+    if(chart[i] == 0){
+        return dps[i][a][c][s] = prob_skip(i+1, 10, c, s);
+    }
+    else{
+        int d = A + B * c;
+        double win_L = prob_l(i+1, 10, c + 1, s - d);
+        double win_R = prob_r(i+1, 10, c + 1, s - d);
+        double win_S = prob_skip(i+1, 10, 0, s);
+
+        return dps[i][a][c][s] = max(max(win_L, win_R), win_S);
+    }   
+}
+
+
+int main(){
+    while(true){
+        for(int i = 0; i < 16; i++){
+            cin >> vals[i];
+            if(i == 3 and vals[0] < 0){
+                return 0;
+            }
+        }
+        cin >> n;
+        for(int i = 0; i < n; i++){
+            cin >> chart[i];
+        }
+        cin >> A >> B;
+        A /= 100, B /= 100;
+        for(int i = 0; i <= n; i++){
+            for(int j = 0; j <= 10; j++){
+                for(int k = 0; k <= 10; k++){
+                    for(int s = 0; s <= 100; s++){
+                        dpl[i][j][k][s] = 
+                            dpr[i][j][k][s] = 
+                            dps[i][j][k][s] = -1;
+                    }
+                }
+            }
+        }
+        if(chart[0] == 0){
+            cout << prob_skip(1, 10, 0, 100);
+        }
+        else{
+            double win_L = prob_l(1, 10, 1, 100 - A);
+            double win_R = prob_r(1, 10, 1, 100 - A);
+            double win_S = prob_skip(1, 10, 0, 100);
+
+            cout << max(max(win_L,win_R),win_S) << endl;
+        }
+        
+    }
+}
+
+
+
+
+Let us try again with the same custom case.
+
+
+
+
+
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+1
+0
+10000 10000
+-1 -1 -1 -1
+
+
+
+
+Now let us try again with the sample case and submit.

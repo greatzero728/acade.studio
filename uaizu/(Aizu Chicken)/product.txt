@@ -1,0 +1,98 @@
+Aizu Chicken
+Time Limit : 1 sec, Memory Limit : 131072 KB
+
+In April 2008, Aizuwakamatsu City attempted to make a 20m 85cm long yakitori and succeeded. The Aizu chicken meat used at that time was a specialty of Aizu. Aizu chicken is very delicious, but it's difficult to raise and the production is limited, making it expensive, which is a drawback.
+
+Today, a distant relative is coming to visit Iroh's house. His mother decided to make chicken soup to entertain the relative. There are two types of chicken meat sold at the nearby butcher shop: Aizu chicken and regular chicken meat. His mother gave Iroh the following instructions and asked him to buy the chicken meat:
+
+* Buy more than the required amount of chicken meat to avoid running out.
+* Buy as much Aizu chicken as possible within the budget (Aizu chicken must be purchased).
+* Buy as much regular chicken meat as possible with the remaining budget (do not buy if the budget is not sufficient).
+
+When Iroh went to the butcher shop, he found that the Aizu chicken was in short supply and limited to a certain amount per person. If Iroh follows all the instructions given by his mother, how much Aizu chicken and regular chicken meat will he buy in grams?
+
+Create a program that takes the lower limit \(q_1\) of the chicken meat to be purchased, budget \(b\), price \(c_1\) of 100g Aizu chicken, price \(c_2\) of \(100\)g regular chicken meat, and upper limit \(q_2\) of Aizu chicken that can be purchased per person, and outputs the amount of Aizu chicken and regular chicken meat Iroh will buy in \(100\)g units. If it's not possible to buy according to his mother's instructions, output "NA".
+
+<b>Input</b>:
+Multiple data sets are given as input, and the end of the input is indicated by a single line with zero. Each data set is given in the following format:
+
+\(q_1\) \(b\) \(c_1\) \(c_2\) \(q_2\)
+
+The data \(q_1\) and \(q_2\) representing the amount of chicken meat are specified in 100g units. Moreover, \(b\), \(c_1\), \(c_2\), \(q_1\), and \(q_2\) are integers between 1 and \(1000000\).
+
+The number of data sets does not exceed \(50\).
+
+<b>Output</b>:
+For each data set, output the amount of Aizu chicken and regular chicken meat purchased by Iroh (separated by half-width spaces) or "NA" on one line.
+
+
+
+
+The naive solution would be to iterate through every possible amount \(x\) of AIZU chicken, and \(y\) of ordinary meat and find the biggest amount that we can buy and other constraints are satisfied. The constraints are:
+Total amount of meat is more than or equal to \(q_1\).
+The amount of AIZU chicken is not more than \(q_2\).
+The total price of both types of meats is not higher than \(b\).
+
+If we iterate only through every possible \(x\),our solution will be linear. That is sufficient enough. We will be using formula \(y=\lfloor\dfrac{b-x\cdot c_1}{c_2} \rfloor\) in order to find biggest possible possible \(y\) for each \(x\). Lets implement our solution.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+
+int main() {
+    ll q, b, a, o, u;
+    while (cin >> q) {
+        if(q==0)break;
+        cin >> b >> a >> o >> u;
+        ll xans=0, yans=0;
+        for (ll x = 1; x*a<= b && x <= u; x++) {
+            ll y = (b - x * a) / o;
+            if (x + y >= q && x*a+y*o<=b) {
+                xans = x;
+                yans = y;
+            }
+        }
+        if (xans == 0) {
+            cout << "NA" << endl;
+        } else {
+            cout << xans << " " << yans << endl;
+        }
+    }
+    return 0;
+}
+
+
+
+
+48 9297 240 126 32
+20 3010 157 141 7
+30 117002 5680 962 15
+8 1673 1712 190 22
+64 8478 87 54 307
+23 5477 117 92 12
+50 7558 1396 187 17
+279 88677 4522 514 14
+0
+
+
+
+
+For the custom test we will be using a test with maximal possible constraints in order to check whether our code works correctly for corner cases and has no overflows.
+
+<b>Input</b>
+1000000 1000000 1000000 1000000 1000000
+0
+
+<b>Expected output</b>:
+NA
+
+This output is expected because there is no way to buy 1000000 amount of meat with this budget.
+
+
+
+
+1000000 1000000 1000000 1000000 1000000
+0

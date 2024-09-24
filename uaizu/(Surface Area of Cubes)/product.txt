@@ -1,0 +1,273 @@
+Surface Area of Cubes
+Time Limit : 5 sec
+Memory Limit : 262144 KB
+
+Taro likes a single player game "Surface Area of Cubes".
+
+In this game, he initially has an \(A \times B \times C\) rectangular solid formed by \(A \times B \times C\) unit cubes (which are all 1 by 1 by 1 cubes). The center of each unit cube is placed at 3-dimentional coordinates \((x, y, z)\) where \(x\), \(y\), \(z\) are all integers (\(0 \leq x \leq A-1, 0 \leq y \leq B -1, 0 \leq z \leq C - 1\)). Then, \(N\) distinct unit cubes are removed from the rectangular solid by the game master. After the \(N\) cubes are removed, he must precisely tell the total surface area of this object in order to win the game.
+
+Note that the removing operation does not change the positions of the cubes which are not removed. Also, not only the cubes on the surface of the rectangular solid but also the cubes at the inside can be removed. Moreover, the object can be divided into multiple parts by the removal of the cubes. Notice that a player of this game also has to count up the surface areas which are not accessible from the outside.
+
+Taro knows how many and which cubes were removed but this game is very difficult for him, so he wants to win this game by cheating! You are Taro's friend, and your job is to make a program to calculate the total surface area of the object on behalf of Taro when you are given the size of the rectangular solid and the coordinates of the removed cubes.
+
+Input
+The input is formatted as follows.
+
+The first line of a test case contains four integers \(A\), \(B\), \(C\), and \(N\) (\(1 \leq A, B, C \leq 10^8, 0 \leq N \leq \) min{\(1000, A \times B \times C - 1\)}).
+
+Each of the next \(N\) lines contains non-negative integers \(x\), \(y\), and \(z\) which represent the coordinate of a removed cube. You may assume that these coordinates are distinct.
+
+Output
+Output the total surface area of the object from which the \(N\) cubes were removed.
+
+
+
+
+The problem requires us to find the total surface area of the object after removing N cubes from a rectangular solid of size A x B x C. (Here, \(1 \leq A, B, C \leq 10^8\))
+
+First, we can use a 3D bool array isDeleted[x][y][z] to represent whether the cube at coordinates (x, y, z) is deleted. Its value will be "true" if the cube at those coordinates is deleted, and "false" otherwise.
+We can implement the operation of deleting \(N\) cubes in \(O(N)\) total time complexity, and then we can calculate the total surface area of the remaining object.
+
+Let's iterate all possible coordinates (x, y, z).
+\(\bull\) The case where isDeleted[x][y][z] = true.
+If the current coordinates represent a deleted cube, that means this cell is already deleted, so there isn't any surface area of the remaining object associated with this cell.
+\(\bull\) The case where isDeleted[x][y][z] = false.
+If the current coordinates represent the remaining cube, that means there can be a maximum of 6 surface areas of the remaining object associated with this cell. (Up, Down, Left, Right, Front, Back directions.)
+In this case, we can check the 6 possible neighboring cubes. If a certain neighboring cube is a deleted cube, it means there is one unit of surface area of the remaining object in that direction. Therefore, we can add 1 unit area for this surface.
+
+However there are 2 challenges in this naive algorithm.
+The first challenge is that we can't create the isDeleted[x][y][z] array because the constraints (\(0 \leq x \leq A-1, 0 \leq y \leq B-1, 0 \leq z \leq C-1\), \(1 \leq A, B, C \leq 10^8\)) meet. If we create 3D bool array isDeleted[100000000][100000000][100000000], we will exceed the memory limit for this problem.
+The second challenge is that we can't iterate through all possible coordinates \((x, y, z)\) because the constraints (\(0 \leq x \leq A-1, 0 \leq y \leq B-1, 0 \leq z \leq C-1\), \(1 \leq A, B, C \leq 10^8\)) meet.
+We will encounter a time limit exceeded error if we iterate through all of them.
+
+So our naive algorithm exceeds both the memory limit and the time limit.
+
+
+
+
+To reduce the time complexity and space complexity, we can only focus on the cubes that are removed and their neighboring cubes. We can iterate over the removed cubes, and for each removed cube, we can check its neighboring cubes. If a neighboring cube is not removed, we can add 1 unit area for this surface.
+
+We can create a set to store the coordinates of the removed cubes. Then we can iterate over the removed cubes, and for each removed cube, we can check its neighboring cubes. If a neighboring cube is not in the set of removed cubes, we can add 1 unit area for this surface.
+
+We also need to consider the cubes on the surface of the rectangular solid. For these cubes, we need to add the surface area that is not adjacent to any other cube.
+
+We can calculate the surface area of the rectangular solid without any removed cubes, and then subtract the surface area that is adjacent to the removed cubes.
+
+This way, we can reduce the time complexity to O(N) and the space complexity to O(N), where N is the number of removed cubes.
+
+Let's first write the code to read the input and store the coordinates of the removed cubes in a set.
+
+
+
+
+Our algorithm is correct. However, in a set, all insertion and checking operations are \( O(\log N) \), so the time complexity of our algorithm is \( O(N \log N) \), not \( O(N) \).
+
+Let's write boilerplate code that first inputs data.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int A, B, C, N;
+    scanf("%d %d %d %d", &A, &B, &C, &N);
+    while(N--) {
+        int x, y, z; scanf("%d %d %d", &x, &y, &z);
+    }
+}
+
+
+
+
+Now that we can input the data, let's think about how to calculate the surface area of the remaining object.
+
+We can start by calculating the surface area of the rectangular solid without any removed cubes. This can be done by calculating the area of each face of the solid and summing them up.
+
+The surface area of the rectangular solid without any removed cubes is \(2 \cdot A \cdot B + 2 \cdot B \cdot C + 2 \cdot C \cdot A\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int A, B, C, N;
+    scanf("%d %d %d %d", &A, &B, &C, &N);
+    while(N--) {
+        int x, y, z; scanf("%d %d %d", &x, &y, &z);
+    }
+    long long surfaceArea = 2LL * A * B + 2LL * B * C + 2LL * C * A;
+}
+
+
+
+
+Let's store the coordinates of N deleted cubes in a set structure.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int A, B, C, N;
+    scanf("%d %d %d %d", &A, &B, &C, &N);
+    set<tuple<int, int, int>> s;
+    while(N--) {
+        int x, y, z; scanf("%d %d %d", &x, &y, &z);
+        s.insert(make_tuple(x, y, z));
+    }
+    long long surfaceArea = 2LL * A * B + 2LL * B * C + 2LL * C * A;
+}
+
+
+
+
+For each removed cube, we can check its neighboring cubes. If a neighboring cube is not removed, we can add 1 unit area for this surface.
+Let's examine a specific direction (there are six possible directions: up, down, left, right, front, back). Since the current cube is deleted and one neighboring cube in that direction remains, a new unit of surface area appears after the deletion. Therefore, we need to add 1 unit of area in this case.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int A, B, C, N;
+    scanf("%d %d %d %d", &A, &B, &C, &N);
+    set<tuple<int, int, int>> s;
+    while(N--) {
+        int x, y, z; scanf("%d %d %d", &x, &y, &z);
+        s.insert(make_tuple(x, y, z));
+    }
+    long long surfaceArea = 2LL * A * B + 2LL * B * C + 2LL * C * A;
+    for (auto [x, y, z] : s) {
+        if (x > 0 && s.count(make_tuple(x - 1, y, z)) == 0) surfaceArea++;
+        if (x < A - 1 && s.count(make_tuple(x + 1, y, z)) == 0) surfaceArea++;
+        if (y > 0 && s.count(make_tuple(x, y - 1, z)) == 0) surfaceArea++;
+        if (y < B - 1 && s.count(make_tuple(x, y + 1, z)) == 0) surfaceArea++;
+        if (z > 0 && s.count(make_tuple(x, y, z - 1)) == 0) surfaceArea++;
+        if (z < C - 1 && s.count(make_tuple(x, y, z + 1)) == 0) surfaceArea++;
+    }
+}
+
+
+
+
+We can also consider the cubes on the surface of the rectangular solid. For these cubes, we need to add the surface area that is not adjacent to any other cube.
+Similarly, if the current cube was a border in a certain direction, there was one unit of border in that direction before it was deleted. However, after the deletion, this unit of border surface is erased along with the current deleted cube, so we need to subtract one unit of area in this case.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int A, B, C, N;
+    scanf("%d %d %d %d", &A, &B, &C, &N);
+    set<tuple<int, int, int>> s;
+    while(N--) {
+        int x, y, z; scanf("%d %d %d", &x, &y, &z);
+        s.insert(make_tuple(x, y, z));
+    }
+    long long surfaceArea = 2LL * A * B + 2LL * B * C + 2LL * C * A;
+    for (auto [x, y, z] : s) {
+        if (x > 0 && s.count(make_tuple(x - 1, y, z)) == 0) surfaceArea++;
+        if (x < A - 1 && s.count(make_tuple(x + 1, y, z)) == 0) surfaceArea++;
+        if (y > 0 && s.count(make_tuple(x, y - 1, z)) == 0) surfaceArea++;
+        if (y < B - 1 && s.count(make_tuple(x, y + 1, z)) == 0) surfaceArea++;
+        if (z > 0 && s.count(make_tuple(x, y, z - 1)) == 0) surfaceArea++;
+        if (z < C - 1 && s.count(make_tuple(x, y, z + 1)) == 0) surfaceArea++;
+    }
+    for (auto [x, y, z] : s) {
+        if (x == 0) surfaceArea--;
+        if (x == A - 1) surfaceArea--;
+        if (y == 0) surfaceArea--;
+        if (y == B - 1) surfaceArea--;
+        if (z == 0) surfaceArea--;
+        if (z == C - 1) surfaceArea--;
+    }
+}
+
+
+
+
+Finally let's print the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int A, B, C, N;
+    scanf("%d %d %d %d", &A, &B, &C, &N);
+    set<tuple<int, int, int>> s;
+    while(N--) {
+        int x, y, z; scanf("%d %d %d", &x, &y, &z);
+        s.insert(make_tuple(x, y, z));
+    }
+    long long surfaceArea = 2LL * A * B + 2LL * B * C + 2LL * C * A;
+    for (auto [x, y, z] : s) {
+        if (x > 0 && s.count(make_tuple(x - 1, y, z)) == 0) surfaceArea++;
+        if (x < A - 1 && s.count(make_tuple(x + 1, y, z)) == 0) surfaceArea++;
+        if (y > 0 && s.count(make_tuple(x, y - 1, z)) == 0) surfaceArea++;
+        if (y < B - 1 && s.count(make_tuple(x, y + 1, z)) == 0) surfaceArea++;
+        if (z > 0 && s.count(make_tuple(x, y, z - 1)) == 0) surfaceArea++;
+        if (z < C - 1 && s.count(make_tuple(x, y, z + 1)) == 0) surfaceArea++;
+    }
+    for (auto [x, y, z] : s) {
+        if (x == 0) surfaceArea--;
+        if (x == A - 1) surfaceArea--;
+        if (y == 0) surfaceArea--;
+        if (y == B - 1) surfaceArea--;
+        if (z == 0) surfaceArea--;
+        if (z == C - 1) surfaceArea--;
+    }
+    printf("%lld\n", surfaceArea);
+}
+
+
+
+2 2 2 1
+0 0 0
+
+
+
+
+
+1 1 5 2
+0 0 1
+0 0 3
+
+
+
+
+3 3 3 1
+1 1 1
+
+
+
+
+Let's examine a custom corner case where \(A, B, C, N\) are at their minimum values: \(A = B = C = 1\) and \(N = 0\).
+<code>
+1 1 1 0
+</code>
+In this case, we haven't erased any cubes, so the surface remains in its original \(1 \times 1 \times 1\) state. Therefore, the answer will be \(2 \times (1 \times 1 + 1 \times 1 + 1 \times 1) = 6\).
+
+
+
+
+1 1 1 0

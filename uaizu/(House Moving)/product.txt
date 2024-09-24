@@ -1,0 +1,279 @@
+House Moving
+Time Limit: 3 sec
+Memory Limit: 131072 KB
+
+Taro has decided to move. Since he has a lot of luggage, he has asked a moving company to transport them. The luggage has various weights, so he requested that they be arranged in order from lightest to heaviest. However, the moving company personnel arranged the luggage in a random order. Taro then tried to rearrange the luggage, but it's heavy, so he needs physical strength to move them. Each luggage can be moved to any place, such as between other luggage or to the edge, but moving a luggage requires physical strength equal to its weight. Since Taro has limited physical strength, he wants to find a way to arrange the luggage in order from lightest to heaviest with minimal physical strength.
+
+
+Input
+
+\(n\)
+\(x_1\) \(x_2\) ... \(x_n\)
+
+\(\bull\) \(n\) represents the number of pieces of luggage Taro has.
+\(\bull\) \(x_1\) to \(x_n\) represent the weights of each luggage, which are currently arranged in the order of \(x_1\), \(x_2\), …, \(x_n\).
+
+
+Constraints
+
+\(1 ≤ n ≤ 10^5\)
+\(1 ≤ x_i ≤ n (1 ≤ i ≤ n)\)
+\(x_i ≠ x_j (1 ≤ i, j ≤ n\ and\ i ≠ j)\)
+
+\(\bull\) All inputs are given as integers.
+
+
+Output
+
+\(S\)
+
+\(\bull\) Output the minimum total physical strength \(S\) required to arrange the luggage in order from lightest to heaviest, followed by a newline character.
+
+
+Note
+\(\bull\) 1st sample: Moving a luggage with a weight of 4 to the rightmost position will result in an arrangement in order of increasing weight.
+\(\bull\) 2nd sample: Moving a luggage with a weight of 2 to the right of a luggage with a weight of 1 and moving a luggage with a weight of 5 to the rightmost position will result in an arrangement in order of increasing weight.
+\(\bull\) 3rd sample: The luggage is initially arranged in order of increasing weight.
+
+
+
+
+\(\bull\) formulate the problem
+In this problem, given the permutation \(x_1, x_2, \ldots, x_n\), we need to select some elements and move them to optimal positions to make the new array is sorted in increasing order. The cost of this operation is the sum of the selected elements, and our goal is to minimize this cost.
+
+Since we can move the selected elements optimally, we will place them in their correct positions in the sorted array. 
+Let's consider the remaining elements; their relative positions do not change, which means they should already be sorted. To minimize the sum of the selected elements, we can maximize the sum of the remaining sorted elements and subtract this maximum sum from the total sum of all elements. This difference is the minimized sum of the selected elements.
+
+Now, let's reformulate the given problem: Given the permutation \(x_1, x_2, \ldots, x_n\), calculate \((\text{total sum}) - (\text{maximum of sums for all possible sorted subsequences})\).
+
+
+
+
+\(\bull\) naive algorithm
+There are \(2^n\) possible subsequences, so we can iterate through all of them and first check if the current subsequence is sorted.
+If the current subsequence is sorted, we can maximize the answer as the total sum minus the sum of the current sorted subsequence.
+However, \(n\) can be up to \(10^5\), making it impossible to iterate through all \(2^n\) possible subsequences within 3 seconds.
+Therefore, this naive algorithm is not feasible.
+
+
+
+
+\(\bull\) updated algorithm
+Let's solve this problem using dynamic programming.
+Assume we've already updated the information to get the answer for all possible sorted subsequences in the range \([1..i]\). Specifically, for every sorted subsequence in this range, there will be a rightmost element. Let's denote the rightmost element of a certain sorted subsequence as \(y\). We have already updated the information to get the answer for this sequence, which means we’ve maximized \(mx[y]\) as the sum of the current sorted sequence.
+Of course, the initial state is \(mx[i] = 0\) for \(0 \leq i \leq n\), as we haven't created any sorted subsequences at the beginning.
+
+When we insert \(x_i\) into our updated list of elements, there are two possible cases:
+
+1) We are creating a new sorted subsequence that starts from \(x_i\). In this case, we can maximize \(mx[x_i]\) as \(x_i\), since we have created a sorted subsequence that contains only \(x_i\).
+
+2) We can connect \(x_i\) to an existing sorted subsequence. In this case, for all existing sorted subsequences, if the rightmost element is less than \(x_i\), it means we can connect \(x_i\) to those subsequences, as inserting \(x_i\) will maintain their sorted property.
+In this case, we don't need to iterate through all possible sorted subsequences; we only need to iterate through all possible rightmost element values of the subsequences, maximizing \(mx[x_i]\) as \(mx[y] + x_i\) (where \(1 \leq y < x_i\)). This is because connecting \(x_i\) to the subsequence results in a current sorted subsequence composed of two parts: one part is the already sorted subsequence that ends with \(y\), and the other part is the element \(x_i\).
+
+Since we have saved the maximized sum of subsequences in the \(mx[]\) array, we update it as follows: \(mx[x_i] = \max(mx[x_i], mx[y] + x_i)\). After inserting all elements, the maximum value in the \(mx\) array will represent the maximum sums for all possible sorted subsequences. Thus, we can obtain the answer as the total sum \(\frac{n \cdot (n + 1)}{2}\) minus this value (where the array \(x\) is a permutation, so the total sum is \(1 + 2 + \ldots + n = \frac{n \cdot (n + 1)}{2}\)).
+
+Each time we insert the \(i\)-th element \(x_i\) into our updated list, we need to iterate through all \(y\) (where \(0 \leq y < x_i\)), resulting in a time complexity of \(O(n)\). (Here, case 1 represents \(y = 0\), and case 2 represents \(1 \leq y < x_i\).)
+Since we have to insert all \(x_1, x_2, \ldots, x_n\), the total time complexity of the current algorithm is \(O(n^2)\).
+We updated the naive algorith, but we need to improve it further since \(n\) can be as large as \(10^5\).
+
+
+
+
+\(\bull\) real algorithm
+
+Let's reformulate the above algorithm:
+
+<code>
+\(mx[i] = 0\), for all \(0 \leq i \leq n\)
+Iterate through \(x_1, x_2, \ldots, x_n\):
+- When updating with \(x_i\):
+  - \(Mx = 0\)
+  - Iterate \(y\) from \(0\) to \(x_i - 1\): \(Mx = \max(Mx, mx[y])\)
+  - \(mx[x_i] = \max(max[x_i], Mx + x_i)\)
+The answer is: \(\frac{n \cdot (n + 1)}{2} - \max(mx[x_1], mx[x_2], \ldots, mx[x_n])\)
+</code>
+
+As we can see from the code above, there are only two operations:
+1) Calculate the maximum value among \(mx[0], mx[1], \ldots, mx[x_i - 1]\).
+2) Update \(mx[x_i] = \max(mx[x_i], \text{val})\) (where \(\text{val} = Mx + x_i\) as mentioned in the code above).
+
+This is a general Fenwick tree operation, and we can perform both of the above operations in a time complexity of \(O(n \log(n))\). 
+
+In detail, let's suppose \(B[u] = \max(mx[u - \text{len} + 1], mx[u - \text{len} + 2], \ldots, mx[u])\). (Here, \(\text{len} = u \& -u\) represents the general length of a Fenwick tree node.)
+By maintaining this \(B[u]\) array, we can perform the following two operations in \(O(n \log(n))\):
+1) Calculate the maximum value \(Mx\) in the interval \([0, x_i - 1]\).
+2) Maximize the value at index \(x_i\) as \(Mx + x_i\).
+
+We reduced the time complexity from \(O(n ^ 2)\) to \(O(n \log(n))\), just using Fenwick tree algorithm.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 101010;
+
+int n;
+
+int main() {
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        int x; scanf("%d", &x);
+    }
+}
+
+
+
+
+As I mentioned in block 4, I need to use a Fenwick tree, so let's define the two general functions of the Fenwick tree: one for calculating the minimum value in the prefix array and another for maximizing the value at a certain index.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010;
+
+int n;
+INT B[NN];
+
+INT calc(int u) {
+    INT ans = 0;
+    for(; u; u ^= u & -u) ans = max(ans, B[u]);
+    return ans;
+}
+
+void update(int u, INT x) {
+    for(; u <= n; u += u & -u) B[u] = max(B[u], x);
+}
+
+int main() {
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        int x; scanf("%d", &x);
+    }
+}
+
+
+
+
+Let's implement the idea mentioned in block 3, 4.
+
+When we insert \(x_i\) into our updated list of elements, we need to calculate the maximum value among \(mx[0], mx[1], \ldots, mx[x_i - 1]\).
+Then, we have to maximize \(mx[x_i]\) with the sum of this maximum value plus \(x_i\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010;
+
+int n;
+INT B[NN];
+
+INT calc(int u) {
+    INT ans = 0;
+    for(; u; u ^= u & -u) ans = max(ans, B[u]);
+    return ans;
+}
+
+void update(int u, INT x) {
+    for(; u <= n; u += u & -u) B[u] = max(B[u], x);
+}
+
+int main() {
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        int x; scanf("%d", &x);
+        INT mx = calc(x - 1);
+        update(x, mx + x);
+    }
+}
+
+
+
+
+As I mentioned in block 1, 3, 4, the answer is \((\text{total sum}) - (\text{maximum of sums for all possible sorted subsequences})\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 101010;
+
+int n;
+INT B[NN];
+
+INT calc(int u) {
+    INT ans = 0;
+    for(; u; u ^= u & -u) ans = max(ans, B[u]);
+    return ans;
+}
+
+void update(int u, INT x) {
+    for(; u <= n; u += u & -u) B[u] = max(B[u], x);
+}
+
+int main() {
+    scanf("%d", &n);
+    for(int i = 1; i <= n; i++) {
+        int x; scanf("%d", &x);
+        INT mx = calc(x - 1);
+        update(x, mx + x);
+    }
+    printf("%lld\n", (INT)n * (n + 1) / 2 - calc(n));
+}
+
+
+
+
+4
+1 4 2 3
+
+
+
+
+5
+1 5 3 2 4
+
+
+
+
+7
+1 2 3 4 5 6 7
+
+
+
+
+8
+6 2 1 3 8 5 4 7
+
+
+
+
+Let's examine a custom corner case where \(n\) is at its minimum value: \(n = 1\).
+
+1
+1
+
+In this case, the array is already sorted, so we don't need to make any operations.
+So the answer will be 0.
+
+
+
+
+1
+1

@@ -1,0 +1,222 @@
+<b>Title:</b> Tweet Count
+<b>
+Time Limit : 1 sec
+Memory Limit : 262144 KB</b>
+
+<b>Problem</b>
+Aori-chan, who uses the SNS Ikatter, refers to posts as "tweets".
+
+It's a concern in Ikatter that if there are many replies to a tweet, it becomes difficult to read. Therefore, the system is designed to display a tweet on the screen only if it meets one of the following conditions.
+
+<b>Rule 1:</b> The tweet has no replies.
+<b>Rule 2:</b> The tweet has no replies to it.
+<b>Rule 3:</b> When tracing the replies from the tweet that applies Rule 2, it can be reached in less than \( K \) steps.
+
+Additionally, the same tweet will not be displayed repeatedly.
+
+There are currently \( N \) tweets, and \( A_i \) is 0 when the \( i \)-th tweet is not a reply tweet. When \( A_i \) is not 0, the \( i \)-th tweet is a reply tweet to the \( A_i \)-th tweet.
+
+Find the number of tweets displayed on the screen.
+
+<b>Constraints</b>
+\( 1 \leq N \leq 10^5 \)
+\( 1 \leq K \leq 10^5 \)
+\( 0 \leq A_i < i \) (\(i = 1, 2, …, N\))
+The tweets are given in chronological order.
+The input is given as integers.
+
+<b>Input format</b>
+The input is given in the following format.
+
+\( N \) \( K \)
+\( A_1 \)
+\( A_2 \)
+⋮
+\( A_N \)
+
+<b>Output</b>
+Output the number of tweets displayed on the screen. Also, output a newline at the end.
+
+At this time, the displayed tweets are the blue tweets in the figure. Therefore, the answer to this example is 5.
+
+<img jap>
+
+
+
+
+The naive solution is to iterate over tweet and applying the rules individually to determine whether it should be displayed. First, for each tweet we check if it has no replies which is rule 1. Then check if it is not a reply to another tweet which is rule 2. Lastly, you would check if it can be reached by tracing replies within fewer than \( K \) steps which is rule 3. If any of these conditions are met, the tweet would be marked for display which is not efficient because tracing replies in less than \( K \) steps which is rule 3 is expensive. For each tweet we need to trace through several replies which leads to a time complexity of \( O(NK) \) which is not optimal. The idea is to use bfs to traverse the graph starting from tweets that have no replies, where These tweets are at distance 0 because they do not reply to any other tweet. We do bfs from these tweets to calculate the minimum distance from each end tweet to other tweets.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MX = 1e5 + 10;
+
+int n, k;
+int to[MX], disEnd[MX];
+vector<int> tweet[MX], rev[MX];
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cin >> n >> k;
+    for (int i = 0; i < n; i++) {
+        cin >> to[i];
+    }
+}
+
+
+
+
+
+Next, bfs explores the graph in layers. Starting from tweets with no replies, it incrementally explores each layer of connected tweets, moving through the graph step by step which makes sure that correctness by calculating the minimum distance from tweets with no replies to other tweets, layer by layer. If a tweet can be reached in fewer than \( K \) steps, it satisfies the condition for being displayed. bfs starts with tweets that have no replies, which are at distance 0 and are automatically displayed since they are not replying to any other tweet. During bfs exploration, for each tweet, its distance is propagated to the tweets it replies to using the reverse graph. This allows the algorithm to trace replies backward and compute distances for tweets that reply to others.
+
+
+
+
+
+If a tweet is found to be less than \( K \) steps away from any endpoint tweet, it means we can trace its reply chain back in the required steps which is the answer. Thus bfs guarantees optimality by exploring the shortest path in terms of reply steps to each tweet. It processes all nodes in the current layer before moving to the next making sure that the shortest path to each tweet is found on the first visit. Where, the bfs ensures that all distances are correct and minimal, so the condition \( \text{k > disEnd[i]}\) check tweets that which will be displayed. Tweets with no replies are endpoints themselves and displayed regardless, which is why we check if their reverse graph list is empty (\( \text{rev}[i].\text{empty()} \)). And this is optimal as it runs in \( O(n) \).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MX = 1e5 + 10;
+
+int n, k;
+int to[MX], disEnd[MX];
+vector<int> tweet[MX], rev[MX];
+
+void calc() {
+    queue<int> bfs;
+    memset(disEnd, -1, sizeof(disEnd));
+    for (int i = 0; i < n; i++) {
+        if (tweet[i].empty()) {
+            bfs.push(i);
+            disEnd[i] = 0;
+        }
+    }
+    while (!bfs.empty()) {
+        int curr = bfs.front();
+        bfs.pop();
+        for (auto &x: rev[curr]) {
+            if (disEnd[x] == -1) {
+                disEnd[x] = disEnd[curr] + 1;
+                bfs.push(x);
+            }
+        }
+    }
+}
+
+int cntt() {
+    int cnt = 0;
+    for (int i = 0; i < n; i++) {
+        if (k > disEnd[i] || rev[i].empty()) {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cin >> n >> k;
+    for (int i = 0; i < n; i++) {
+        cin >> to[i];
+    }
+}
+
+
+
+
+Finally, we make up the relations and calculate the distances and count the tweets and print the \(res\).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MX = 1e5 + 10;
+
+int n, k;
+int to[MX], disEnd[MX];
+vector<int> tweet[MX], rev[MX];
+
+void calc() {
+    queue<int> bfs;
+    memset(disEnd, -1, sizeof(disEnd));
+    for (int i = 0; i < n; i++) {
+        if (tweet[i].empty()) {
+            bfs.push(i);
+            disEnd[i] = 0;
+        }
+    }
+    while (!bfs.empty()) {
+        int curr = bfs.front();
+        bfs.pop();
+        for (auto &x: rev[curr]) {
+            if (disEnd[x] == -1) {
+                disEnd[x] = disEnd[curr] + 1;
+                bfs.push(x);
+            }
+        }
+    }
+}
+
+int cntt() {
+    int cnt = 0;
+    for (int i = 0; i < n; i++) {
+        if (k > disEnd[i] || rev[i].empty()) {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cin >> n >> k;
+    for (int i = 0; i < n; i++) {
+        cin >> to[i];
+        if (to[i] > 0) {
+            tweet[to[i] - 1].push_back(i);
+            rev[i].push_back(to[i] - 1);
+        }
+    }
+    calc();
+    int res = cntt();
+    cout << res << "\n";
+    return 0;
+}
+
+
+
+
+
+Now let's test the smallest possible case to make sure no corner cases are not handled, Since the only tweet has no replies it will be displayed on the screen. Therefore the correct answer is 1.
+<b>Input</b>
+<code>1 1
+0
+</code>
+
+<b>Output</b>
+<code>1
+</code>
+
+
+
+
+1 1
+0

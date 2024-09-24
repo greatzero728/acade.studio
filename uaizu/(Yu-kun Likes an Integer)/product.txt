@@ -1,0 +1,226 @@
+<b>Problem A: Yu-kun Likes an Integer</b>
+<b>Time Limit : 3 sec</b>
+<b>Memory Limit : 262144 KB</b>
+
+<b>Background</b>
+The Aizu University-affiliated kindergarten is a place where children who love programming gather. One of the students, Yu-kun, loves numbers just as much as he loves programming. Lately, Yu-kun has been obsessed with a game where he buys \(n\) plates, each displaying a number between \(0\) and \(9\), and creates an \(n\)-digit number with them. This month, Yu-kun is thinking of using his allowance to go buy n plates again.
+
+<b>Problem</b>
+The price of each plate varies depending on the number written on it. Yu-kun wants to create the smallest possible \(n\)-digit number using these plates. Given Yu-kun's total budget, the price of each plate, and the number of plates he needs to purchase, determine the smallest possible number he can create.
+
+As long as the total price of the plates does not exceed his budget, Yu-kun is free to buy any plates he likes. He can also purchase multiple plates with the same number.
+
+He must purchase exactly \(n\) plates. If he cannot buy \(n\) plates, output "NA".
+
+After purchasing, he will arrange the \(n\) plates in a straight line in any order. The sequence of numbers will be considered as a decimal number, and Yu-kun wants this number to be as small as possible. Leading zeros are allowed. (For example, \(0019\) is treated as \(19\), and \(0000\) is treated as \(0\).)
+
+Figure 1 explains the case where Yu-kun buys plates with the numbers \(0\), \(1\), and \(9\).
+<img pic1>
+<b>Figure 1: When plates with the numbers 0, 1, and 9 are purchased</b>
+
+<b>hint</b>
+When solving this problem, you may refer to the following information. Here is how to convert an integer value to a string. The value is assigned to the variable str as a string.
+```cpp
+#include<sstream>
+
+using namespace std;
+
+int main(){
+int value = 123; // Convert this value to a string
+string str; // This variable will contain the string version of value
+stringstream ss;
+ss << value;
+ss >> str;
+return 0;
+}
+```
+<b>Input</b>
+
+\(n\ m\)
+\(c_0 \ c_1 \ c_2 \ ... \ c_9\)
+
+On the first line, two integers \(n\) and \(m\) are given, separated by a space. \(n\) is the number of plates to be purchased, and \(m\) is the amount of money Yuu has.
+
+The second line gives 10 integers separated by spaces .( \(i\) is between \(0\) and \(9\)) represents the price of the plate with i written on it.
+
+<b>Constraints</b>
+The input satisfies the following conditions:
+
+\(1 ≤ n ≤ 5\)
+\(0 ≤ m ≤ 500\)
+\(1 ≤ c_i ≤ 1000 ( 0 ≤ i ≤ 9 )\)
+
+<b>Output</b>
+Purchase \(n\) plates and print the smallest number possible by arranging them in any order.
+
+If the answer contains leading zeros, print them as is. (For example, if the answer is \(0019\), print it as \(0019\) instead of removing the leading zeros to make it \(19\).) If the amount of money is not enough to purchase \(n\) plates, print "NA."
+
+
+
+
+let's begin with the naive solution
+<b>Naive Solution</b>
+it simply we will try all combinations of plates and then sorts all the combinations and the first combination will fit our budget it will be our answer otherwise print "NA".
+
+it seems this solution is also sufficient but why
+<b>why</b>
+because all possible combinations will be \(10^n\) and this number and the problem constraint will not give TLE.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+void acc() {
+    int n, m;
+    cin >> n >> m;
+    vector<int> cost(10);
+    for (int i = 0; i < 10; i++) {
+        cin >> cost[i];
+    }
+}
+
+int main() {
+    acc();
+}
+
+
+
+
+
+Now we need to generate all the possible combinations, and we do that recursively by a function called \(generate\), and save our combination in a data structure called \(combinations\). After that, we need to sort all the combinations in order to find the first valid combination.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+vector<vector<int>> combinations;
+
+void gen(int idx, vector<int> comb) {
+    if (idx == 0) {
+        combinations.push_back(comb);
+        return;
+    }
+    for (int i = 0; i < 10; i++) {
+        comb.push_back(i);
+        gen(idx - 1, comb);
+        comb.pop_back();
+    }
+}
+void acc() {
+    int n, m;
+    cin >> n >> m;
+    vector<int> cost(10);
+    for (int i = 0; i < 10; i++) {
+        cin >> cost[i];
+    }
+    gen(n, {});
+    std::sort(combinations.begin(), combinations.end());
+}
+
+int main() {
+    acc();
+}
+
+
+
+
+Now we will check every combination until we find the first combination that fits our budget, and we will print it and exit the program; otherwise, we will print "NA".
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+vector<vector<int>> combinations;
+
+void gen(int idx, vector<int> comb) {
+    if (idx == 0) {
+        combinations.push_back(comb);
+        return;
+    }
+    for (int i = 0; i < 10; i++) {
+        comb.push_back(i);
+        gen(idx - 1, comb);
+        comb.pop_back();
+    }
+}
+void acc() {
+    int n, m;
+    cin >> n >> m;
+    vector<int> cost(10);
+    for (int i = 0; i < 10; i++) {
+        cin >> cost[i];
+    }
+    gen(n, {});
+    std::sort(combinations.begin(), combinations.end());
+    for (vector<int> comb: combinations) {
+        int sum = 0;
+        for (int digit: comb) {
+            sum += cost[digit];
+        }
+        if (sum <= m) {
+            for (int digit: comb) {
+                cout << digit;
+            }
+            cout <<'\n';
+            return;
+        }
+    }
+    cout << "NA"<<'\n';
+}
+
+int main() {
+    acc();
+}
+
+
+
+
+1 10
+1 2 3 4 5 6 7 8 9 10
+
+
+
+
+3 10
+8 4 5 3 5 6 9 10 11 2
+
+
+
+
+5 30
+25 51 32 9 2 1 10 2 5 10
+
+
+
+
+5 100
+101 101 101 101 101 101 101 101 101 101
+
+
+
+
+now we need to try a custom test with the minimal constraint to check if our code handles corner cases .
+<b>Input</b>
+1 0
+1 1 1 1 1 1 1 1 1 1
+
+<b>Output</b>
+NA
+
+<b>explanation </b>
+because our budget is zero so we will can't buy any plate and our answer will be "NA".
+
+
+
+
+1 0
+1 1 1 1 1 1 1 1 1 1

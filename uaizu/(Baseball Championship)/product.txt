@@ -1,0 +1,155 @@
+<b>Baseball Championship</b>
+Time Limit : 1 sec, Memory Limit : 131072 KB
+
+At the international baseball competition, the WBC (World Baseball Classic), Japan achieved its second consecutive championship!! Amid the growing popularity of baseball, a baseball tournament was held at Aizu Gakuen High School. In this tournament, a round-robin league format was used, and rankings were determined by the following rules:
+
+Teams with more wins are ranked higher.
+If teams have the same number of wins, the team with fewer losses is ranked higher.
+Create a program that, based on the results of each team, outputs the team names in order from the highest-ranking team. If teams are tied, output them in the order they were entered. The number of teams \(n\) will be an integer between \(2\) and \(10\), inclusive. The team names \(t\) will be a single ASCII letter, and the results of each match \(r\) will be represented by \(n-1\) digits: \(0\) for a win, \(1\) for a loss, and \(2\) for a draw. Also, there will be no duplicate team names.
+
+<b>Input</b>
+Multiple datasets are provided as input. The end of the input is indicated by a single line containing a zero. Each dataset is given in the following format:
+<code>
+\(n\)
+\(score_1\)
+\(score_2\)
+\(\vdots\)
+\(score_n\)
+</code>
+
+The first line contains the number of teams \(n\) \((2 \le n \le 10)\), and the following n lines contain the results for each team \(score_i\). Each result is given in the following format:
+<code>\(t\) \(r_1\) \(r_2\) \(\dots\) \(r_{n-1}\)</code>
+Where \(t\) is the team name (a single ASCII letter), and \(r_i\) (\(0, 1,\) or \(2\)) represents the result of each match for team \(t\), separated by spaces.
+
+The number of datasets does not exceed \(50\).
+
+<b>Output</b>
+For each dataset, output the team names in order from the highest-ranking team.
+
+
+
+
+To solve this problem, we need to rank the teams based on their performance in the tournament. We'll use the following rules to determine the ranking:
+
+1. Teams with more wins are ranked higher.
+2. If teams have the same number of wins, the team with fewer losses is ranked higher.
+
+We'll represent each team's performance as a struct containing the team name, number of wins, and number of losses.
+
+We'll first read the input data, then for each team, we'll count the number of wins and losses. After that, we'll sort the teams based on their performance.
+
+Time complexity: O(n log n) for sorting, where n is the number of teams.
+
+Space complexity: O(n) for storing the team data.
+
+Next step: Write the boilerplate code to read the input data.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+
+struct Team {
+    std::string name;
+    int wins;
+    int losses;
+};
+
+int main() {
+    int n;
+    while (std::cin >> n) {
+        if (n == 0) {
+            break;
+        }
+
+        std::vector<Team> teams;
+
+        for (int i = 0; i < n; i++) {
+            Team team;
+            std::cin >> team.name;
+            team.wins = 0;
+            team.losses = 0;
+
+            for (int j = 0; j < n - 1; j++) {
+                int result;
+                std::cin >> result;
+                if (result == 0) {
+                    team.wins++;
+                } else if (result == 1) {
+                    team.losses++;
+                }
+            }
+
+            teams.push_back(team);
+        }
+
+        std::sort(teams.begin(), teams.end(), [](const Team& a, const Team& b) {
+            if (a.wins != b.wins) {
+                return a.wins > b.wins;
+            } else {
+                return a.losses < b.losses;
+            }
+        });
+
+        for (const auto& team : teams) {
+            std::cout << team.name << std::endl;
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+6
+A 1 0 0 2 0
+B 0 0 1 1 0
+C 1 1 1 1 1
+D 1 0 0 1 2
+E 2 0 0 0 0
+F 1 1 0 2 1
+4
+g 1 1 1
+h 0 1 2
+w 0 0 0
+b 0 2 1
+0
+
+
+
+
+Let's try custom test
+
+<b>Input:</b>
+<code>
+2
+A 0
+B 1
+0
+</code>
+
+<b>Expected Output:</b>
+<code>
+A
+B
+</code>
+
+<b>Explanation:</b>
+There are 2 teams, A and B.
+Team A wins its only match against Team B (0 means win for A).
+Team B loses its only match (1 means loss for B).
+
+<b>Motivation:</b>
+This test case checks the functionality of the solution under the minimum constraint.
+
+
+
+
+2
+A 0
+B 1
+0

@@ -1,0 +1,248 @@
+<b>The lowest guarantee
+Time Limit: 1 sec, Memory Limit: 262144 KB </b>
+
+T-kun, who is participating in HUPC, decided to book a room at the homu-hotel. When he visited the official website of homu-hotel, it stated, "Lowest Price Guaranteed! If you book through this site, you will get the lowest price available."
+
+Being cautious, T-kun decided to check if there are any websites offering a lower price than the official site.
+
+There are \(N\) accommodation booking websites, each numbered from \(1\) to \(N\). The homu-hotel's official site is the 1st website.
+
+On the \(i\)-th booking site, the price for staying at the homu-hotel is denoted as \(a_i\) yen. Additionally, there is a variable \(t_i\) that indicates whether this price includes tax or not. If \(t_i=0\), the price is before tax, and if \(t_i=1\), the price is after tax.
+
+When calculating and comparing the price including tax for each site, determine whether there is another booking site that is truly cheaper than the price when booking through the official site of the homu-hotel. If such a site exists, output "Yes" and list all the site numbers that are truly cheaper. If no such site exists, output "No".
+
+The tax rate is assumed to be 10% That is, if the accommodation price before tax is \(a_i\) yen then the price including tax is \(1.1\ a_i\) yen.
+
+<b>Input Format</b>
+\(\bull\) The input consists of \( 1 + N \) lines.
+\(\bull\) The 1st line contains an integer \( N \).The next \( N \) lines contain \( a_i \) and \( t_i \) separated by a space, where \( a_i \) is the price when booking through the \( i \)-th site, and \( t_i \) indicates whether the price is before or after tax.
+
+\(N\)
+\(a_1\ t_1\)
+\(a_2\ t_2\)
+\(...\)
+\(a_N\ t_N\)
+
+<b>Constraints</b>
+\(\bull\) All input values are given as integers.
+\(\bull\) \( 2 \leq N \leq 50 \)
+\(\bull\) \( 3000 \leq a_i \leq 20000 \)
+\(\bull\) It is guaranteed that \( a_i \) is a multiple of 10.
+\(\bull\) \( t_i \in \{0, 1\} \)
+
+
+
+<b>Output Format</b>
+\(\bull\) If there is no reservation site that is truly cheaper than the official site, output only "No'' on a single line.
+\(\bull\)If such a site exists, output "Yes'' on the first line. Furthermore, on the second and subsequent lines, output the numbers of the sites that are truly cheaper in ascending order, separated by lines.
+
+<b>note : for sample test 1 </b>
+The tax-included prices for each site are 5500, 4000, 6600, 3000, 8580, and 5830. The second and fourth sites are truly cheaper than the first official site.
+
+
+
+
+
+The problem asks us to find out if there are any accommodation booking websites that offer a lower price than the official website of the homu-hotel, considering the tax rate of 10%. We need to compare the prices of each website, taking into account whether the price includes tax or not. If we find any website that offers a lower price, we should output "Yes" and list the numbers of those websites in ascending order. Otherwise, we should output "No".
+
+To solve this problem, we can follow these steps:
+
+1. Read the number of websites (N) and the prices with tax information for each website.
+2. Calculate the price including tax for each website.
+3. Compare the prices of each website with the price of the official website.
+4. If we find any website with a lower price, store its number.
+5. Output "Yes" and the numbers of the websites with lower prices, or "No" if no such website exists.
+
+We can start by writing the code to read the input and calculate the price including tax for each website.
+
+
+
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int N;
+    cin >> N;
+    vector<pair<int, int>> prices(N);
+    for (int i = 0; i < N; ++i) {
+        int a, t;
+        cin >> a >> t;
+        if (t == 0) {
+            prices[i] = {a * 1.1, i};
+        } else {
+            prices[i] = {a, i};
+        }
+    }
+
+    return 0;
+}
+```
+
+
+
+
+Now that we have the prices with tax information for each website, we need to compare them with the price of the official website. We can assume that the official website is the first website in the list (i.e., prices[0]). We will iterate over the prices of the other websites and check if any of them are lower than the price of the official website. If we find any, we will store their indices.
+
+We also need to think about how to handle the case where there are multiple websites with lower prices. We can use a vector to store the indices of these websites.
+
+Next, we will write the code to compare the prices and store the indices of the websites with lower prices.
+
+
+
+
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int N;
+    cin >> N;
+    vector<pair<int, int>> prices(N);
+    for (int i = 0; i < N; ++i) {
+        int a, t;
+        cin >> a >> t;
+        if (t == 0) {
+            prices[i] = {a * 1.1, i};
+        } else {
+            prices[i] = {a, i};
+        }
+    }
+
+    vector<int> lowerPrices;
+    for (int i = 1; i < N; ++i) {
+        if (prices[i].first < prices[0].first) {
+            lowerPrices.push_back(i + 1); // add 1 because indices are 0-based
+        }
+    }
+
+    if (lowerPrices.empty()) {
+        cout << "No\n";
+    } else {
+        cout << "Yes\n";
+        for (int i : lowerPrices) {
+            cout << i << "\n";
+        }
+    }
+
+    return 0;
+}
+```
+
+
+
+
+4
+5000 0
+4500 1
+5500 0
+7800 1
+
+
+
+
+The code I provided earlier had some issues with formatting and syntax. Let me re-write the code without the formatting issues and see if that resolves the problem.
+
+Also, I noticed that the code was not properly comparing the prices of the websites. The official website's price should be compared with the prices of the other websites, and if a lower price is found, it should be stored and output later.
+
+Let me re-write the code to fix these issues.
+
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int N;
+    cin >> N;
+    vector<pair<int, int>> prices(N);
+    for (int i = 0; i < N; ++i) {
+        int a, t;
+        cin >> a >> t;
+        if (t == 0) {
+            prices[i] = {a * 1.1, i};
+        } else {
+            prices[i] = {a, i};
+        }
+    }
+
+    vector<int> lowerPrices;
+    for (int i = 1; i < N; ++i) {
+        if (prices[i].first < prices[0].first) {
+            lowerPrices.push_back(i + 1);
+        }
+    }
+
+    if (lowerPrices.empty()) {
+        cout << "No\n";
+    } else {
+        cout << "Yes\n";
+        for (int i : lowerPrices) {
+            cout << i << "\n";
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+6
+5500 1
+4000 1
+6000 0
+3000 1
+7800 0
+5300 0
+
+
+
+
+4
+5000 0
+4500 1
+5500 0
+7800 1
+
+
+
+
+3
+8000 0
+9500 1
+18000 0
+
+
+
+
+let's try a custom test with minimal constraint to ensure that the code handles the corner cases .
+
+<b>input</b>
+2
+3000 1
+3000 0
+<b>output</b>
+No
+<b>explanation</b>
+Since the second site is more expensive than the official site, the correct output for this case would be "No".
+
+
+
+
+2
+3000 1
+3000 0
