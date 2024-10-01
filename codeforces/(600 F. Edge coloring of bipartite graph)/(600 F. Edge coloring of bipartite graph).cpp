@@ -1,58 +1,56 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(0);
-
-    const int N = 1e3 + 1;
-    const int M = 1e5 + 1;
-    
-    int a, b, m;
+int main(){
+    int a,b,m;
     cin >> a >> b >> m;
-    
-    vector<vector<int>> col(2 * N, vector<int>(N, 0));
-    vector<int> u(M), v(M), in(2 * N, 0);
-    int res = 0;
-    
-    for (int i = 1; i <= m; i++) {
-        cin >> u[i] >> v[i];
-        v[i] += a;
-        ++in[u[i]], ++in[v[i]];
+    vector<int> A(m + 5), B(m + 5);
+    vector<int> d(a + b + 5);
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        cin >> u >> v;
+        v +=a;
+        A[i] = u;
+        B[i] = v;
+        d[u]++;
+        d[v]++;
     }
-    
-    for (int i = 1; i <= a + b; i++) {
-        res = max(res, in[i]);
+    int ans = 0;
+    for(int i= 1;i<=a+b;i++) {
+        ans = max(ans, d[i]);
     }
+    cout << ans << endl;
+    int nxt[a + b + 5][ans + 5] = {};
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        u = A[i];
+        v = B[i];
+        int color1 = 1;
+        int color2 = 1;
+        while(nxt[u][color1]) color1++;
+        while(nxt[v][color2]) color2++;
 
-    for (int i = 1; i <= m; i++) {
-        int x = 1, y = 1, temp, w;
-        while (col[u[i]][x]) ++x;
-        while (col[v[i]][y]) ++y;
-        col[u[i]][x] = v[i];
-        col[v[i]][y] = u[i];
+        nxt[u][color1] = v;
+        nxt[v][color2] = u;
+
+        if(color1 == color2) continue;
         
-        if (x != y) {
-            temp = v[i], w = y;
-            while (temp) {
-                swap(col[temp][x], col[temp][y]);
-                temp = col[temp][w];
-                w ^= (x ^ y);
-            }
+        for(int color = color1,node = v ; node != 0; color = (color == color1 ? color2 : color1), node = nxt[node][color]) {
+            swap(nxt[node][color1], nxt[node][color2]);
         }
+        
     }
-
-    cout << res << "\n";
-
-    for (int i = 1; i <= m; i++) {
-        for (int j = 1; j <= res; j++) {
-            if (col[u[i]][j] == v[i]) {
-                cout << j << " ";
+    
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        u = A[i];
+        v = B[i];
+        for(int color = 1; color <= ans; color++) {
+            if(nxt[u][color] == v) {
+                cout << color << " ";
                 break;
             }
         }
     }
-    cout << "\n";
-
     return 0;
 }

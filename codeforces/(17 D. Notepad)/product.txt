@@ -1,0 +1,379 @@
+Notepad
+time limit per test:2 seconds
+memory limit per test:64 megabytes
+
+Nick is attracted by everything unconventional. He doesn't like decimal number system any more, and he decided to study other number systems. A number system with base b caught his attention. Before he starts studying it, he wants to write in his notepad all the numbers of length n without leading zeros in this number system. Each page in Nick's notepad has enough space for c numbers exactly. Nick writes every suitable number only once, starting with the first clean page and leaving no clean spaces. Nick never writes number 0 as he has unpleasant memories about zero divide.
+
+Would you help Nick find out how many numbers will be written on the last page.
+
+Input
+The only input line contains three space-separated integers \(b, n\) and \(c (2 ≤ b < 10^{10^6}, 1 ≤ n < 10^{10^6}, 1 ≤ c ≤ 10^9)\). You may consider that Nick has infinite patience, endless amount of paper and representations of digits as characters. The numbers doesn't contain leading zeros.
+
+Output
+In the only line output the amount of numbers written on the same page as the last number.
+
+Note
+
+In both samples there are exactly 4 numbers of length 3 in binary number system. In the first sample Nick writes 3 numbers on the first page and 1 on the second page. In the second sample all the 4 numbers can be written on the first page.
+
+
+
+
+The problem is to calculate the number of numbers of length n without leading zeros in a number system with base b, that will be written on the last page of a notepad, where each page can contain c numbers.
+
+We need to first calculate the total number of numbers that can be written. This is equal to b^(n-1) * (b-1), since there are b-1 choices for the first digit and b choices for each of the next n-1 digits.
+
+However, since the numbers are written without leading zeros, we need to subtract the numbers that start with a zero. But since we are not considering numbers that start with zero, we don't need to subtract anything.
+
+The next step is to find the remainder of the total number of numbers when divided by c. This will give us the number of numbers that will be written on the last page.
+
+We can use the property of modular arithmetic that (a*b) mod n = ((a mod n) * (b mod n)) mod n to calculate the remainder.
+
+So, our approach will be to calculate b^(n-1) mod c and (b-1) mod c, and then multiply these two values and take the remainder when divided by c.
+
+We also need to handle the case where b or n is very large, so we will use a loop to calculate the modular exponentiation.
+
+Now, let's write the code to read the input and perform the calculations.
+
+CODE
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int modExp(int base, int exponent, int modulus) {
+int result = 1;
+while (exponent > 0) {
+if (exponent % 2 == 1) {
+result = (result * base) % modulus;
+}
+base = (base * base) % modulus;
+exponent /= 2;
+}
+return result;
+}
+
+int32_t main() {
+ios_base::sync_with_stdio(false);
+cin.tie(NULL);
+int b, n, c;
+cin >> b >> n >> c;
+int ans = (modExp(b, n-1, c) * (b-1)) % c;
+cout << ans << endl;
+}
+
+
+
+
+That's the basic idea of the problem.Let's test the code.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int modExp(int base, int exponent, int modulus) {
+    int result = 1;
+    while (exponent > 0) {
+        if (exponent % 2 == 1) {
+            result = (result * base) % modulus;
+        }
+        base = (base * base) % modulus;
+        exponent /= 2;
+    }
+    return result;
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int b, n, c;
+    cin >> b >> n >> c;
+    int ans = (modExp(b, n-1, c) * (b-1)) % c;
+    cout << ans << endl;
+}
+
+
+
+
+2 3 3
+
+
+
+
+2 3 4
+
+
+
+
+Well,it needs a special judge when \(ans=0\) and set it to \(c\),because the last page doesn't have any number and it can't be considered last page, this also implies that all the numbers are completely written till the second last page and second last page should be considered the last page.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int modExp(int base, int exponent, int modulus) {
+    int result = 1;
+    while (exponent > 0) {
+        if (exponent % 2 == 1) {
+            result = (result * base) % modulus;
+        }
+        base = (base * base) % modulus;
+        exponent /= 2;
+    }
+    return result;
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int b, n, c;
+    cin >> b >> n >> c;
+    int ans = (modExp(b, n-1, c) * (b-1)) % c;
+    if(ans == 0)ans = c;
+    cout << ans << endl;
+}
+
+
+
+
+2 3 4
+
+
+
+
+Note that the input data in the problem is very large, we can only read them in strings.
+For the modular exponentiation, we cannot directly use the given modulus, which is problematic, so we consider using the Extended Euclidean Theorem,which is used to calculate \(a^b \mod m\).
+
+Extended Euclidean Theorem:
+When \(b<\phi(m)\),we don't do anything.
+When \(b \ge \phi(m)\),\(a^b \equiv a^{（b\mod \phi(m))+\phi(m)}\).
+
+Then we need a function to get the value of \(\phi(c)\).
+According to the definition of Euler's function,note \(p\) as a prime,\(k\) as a positive integer,we have \(\phi(p^k)=p^{k-1}(p-1)\).
+According to the properties of Euler's function, it is a multiplicative function.Note \(c=\prod _{i}p_i^{k_i},p_i\) are different prime factors of \(c\) and \(k_i\) are their indices.We have\(\phi(c)=\prod_i\phi(p_i^{k_i})=\prod_ip_i^{k_i-1}(p_i-1)\).
+So what we need to do is get all the prime numbers and indices and calculate the value as the formula above.
+To achieve this,we can enumerate from \(1\) to \(\sqrt{c}\) to find its divisor.Due to the properties of prime,the one we find is always a prime and after dividing such factors,if \(c>1\),it means \(c\) have a big prime factor and it's exactly the current \(c\).
+
+Now let's implement the code.
+First we implement a function to get the value of \(\phi(c)\).
+Then,read in \(b\) and \(n\) as strings first and then take the modulus.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int phi(int n) {
+    int res = n;
+    for (int i = 2; i * i <= n; ++i) {
+        if (n % i == 0) {
+            res -= res / i;
+            while (n % i == 0) n /= i;
+        }
+    }
+    if (n > 1) res -= res / n;
+    return res;
+}
+
+int modExp(int base, int exponent, int modulus) {
+    int result = 1;
+    while (exponent > 0) {
+        if (exponent % 2 == 1) {
+            result = (result * base) % modulus;
+        }
+        base = (base * base) % modulus;
+        exponent /= 2;
+    }
+    return result;
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    string strB, strN;
+    int c;
+    cin >> strB >> strN >> c;
+    int b = 0, n = 0;int mod = phi(c);bool flag = 0;
+    for (int i = 0; i < strB.size(); ++i) b = (b * 10 + strB[i] - '0') % c;
+    for (int i = 0; i < strN.size(); ++i)flag |= (n * 10 + strN[i] - '0') >= mod, n = (n * 10 + strN[i] - '0') % (mod);
+    if(flag)n += mod;
+    int ans = modExp(b, n - 1, c) * (b - 1) % c;
+    if(ans == 0)ans = c;
+    cout << ans << endl;
+}
+
+
+
+
+2 3 3
+
+
+
+
+2 3 4
+
+
+
+
+Let's consider a corner case to ensure the correctness of our code.
+
+Input
+2 2 2
+
+Output
+2
+
+Explanation
+
+There are \(2\times1=2\) numbers with two digits,and it can all be written at the first page also as the last page.
+
+
+
+
+2 2 2
+
+
+
+
+Wait,we find a mistake.
+When \(b \mod c =0\)，the \(ans\) in our code will become negative,because in the line we calculate the \(ans\),one term will be \(b-1=-1\) and make its value negative.So let's specifically judge it.Since we need the result under the modulus of \(c\),we can change \(b\) into \(c\) when \(b=0\) after the previous modulus.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int phi(int n) {
+    int res = n;
+    for (int i = 2; i * i <= n; ++i) {
+        if (n % i == 0) {
+            res -= res / i;
+            while (n % i == 0) n /= i;
+        }
+    }
+    if (n > 1) res -= res / n;
+    return res;
+}
+
+int modExp(int base, int exponent, int modulus) {
+    int result = 1;
+    while (exponent > 0) {
+        if (exponent % 2 == 1) {
+            result = (result * base) % modulus;
+        }
+        base = (base * base) % modulus;
+        exponent /= 2;
+    }
+    return result;
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    string strB, strN;
+    int c;
+    cin >> strB >> strN >> c;
+    int b = 0, n = 0;int mod = phi(c);bool flag = 0;
+    for (int i = 0; i < strB.size(); ++i) b = (b * 10 + strB[i] - '0') % c;
+    for (int i = 0; i < strN.size(); ++i)flag |= (n * 10 + strN[i] - '0') >= mod, n = (n * 10 + strN[i] - '0') % (mod);
+    if(flag)n += mod;
+    if(!b)b=c;
+    int ans = modExp(b, n - 1, c) * (b - 1) % c;
+    if(ans == 0)ans = c;
+    cout << ans << endl;
+}
+
+
+
+
+2 2 2
+
+
+
+
+It's still not right.The problem is that we should minus one before taking the modulo,because the indice is \(n-1\) instead of \(n\),or it will be a wrong result to take the modulus for \(n\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define int long long
+
+int phi(int n) {
+    int res = n;
+    for (int i = 2; i * i <= n; ++i) {
+        if (n % i == 0) {
+            res -= res / i;
+            while (n % i == 0) n /= i;
+        }
+    }
+    if (n > 1) res -= res / n;
+    return res;
+}
+
+int modExp(int base, int exponent, int modulus) {
+    int result = 1;
+    while (exponent > 0) {
+        if (exponent % 2 == 1) {
+            result = (result * base) % modulus;
+        }
+        base = (base * base) % modulus;
+        exponent /= 2;
+    }
+    return result;
+}
+
+int32_t main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    string strB, strN;
+    int c;
+    cin >> strB >> strN >> c;
+    int b = 0, n = 0;int mod = phi(c);bool flag = 0;
+    for (int i = strN.size()-1; i >= 0; --i)if(strN[i]=='0')strN[i]='9';else{strN[i]--;break;}
+    for (int i = 0; i < strB.size(); ++i) b = (b * 10 + strB[i] - '0') % c;
+    for (int i = 0; i < strN.size(); ++i)flag |= (n * 10 + strN[i] - '0') >= mod, n = (n * 10 + strN[i] - '0') % (mod);
+    if(flag)n += mod;
+    if(!b)b=c;
+    int ans = modExp(b, n , c) * (b - 1) % c;
+    if(ans == 0)ans = c;
+    cout << ans << endl;
+}
+
+
+
+
+2 2 2
+
+
+
+
+2 3 3
+
+
+
+
+2 3 4

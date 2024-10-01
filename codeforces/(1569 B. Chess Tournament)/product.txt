@@ -1,47 +1,56 @@
-<b>B. Chess Tournament</b>
-time limit per test: 2 seconds
-memory limit per test: 256 megabytes
+<b>Chess Tournament</b>
+<b>time limit per test: 2 seconds</b>
+<b>memory limit per test: 256 megabytes</b>
 
-A chess tournament will be held soon, where \(n\) chess players will take part. Every participant will play one game against every other participant. Each game ends in either a win for one player and a loss for another player, or a draw for both players.
+A chess tournament will be held soon, where n chess players will take part. Every participant will play one game against every other participant. Each game ends in either a win for one player and a loss for another player, or a draw for both players.
 
 Each of the players has their own expectations about the tournament, they can be one of two types:
 
-1. a player wants not to lose any game (i. e. finish the tournament with zero losses);
-2. a player wants to win at least one game.
+\( \quad \) 1. a player wants not to lose any game (i. e. finish the tournament with zero losses);
+\( \quad \) 2. a player wants to win at least one game.
 
 You have to determine if there exists an outcome for all the matches such that all the players meet their expectations. If there are several possible outcomes, print any of them. If there are none, report that it's impossible.
 
 <b>Input</b>
-The first line contains a single integer \(t (1≤t≤200)\) — the number of test cases.
 
-The first line of each test case contains one integer \(n (2≤n≤50)\) — the number of chess players.
+The first line contains a single integer t (1≤t≤200) — the number of test cases.
 
-The second line contains the string \(s (|s|=n; s_i∈\{1,2\})\). If \(s_i=1\), then the \(i\)-th player has expectations of the first type, otherwise of the second type.
+The first line of each test case contains one integer n (2≤n≤50) — the number of chess players.
+
+The second line contains the string s (|s|=n; \(s_i\)∈{1,2}). If \(s_i\)=1, then the i-th player has expectations of the first type, otherwise of the second type.
 
 <b>Output</b>
+
 For each test case, print the answer in the following format:
 
 In the first line, print NO if it is impossible to meet the expectations of all players.
 
-Otherwise, print YES, and the matrix of size \(n×n\) in the next \(n\) lines.
+Otherwise, print YES, and the matrix of size n×n in the next n lines.
 
-The matrix element in the \(i\)-th row and \(j\)-th column should be equal to:
+The matrix element in the i-th row and j-th column should be equal to:
 
-\(\bullet\) +, if the \(i\)-th player won in a game against the \(j\)-th player;
-\(\bullet\) -, if the \(i\)-th player lost in a game against the \(j\)-th player;
-\(\bullet\) =, if the \(i\)-th and \(j\)-th players' game resulted in a draw;
-\(\bullet\) X, if \(i=j\).
-
-
+\(\quad \bullet \) +, if the i-th player won in a game against the j-th player;
+\(\quad \bullet \) -, if the i-th player lost in a game against the j-th player;
+\(\quad \bullet \) =, if the i-th and j-th players' game resulted in a draw;
+\(\quad \bullet \) X, if i=j.
 
 
 
-\(\bullet\) A brute-force approach would involve generating all possible \(3^{\frac{n(n - 1)}{2}}\) outcomes for each match and checking if they meet the expectations of all players. However, this would result in an exponential time complexity due to the large number of possible outcomes. So with a naive approach, we will get time limit exceed error.
 
-\(\bullet\) The players with expectation type 1 want not to lose any game, so they should only have '=' or 'X' in their row and column. The players with expectation type 2 want to win at least one game, so they should have at least one '+' in their row.
+The naive solution is to try all the valid grid combinations and check if any of them satisfy the required conditions, but since the number of combinations is too many, this solution would not be feasible.
 
-We can start by initializing the matrix with '=' for all matches, and then try to satisfy the expectations of the players with type 2. We can do this by iterating over the players with type 2 and finding another player that they can win against. If we build a cycle only with players with type 2, then each play in the cycle will be satisfy the given requirement.
 
+
+
+We are given a string of length n, where each character represents the expectation of a player in a chess tournament. We need to determine if it is possible to meet the expectations of all players. If it is possible, we need to print the outcome of all matches in the form of a matrix.
+
+The first step is to count the number of players with expectation 1 and 2. If there are more than one players with expectation 2, we can arrange them in a circle such that each player wins against the next player in the circle, and loses against the previous player. This way, all players with expectation 2 will win at least one game.
+
+However, if there is only one player with expectation 2, it is not possible to meet the expectations of all players, because this player cannot win against any other player.
+
+If there are no players with expectation 2, it is always possible to meet the expectations of all players by arranging all games as draws.
+
+Let's start by writing a boilerplate code to read the input and iterate over test cases. We will also initialize the necessary variables to store the count of players with expectation 1 and 2.
 
 
 
@@ -49,119 +58,42 @@ We can start by initializing the matrix with '=' for all matches, and then try t
 #include <bits/stdc++.h>
 
 using namespace std;
-
-void solve() {
-    int n;
-    cin >> n;
-    string s;
-    cin >> s;
-}
 
 int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
     int t;
     cin >> t;
-
     while (t--) {
-        solve();
-    }
-
-    return 0;
-}
-
-
-
-
-
-Let's initialize the matrix with '=' for all matches and 'X' on the diagonal.
-
-
-
-
-
-#include <bits/stdc++.h>
-
-using namespace std;
-
-void solve() {
-    int n;
-    cin >> n;
-    string s;
-    cin >> s;
-    vector<vector<char>> ans(n, vector<char>(n, '='));
-    for (int i = 0; i < n; i++) {
-        ans[i][i] = 'X';
-    }
-}
-
-int main() {
-    int t;
-    cin >> t;
-
-    while (t--) {
-        solve();
-    }
-
-    return 0;
-}
-
-
-
-
-
-Then, we can iterate over the players with expectation type 2 and find another player that they can win against. We can do this by iterating over the players with type 2 and finding the next player with type 2. If we find a player with type 2, we can set the match between them to '+' and '-' accordingly.
-If the number of players with type 2 is less than 2 or equal to 2, then we can't build a cycle with players with type 2, so in this case the answer will be "NO".
-
-
-
-
-
-#include <bits/stdc++.h>
-
-using namespace std;
-
-void solve() {
-    int n;
-    cin >> n;
-    string s;
-    cin >> s;
-    vector<vector<char>> ans(n, vector<char>(n, '='));
-    for (int i = 0; i < n; i++) {
-        ans[i][i] = 'X';
-    }
-    vector<int> type2;
-    for (int i = 0; i < n; i++) {
-        if (s[i] == '2') {
-            type2.push_back(i);
+        int n;
+        cin >> n;
+        string s;
+        cin >> s;
+        int cnt1 = 0, cnt2 = 0;
+        for (char c : s) {
+            if (c == '1') cnt1++;
+            else cnt2++;
         }
     }
-    if (type2.size() == 1 || type2.size() == 2) {
-        cout << "NO\n";
-        return;
-    }
-    for (int i = 0; i < type2.size(); i++) {
-        int j = (i + 1) % type2.size();
-        ans[type2[i]][type2[j]] = '+';
-        ans[type2[j]][type2[i]] = '-';
-    }
-}
-
-int main() {
-    int t;
-    cin >> t;
-
-    while (t--) {
-        solve();
-    }
-
     return 0;
 }
 
 
 
 
+Next, we need to handle the case where there are more than one players with expectation 2. In this case, we can arrange them in a circle such that each player wins against the next player in the circle, and loses against the previous player.
 
-Let's print the final answer for "YES" case.
+We can use a vector to store the indices of the players with expectation 2. Then, we can iterate over the vector and set the corresponding elements in the matrix to '+' and '-'.
 
+However, we also need to handle the case where there are no players with expectation 2. In this case, we can simply set all elements in the matrix to '='.
+
+We also need to handle the case where there is only one player with expectation 2. In this case, we should print "NO" because it is not possible to meet the expectations of all players.
+
+Let's think about how we can implement these logic in code. We will need to use a vector to store the indices of the players with expectation 2, and a 2D vector to store the matrix.
+
+We will also need to use a boolean variable to track whether it is possible to meet the expectations of all players.
+
+After we have implemented these logic, we can start testing our code with some sample inputs to make sure it is working correctly.
 
 
 
@@ -170,84 +102,79 @@ Let's print the final answer for "YES" case.
 
 using namespace std;
 
-void solve() {
-    int n;
-    cin >> n;
-    string s;
-    cin >> s;
-    vector<vector<char>> ans(n, vector<char>(n, '='));
-    for (int i = 0; i < n; i++) {
-        ans[i][i] = 'X';
-    }
-    vector<int> type2;
-    for (int i = 0; i < n; i++) {
-        if (s[i] == '2') {
-            type2.push_back(i);
-        }
-    }
-    if (type2.size() == 1 || type2.size() == 2) {
-        cout << "NO\n";
-        return;
-    }
-    for (int i = 0; i < type2.size(); i++) {
-        int j = (i + 1) % type2.size();
-        ans[type2[i]][type2[j]] = '+';
-        ans[type2[j]][type2[i]] = '-';
-    }
-    cout << "YES\n";
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            cout << ans[i][j];
-        }
-        cout << "\n";
-    }
-}
-
 int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
     int t;
     cin >> t;
-
     while (t--) {
-        solve();
+        int n;
+        cin >> n;
+        string s;
+        cin >> s;
+        vector<int> idx2;
+        for (int i = 0; i < n; i++) {
+            if (s[i] == '2') idx2.push_back(i);
+        }
+        if (idx2.size() == 1) {
+            cout << "NO" << endl;
+            continue;
+        }
+        cout << "YES" << endl;
+        vector<vector<char>> mat(n, vector<char>(n, '='));
+        for (int i = 0; i < n; i++) mat[i][i] = 'X';
+        for (int i = 0; i < idx2.size(); i++) {
+            int j = (i + 1) % idx2.size();
+            mat[idx2[i]][idx2[j]] = '+';
+            mat[idx2[j]][idx2[i]] = '-';
+        }
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cout << mat[i][j];
+            }
+            cout << endl;
+        }
     }
-
     return 0;
 }
 
 
 
 
-
-It seems that the sample output and the actual output for the 3-rd test case are different, but they are both correct according to the problem statement.
-\(\bullet\) 1-st player (type 2) number of win: 1
-\(\bullet\) 2-nd player (type 1) number of lose:  0
-\(\bullet\) 3-rd player (type 2) number of win: 1
-\(\bullet\) 4-st player (type 2) number of win: 1
-
-
-
-
-
-Let's add a custom corner case, where \(n\) and \(s_i\) are their minimum value: \(n = 2, s_i = 1\).
-<b>Input</b>
-<code>
-1
+3
+3
+111
 2
-11
-</code>
-In this case, there aren't any 2-type players, so according to my algorithm, all games will end in a draw. Therefore, the final answer will be as follows:
-<b>Output</b>
-<code>
-YES
-X=
-=X
-</code>
+21
+4
+2122
+
+
+
+
+The sample test passed, since first and second tests have the same output and in the third test case, player 1, 3 ,4 have at least one win.
+
+Let's test the code against a test when all player want to have at least one win to see if the code handles all the cases.
+
+For example:
+\( n = 4 \)
+\( s = 2222 \)
+
+Any output that each player in it have at least one win is acceptable.
 
 
 
 
 
+Oh my bad looks like I forget to handle some case, when there is two players that needs at least one win, no cycle could be formed.
 
-1
+
+
+
+3
+3
+111
 2
-11
+21
+4
+2122

@@ -1,0 +1,408 @@
+D. Road Improvement
+time limit per test: 2 seconds
+memory limit per test: 256 megabytes
+
+The country has \(n\) cities and \(n - 1\) bidirectional roads, it is possible to get from every city to any other one if you move only along the roads. The cities are numbered with integers from \(1\) to \(n\) inclusive.
+
+All the roads are initially bad, but the government wants to improve the state of some roads. We will assume that the citizens are happy about road improvement if the path from the capital located in city \(x\) to any other city contains at most one bad road.
+
+Your task is — for every possible \(x\) determine the number of ways of improving the quality of some roads in order to meet the citizens' condition. As those values can be rather large, you need to print each value modulo 1 000 000 007 (\(10^9 + 7\)).
+
+Input
+The first line of the input contains a single integer \(n\) (\(2 ≤ n ≤ 2·10^5\)) — the number of cities in the country. Next line contains \(n - 1\) positive integers \(p_2, p_3, p_4, ..., p_n\) (\(1 ≤ p_i ≤ i - 1\)) — the description of the roads in the country. Number \(p_i\) means that the country has a road connecting city \(p_i\) and city \(i\).
+
+Output
+Print \(n\) integers \(a_1, a_2, ..., a_n\), where \(a_i\) is the sought number of ways to improve the quality of the roads modulo 1 000 000 007 (\(10^9 + 7\)), if the capital of the country is at city number \(i\).
+
+
+
+
+For each city \( x \), we need to calculate the number of ways to improve the roads such that the path from \( x \) to any other city contains at most one bad road.
+
+\(\bull\) naive algorithm
+Then, let's iterate through the root candidates \( x \) from 1 to \( n \).
+For each case, we can use dynamic programming. Let \( dp[i] \) represent the number of ways to improve the roads in the subtree rooted at \( i \) such that the path from the subtree root node \( i \) to any other city within the current subtree contains at most one bad road.
+Then, the answer for the case where the root is the \( x \)-th node is \( dp[x] \).
+
+How can we calculate all \( dp[i] \)? It's simple.
+For leaf nodes, it is clear that \( dp[i] = 1 \) (where \( i \) is a leaf node).
+
+The transition will be as follows: for every directed child node \( v \) of node \( u \), there are two possible cases. 
+1) We set the road from \( u \) to \( v \) as a bad edge. In this case, all roads starting from the subtree root node \( u \) to its subtree nodes will include this current bad edge as their first edge, so all roads in subtree \( v \) must consist of only good edges. So there is only one possible way.
+2) We set the road from \( u \) to \( v \) as a good edge. In this case, the number of edge assignments for subtree \( u \) is the same as the number of edge assignments for subtree \( v \), since we have already designated the edge \( (u, v) \) as a good edge. So there are dp[v] possible ways.
+
+Overall, for the edge \( (u, v) \) and the edges in subtree \( v \), there are \( 1 + dp[v] \) possible ways to assign edges. Therefore, \( dp[u] = \prod_v (dp[v] + 1) \) (where \( v \) is a direct child node of \( u \)).
+
+Thus, we can calculate all \( dp[i] \) using the above initialization and transition formula through depth-first search in \( O(n) \).
+
+Thus, the total time complexity is \( O(n^2) \) since we need to calculate all \( dp[i] \) for every root node \( x \) each time.
+
+This is the time limit, as \( n \) can be up to \( 10^5 \), so this naive algorithm exceeds the time limit.
+
+
+\(\bull\) real algorithm
+We don't need to iterate through all root nodes \( x \) from 1 to \( n \); we only need to implement the solution for one root.
+Here, without loss of generality, let's implement it for the root node 1: \( dp[1] \).
+
+Our root node index is 1.
+After the above naive DFS approach, we have calculated all \( dp[i] \) (which represents the number of ways to assign edges in subtree \( i \)).
+
+For non-root node \( i \), if we are going to assign \( dp[i] \) as the answer for root node \( i \), we need to add the remaining part of subtree \( i \) to \( dp[i] \).
+This can be accomplished using a recursive method with DFS, where we will maintain the number of ways to assign edges in the remaining part of subtree \( u \).
+
+Suppose we are at a step for the current subtree \( u \), and the number of ways to assign edges to the rest of subtree \( u \) is \( up(u) \). We denote the current state as \( (u, up(u)) \).
+
+Then, before calling node \( v \) in depth-first search, we only need to calculate \( (u, up(v)) \).
+
+Let's assume that node \( v \) is the \( i \)-th child of node \( u \). We denote \( \text{adj}[u][i] = v \). Then, the \( up(v) \) part (the remaining part of subtree \( v \)) can be represented as follows: 
+
+- The root node is \( u \).
+- The \( up(u) \) part is the directed subtree of \( u \).
+- \( \text{subtree}(\text{adj}[u][0]), \text{subtree}(\text{adj}[u][1]), \ldots, \text{subtree}(\text{adj}[u][i - 1]) \) are the directed subtrees of \( u \).
+- \( \text{subtree}(\text{adj}[u][i + 1]), \text{subtree}(\text{adj}[u][i + 2]), \ldots, \text{subtree}(\text{adj}[u][nn - 1]) \) are also the directed subtrees of \( u \) (where \( nn \) represents the number of child nodes of \( u \)).
+
+Thus, \( up(v) = (up(u) + 1) \times (dp[\text{adj}[u][0]] + 1) \times (dp[\text{adj}[u][1]] + 1) \times \ldots \times (dp[\text{adj}[u][i - 1]] + 1) \times (dp[\text{adj}[u][i + 1]] + 1) \times (dp[\text{adj}[u][i + 2]] + 1) \times \ldots \times (dp[\text{adj}[u][nn - 1]] + 1) \).
+
+As we know all \( (dp[\text{adj}[u][0]] + 1), (dp[\text{adj}[u][1]] + 1), \ldots, (dp[\text{adj}[u][nn - 1]] + 1) \), we can calculate the above formula by initializing all \( \text{left}[0], \text{left}[1], \ldots, \text{left}[nn - 1] \), and all \( \text{right}[0], \text{right}[1], \ldots, \text{right}[nn - 1] \).
+Here, \( \text{left}[i] \) represents \( (dp[\text{adj}[u][0]] + 1) \times (dp[\text{adj}[u][1]] + 1) \times \ldots \times (dp[\text{adj}[u][i]] + 1) \), while \( \text{right}[i] \) represents \( (dp[\text{adj}[u][i]] + 1) \times (dp[\text{adj}[u][i + 1]] + 1) \times \ldots \times (dp[\text{adj}[u][nn - 1]] + 1) \).
+
+If we calculate all of the above in \( O(nn) \), we can compute \( up(v) \) in constant time \( O(1) \) using the following updated formula: 
+\( up(v) = (up(u) + 1) \times \text{left}[i - 1] \times \text{right}[i + 1] \).
+(Here, if either \( \text{left}[i - 1] \) or \( \text{right}[i + 1] \) does not exist, we should exclude it from this formula.)
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+    }
+    return 0;
+}
+
+
+
+
+
+Let's save all edges into the adjacency array \( \text{adj}[i][j] \). (\( \text{adj}[i][j] \) represents the \(j\)-th direct child node of \( i \))
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 202020;
+
+vector<int> adj[NN];
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+        adj[p].push_back(i);
+    }
+    return 0;
+}
+
+
+
+
+
+Let's calculate \( dp[i] \) first. (Here, \( dp[i] \) represents the number of ways to assign edges in subtree \( i \).)
+As mentioned earlier, the initial state is \( dp[i] = 1 \) for leaf nodes, and the transition is given by \( dp[u] = \prod_v (dp[v] + 1) \), where \( v \) is a direct child of \( u \).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, mod = 1e9 + 7;
+
+vector<int> adj[NN];
+
+int dp[NN];
+
+void dfs(int u) {
+    dp[u] = 1;
+    for(int v : adj[u]) {
+        dfs(v);
+        dp[u] = ((INT)dp[u] * (dp[v] + 1) % mod);
+    }
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+        adj[p].push_back(i);
+    }
+    dfs(1);
+    return 0;
+}
+
+
+
+
+
+As we've already calculated all \( dp[i] \) for the case where the root node is 1, we now need to implement the depth-first search function that adds the \( up(i) \) part to \( dp[i] \). (I've mentioned \( up(i) \) in block 1.)
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, mod = 1e9 + 7;
+
+vector<int> adj[NN];
+
+int dp[NN];
+
+void dfs(int u) {
+    dp[u] = 1;
+    for(int v : adj[u]) {
+        dfs(v);
+        dp[u] = ((INT)dp[u] * (dp[v] + 1) % mod);
+    }
+}
+
+void rdfs(int u, int up = 0) {
+    int nn = adj[u].size();
+    
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i];
+        // calculate Up = up(v) here
+        rdfs(v, Up);
+    }
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+        adj[p].push_back(i);
+    }
+    dfs(1);
+    rdfs(1);
+    return 0;
+}
+
+
+
+
+
+First, let's initialize all \( \text{left}[0], \text{left}[1], \ldots, \text{left}[nn - 1] \), and all \( \text{right}[0], \text{right}[1], \ldots, \text{right}[nn - 1] \).
+Here, \( \text{left}[i] \) represents \( (dp[\text{adj}[u][0]] + 1) \times (dp[\text{adj}[u][1]] + 1) \times \ldots \times (dp[\text{adj}[u][i]] + 1) \), while \( \text{right}[i] \) represents \( (dp[\text{adj}[u][i]] + 1) \times (dp[\text{adj}[u][i + 1]] + 1) \times \ldots \times (dp[\text{adj}[u][nn - 1]] + 1) \).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, mod = 1e9 + 7;
+
+vector<int> adj[NN];
+
+int dp[NN];
+
+void dfs(int u) {
+    dp[u] = 1;
+    for(int v : adj[u]) {
+        dfs(v);
+        dp[u] = ((INT)dp[u] * (dp[v] + 1) % mod);
+    }
+}
+
+void rdfs(int u, int up = 0) {
+    int nn = adj[u].size();
+    vector<int> L(nn), R(nn);
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i];
+        L[i] = R[i] = dp[v] + 1;
+    }
+    for(int i = 1; i < nn; i++) L[i] = (INT)L[i - 1] * L[i] % mod;
+    for(int i = nn - 2; i >= 0; i--) R[i] = (INT)R[i + 1] * R[i] % mod;
+    
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i];
+        // calculate Up = up(v) here
+        rdfs(v, Up);
+    }
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+        adj[p].push_back(i);
+    }
+    dfs(1);
+    rdfs(1);
+    return 0;
+}
+
+
+
+
+
+Let's update \( up(v) \) from \( up(u) \) and \( \text{left}[i - 1] \), \( \text{right}[i + 1] \) using the following formula (which I've detailed in block 1): 
+\( up(v) = (up(u) + 1) \times \text{left}[i - 1] \times \text{right}[i + 1] \)
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, mod = 1e9 + 7;
+
+vector<int> adj[NN];
+
+int dp[NN];
+
+void dfs(int u) {
+    dp[u] = 1;
+    for(int v : adj[u]) {
+        dfs(v);
+        dp[u] = ((INT)dp[u] * (dp[v] + 1) % mod);
+    }
+}
+
+void rdfs(int u, int up = 0) {
+    int nn = adj[u].size();
+    vector<int> L(nn), R(nn);
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i];
+        L[i] = R[i] = dp[v] + 1;
+    }
+    for(int i = 1; i < nn; i++) L[i] = (INT)L[i - 1] * L[i] % mod;
+    for(int i = nn - 2; i >= 0; i--) R[i] = (INT)R[i + 1] * R[i] % mod;
+    
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i], Up = up + 1;
+        if(0 <= i - 1) Up = (INT)Up * L[i - 1] % mod;
+        if(i + 1 < nn) Up = (INT)Up * R[i + 1] % mod;
+        dp[v] = (INT)dp[v] * (Up + 1) % mod;
+        rdfs(v, Up);
+    }
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+        adj[p].push_back(i);
+    }
+    dfs(1);
+    rdfs(1);
+    return 0;
+}
+
+
+
+
+
+Since we have updated all \( dp[i] \) as the answer for the root node \( i \), let's print the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 202020, mod = 1e9 + 7;
+
+vector<int> adj[NN];
+
+int dp[NN];
+
+void dfs(int u) {
+    dp[u] = 1;
+    for(int v : adj[u]) {
+        dfs(v);
+        dp[u] = ((INT)dp[u] * (dp[v] + 1) % mod);
+    }
+}
+
+void rdfs(int u, int up = 0) {
+    int nn = adj[u].size();
+    vector<int> L(nn), R(nn);
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i];
+        L[i] = R[i] = dp[v] + 1;
+    }
+    for(int i = 1; i < nn; i++) L[i] = (INT)L[i - 1] * L[i] % mod;
+    for(int i = nn - 2; i >= 0; i--) R[i] = (INT)R[i + 1] * R[i] % mod;
+    
+    for(int i = 0; i < nn; i++) {
+        int v = adj[u][i], Up = up + 1;
+        if(0 <= i - 1) Up = (INT)Up * L[i - 1] % mod;
+        if(i + 1 < nn) Up = (INT)Up * R[i + 1] % mod;
+        dp[v] = (INT)dp[v] * (Up + 1) % mod;
+        rdfs(v, Up);
+    }
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 2; i <= n; i++) {
+        int p; scanf("%d", &p);
+        adj[p].push_back(i);
+    }
+    dfs(1);
+    rdfs(1);
+    
+    for(int i = 1; i <= n; i++) printf("%d ", dp[i]);
+    return 0;
+}
+
+
+
+
+
+3
+1 1
+
+
+
+
+
+5
+1 2 3 4
+
+
+
+
+
+Let's examine a custom corner case where \(n\) is at its minimum value: \(n = 2\).
+
+2
+1
+
+In the case where \(n = 2\), there are two cities connected by one road.
+For each city, there are two ways to improve the road: either improve the road or leave it bad, leading to the output "2 2" for both cities, as both configurations satisfy the condition of having at most one bad road on the path to any other city.
+
+
+
+
+2
+1

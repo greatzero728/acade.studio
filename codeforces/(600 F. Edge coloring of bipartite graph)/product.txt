@@ -1,0 +1,306 @@
+<b>Edge coloring of bipartite graph</b>
+time limit per test: 1 second
+memory limit per test: 256 megabytes
+
+You are given an undirected bipartite graph without multiple edges. You should paint the edges of graph to minimal number of colours, so that no two adjacent edges have the same colour.
+
+
+<b>Input</b>
+The first line contains three integers \(a, b, m\) (\(1 \le a, b \le 1000\), \(0 \le m \le 10^5\)), \(a\) is the size of the first part, \(b\) is the size of the second part, \(m\) is the number of edges in the graph.
+
+Each of the next \(m\) lines contains two integers \(x, y\) (\(1 \le x \le a, 1 \le y \le b\)), where \(x\) is the number of the vertex in the first part and \(y\) is the number of the vertex in the second part. It is guaranteed that there are no multiple edges.
+
+<b>Output</b>
+In the first line print integer \(c\) --- the minimal number of colours. The second line should contain \(m\) integers from \(1\) to \(c\) --- the colours of the edges (in the order they appear in the input).
+
+If there are several solutions, you can print any one of them.
+
+
+
+
+The naive solution would involve iterating number of colors to color the edges with and checking if a particular number of colors can be used to color all edges without conflicts. This would involve generating all possible combinations of color assignments for the edges and then verifying if any of these combinations result in a valid coloring — meaning no two edges sharing a vertex have the same color. However, this approach would be extremely slow because it requires checking every possible combination of colors for all edges, which grows exponentially as the number of edges and colors increases, making it computationally infeasible for larger graphs.
+
+Vizing's Theorem states that any simple undirected graph can be edge-colored using either
+\(\Delta\) or \(\Delta + 1\) colors, where \(\Delta\) is the maximum degree of the graph.
+
+König’s Line Coloring Theorem: In any bipartite graph, the edge chromatic number \(\chi’(G)\) is exactly equal to the maximum degree \(\Delta\).
+
+This means that for bipartite graphs, you never need more than \(\Delta\) colors to achieve a proper edge coloring. There’s no scenario in a bipartite graph that forces you to use \(\Delta + 1\) colors.
+
+Key Takeaway: For a bipartite graph, the minimal number of colors needed to edge-color the graph without conflicts is equal to the maximum degree \(d\) of the graph.
+
+so for every vertex we are going to store for each color the edge which was colored with that color this way we can store and quickly check which colors are currently in use by the edges incident to a vertex. This allows us to efficiently find an available color when we are processing a new edge. Specifically, for each vertex \(v\), we maintain an array or a list where each entry corresponds to a color. If a color is already used by one of \(v\)’s edges, the array entry will store the neighboring vertex that shares this edge. If no edge at \(v\) uses a particular color, the corresponding entry remains equal to <b>0</b>.
+
+When we process a new edge \((u, v)\), we can quickly scan these arrays for both \(u\) and \(v\) to find the smallest available color that neither vertex is currently using. If such a color exists, we assign it to the edge. However, we may encounter a conflict, where both \(u\) and \(v\) require different colors. In this case, we use the alternating paths technique to resolve the conflict by swapping colors along an alternating path. This ensures that the edge can still be colored with one of the \(Δ\) available colors without violating the edge coloring constraints.
+
+Now let's take the input and calculate the number of colors needed.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+    int a,b,m;
+    cin >> a >> b >> m;
+    vector<int> A(m + 5), B(m + 5);
+    vector<int> d(a + b + 5);
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        cin >> u >> v;
+        v +=a;
+        A[i] = u;
+        B[i] = v;
+        d[u]++;
+        d[v]++;
+    }
+    int ans = 0;
+    for(int i= 1;i<=a+b;i++) {
+        ans = max(ans, d[i]);
+    }
+    cout << ans << endl;
+    
+    
+    return 0;
+}
+
+
+
+
+
+Now that we have determined the maximum degree \(d\) of the graph, we need to proceed with assigning colors to the edges.
+
+To do this, we will create an array called `nxt` to store the other vertex connected to a given vertex by an edge with a specific color. This will help us track which colors are in use for each vertex.
+
+For each edge, as we iterate through them, we will find the smallest color that is not currently used at either of its endpoints. If the smallest available color is the same for both endpoints, we assign that color to the edge. This ensures the edge is colored without conflicts, following the rule that no two adjacent edges share the same color.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+    int a,b,m;
+    cin >> a >> b >> m;
+    vector<int> A(m + 5), B(m + 5);
+    vector<int> d(a + b + 5);
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        cin >> u >> v;
+        v +=a;
+        A[i] = u;
+        B[i] = v;
+        d[u]++;
+        d[v]++;
+    }
+    int ans = 0;
+    for(int i= 1;i<=a+b;i++) {
+        ans = max(ans, d[i]);
+    }
+    cout << ans << endl;
+    int nxt[a + b + 5][ans + 5] = {};
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        u = A[i];
+        v = B[i];
+        int color1 = 1;
+        int color2 = 1;
+        while(nxt[u][color1]) color1++;
+        while(nxt[v][color2]) color2++;
+
+        nxt[u][color1] = v;
+        nxt[v][color2] = u;
+
+        if(color1 == color2) continue;
+    }
+    return 0;
+}
+
+
+
+
+If the two colors are different, this indicates a conflict, and we need to free one of the colors at both endpoints of the edge. To resolve this, we choose one of the endpoints and a color that we want to free. We then start a process to rearrange the existing color assignments, ensuring that this chosen color becomes available for the edge.
+
+To achieve this, we will select one of the endpoints (let's call it v) and begin by freeing the color at that vertex. We will replace the current edge colored with the conflicting color (let’s say color1) by swapping it with the alternate color (color2). This swapping process starts at v and follows an alternating path of edges, switching the colors along the way.
+
+As we move along the alternating path, we continue swapping colors at each vertex encountered. The goal is to propagate the color change through the path until we reach a point where one of the two colors is no longer used, effectively freeing up the desired color at the original endpoint. Once this is done, we can assign the now available color to the edge, resolving the conflict and ensuring that no two adjacent edges share the same color.
+
+Because the graph is bipartite this is guaranteed to work because maximum degree colors is enough to have a proper edge coloring for bipartite graphs.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+    int a,b,m;
+    cin >> a >> b >> m;
+    vector<int> A(m + 5), B(m + 5);
+    vector<int> d(a + b + 5);
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        cin >> u >> v;
+        v +=a;
+        A[i] = u;
+        B[i] = v;
+        d[u]++;
+        d[v]++;
+    }
+    int ans = 0;
+    for(int i= 1;i<=a+b;i++) {
+        ans = max(ans, d[i]);
+    }
+    cout << ans << endl;
+    int nxt[a + b + 5][ans + 5] = {};
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        u = A[i];
+        v = B[i];
+        int color1 = 1;
+        int color2 = 1;
+        while(nxt[u][color1]) color1++;
+        while(nxt[v][color2]) color2++;
+
+        nxt[u][color1] = v;
+        nxt[v][color2] = u;
+
+        if(color1 == color2) continue;
+        
+        for(int color = color1,node = v ; node != 0; color = (color == color1 ? color2 : color1), node = nxt[node][color]) {
+            swap(nxt[node][color1], nxt[node][color2]);
+        }
+        
+    }
+    return 0;
+}
+
+
+
+
+We need to output the colors assigned to each edge. To do this, we'll iterate over the edges again and find the color assigned to each edge by checking the `nxt` array. For each edge, we'll output the color that corresponds to the other endpoint in the `nxt` array.
+
+Let's use a simple loop to iterate over the edges and output the colors.
+
+We will print the sequence of colors for each of the m edges to the output.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+    int a,b,m;
+    cin >> a >> b >> m;
+    vector<int> A(m + 5), B(m + 5);
+    vector<int> d(a + b + 5);
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        cin >> u >> v;
+        v +=a;
+        A[i] = u;
+        B[i] = v;
+        d[u]++;
+        d[v]++;
+    }
+    int ans = 0;
+    for(int i= 1;i<=a+b;i++) {
+        ans = max(ans, d[i]);
+    }
+    cout << ans << endl;
+    int nxt[a + b + 5][ans + 5] = {};
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        u = A[i];
+        v = B[i];
+        int color1 = 1;
+        int color2 = 1;
+        while(nxt[u][color1]) color1++;
+        while(nxt[v][color2]) color2++;
+
+        nxt[u][color1] = v;
+        nxt[v][color2] = u;
+
+        if(color1 == color2) continue;
+        
+        for(int color = color1,node = v ; node != 0; color = (color == color1 ? color2 : color1), node = nxt[node][color]) {
+            swap(nxt[node][color1], nxt[node][color2]);
+        }
+        
+    }
+    
+    for(int i = 0;i<m;i++) {
+        int u,v;
+        u = A[i];
+        v = B[i];
+        for(int color = 1; color <= ans; color++) {
+            if(nxt[u][color] == v) {
+                cout << color << " ";
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+
+
+
+4 3 5
+1 2
+2 2
+3 2
+4 1
+4 3
+
+
+
+
+For the left-side vertices:
+
+Vertex 1 has only one edge, (1,2), which is colored with color 2. No conflict.
+Vertex 2 has only one edge, (2,2), which is colored with color 3. No conflict.
+Vertex 3 has only one edge, (3,2), which is colored with color 1. No conflict.
+Vertex 4 has two edges:
+(4,1) — Color 1.
+(4,3) — Color 2.
+Both edges have different colors, so no conflict here.
+
+For the right-side vertices:
+
+Vertex 1 has only one edge, (4,1), which is colored with color 1. No conflict.
+Vertex 2 has three edges:
+(1,2) — Color 2.
+(2,2) — Color 3.
+(3,2) — Color 1.
+All three edges have different colors, so no conflict here.
+Vertex 3 has only one edge, (4,3), which is colored with color 2. No conflict.
+
+so this output is correct.
+
+
+
+
+Let's try a test with minimum constraints to test corner cases.
+
+<code>
+1 1 0
+</code>
+
+the output should be
+
+<code>
+0
+</code>
+
+because the maximum degree is 0 and there no edges to output the color for.
+
+
+
+
+
+1 1 0

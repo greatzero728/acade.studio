@@ -1,0 +1,446 @@
+E. Binary Tree on Plane
+time limit per test: 3 seconds
+memory limit per test: 256 megabytes
+
+A root tree is a directed acyclic graph that contains one node (root), from which there is exactly one path to any other node.
+
+A root tree is binary if each node has at most two outgoing arcs.
+
+When a binary tree is painted on the plane, all arcs should be directed from top to bottom. That is, each arc going from \(u\) to \(v\) must meet the condition \(y_u > y_v\).
+
+You've been given the coordinates of all tree nodes. Your task is to connect these nodes by arcs so as to get the binary root tree and make the total length of the arcs minimum. All arcs of the built tree must be directed from top to bottom.
+
+Input
+The first line contains a single integer \(n (2 ≤ n ≤ 400)\) — the number of nodes in the tree. Then follow \(n\) lines, two integers per line: \(x_i, y_i (|x_i|, |y_i| ≤ 10^3)\) — coordinates of the nodes. It is guaranteed that all points are distinct.
+
+Output
+If it is impossible to build a binary root tree on the given points, print "-1". Otherwise, print a single real number — the total length of the arcs in the minimum binary tree. The answer will be considered correct if the absolute or relative error doesn't exceed \(10 ^ {- 6}\).
+
+
+
+
+\(\bullet\) Naive Approach  
+We can generate all possible trees by recursively trying to connect nodes, resulting in an exponential number of configurations.
+Given that each node can connect to at most two children and there are \( n \) nodes, the number of potential trees grows rapidly.
+Additionally, for each configuration, calculating the total length of arcs adds further computational overhead.
+
+This exhaustive search approach easily exceeds the time limit, especially as \( n \) approaches its upper bound of 400.
+Consequently, it becomes impractical to find a solution within the provided constraints.
+
+It is somewhat challenging to confirm the time complexity of iterating through all possible trees; however, it is evident that it is greater than \((n - 1)!\).
+Here’s the reasoning: consider the case where all nodes are aligned along the y-axis.
+In this scenario, there is only one candidate for the root node (the topmost point).
+When considering the second highest point, we need to add an edge from one parent to the current node, and there is only one parent candidate: the root node.
+For the third highest point, there are two parent candidates.
+...
+Thus, as we add the \( i \)-th highest point to the current tree, there are \( (i - 1) \) possible parent candidates.
+Therefore, we can conclude that the number of trees is at least \((n - 1)!\).
+
+Thus, there are at least \((n - 1)!\) trees in any case.
+It is impossible to iterate through all possible trees, as \( n \) can be up to 400.
+
+Hence, this naive algorithm is a time limit-exceeding approach.
+
+
+
+
+\(\bull\) Real Approach
+Let's consider a directed tree that meets the problem's requirements. This means that if we add the binary tree attribute (where the maximum number of children is 2), this tree should be transformed into a valid binary tree.
+
+Let's denote the index of the root node of node \( u \) as \( p[u] \).
+Then, according to the problem's requirements, there is a directed edge from \( p[u] \) to \( u \).
+
+So, we can consider this scenario:
+We will split all nodes into floor nodes and ceil nodes. For the edge \( (p[u], u) \), we add a directed edge from the ceil node of \( p[u] \) to the floor node of \( u \).
+Thus, there are \( n - 1 \) directed edges in our tree, meaning that from the floor \( n \) nodes to the ceil \( n \) nodes, \( n - 1 \) directed edges will exist.
+
+This means we can build a flow system.
+Let's add all possible directed edges from ceil nodes to floor nodes. For every pair \( (i, j) \), if \( y_i > y_j \), we can add a directed edge from the \( i \)-th node to the \( j \)-th node with  1.
+Then, we will add a directed edge from the ceil node of the \( i \)-th node to the floor node of the \( j \)-th node with capacity 1.
+Now, we have added all possible candidate edges to this flow system.
+Next, let's create a source and a target node, adding edges with capacity \(\infty\) from the source to all ceil nodes and from all floor nodes to the target with capacity 1.
+
+It is obvious that the maximum flow of this flow system is \( n - 1 \) because there is no parent for the root node, as there are no edges coming into the root node.
+If such a flow passes, it means we have formed one tree, as each edge that the flow traverses represents a directed edge of the tree.
+
+Now, if we add cost for each edge(the distance between two nodes), and get the min cost about max flow then that will be the answer.
+
+However, we have one missing part. The valid tree is not a general tree; it should be a binary tree.
+
+How can we transform the tree obtained from the history of flow passes into a binary tree?
+It's simple.
+We have added edges with capacity \(\infty\) from the source to all ceil nodes, allowing parent nodes to have an infinite number of children.
+If we change this capacity from \(\infty\) to 2, then each parent node will only have two children.
+
+Now, we only need to calculate the minimum cost of the maximum flow for the newly updated flow system.
+This cost represents the minimum expense to construct the binary tree, so this will be the answer.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using DO = double;
+
+const int NN = 808;
+
+DO x[NN], y[NN];
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 0; i < n; i++) scanf("%lf %lf", x + i, y + i);
+}
+
+
+
+
+We need to use the minimum cost maximum flow algorithm for this problem, as mentioned in block 2, so let's use the template code for the minimum cost maximum flow.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using DO = double;
+using pid = pair<int, DO>;
+using pdi = pair<DO, int>;
+
+#define PQ priority_queue<pdi, vector<pdi>, greater<pdi> >
+
+const DO inf = 1e9;
+const int NN = 808, MM = 171717;
+
+DO x[NN], y[NN];
+
+struct mcmf {
+	PQ q;
+	int pv[NN], pe[NN], nxt[MM], to[MM];
+	int V, E, head[NN], cap[MM];
+    DO cost[MM], d[NN], k[NN];
+	
+	void add(int u, int v, int f, DO c) {
+		cap[E] = f, cost[E] = c, to[E] = v, nxt[E] = head[u], head[u] = E++;
+		cap[E] = 0, cost[E] = -c, to[E] = u, nxt[E] = head[v], head[v] = E++;
+	}
+	pid minCost(int s, int t, int x) { //max_flow <= x
+		int u, e, i = V, f = 0;
+        DO c = 0, g;
+		while(k[i] = 0, i--);
+		while(x) {
+			q = PQ(), i = V;
+			while(d[i] = inf, i--);
+			q.push({d[s] = 0, s});
+			while(!q.empty()) {
+				g = q.top().x, u = q.top().y, q.pop();
+				if(d[u] >= g) for(e = head[u]; ~e; e = nxt[e]) if(cap[e]) {
+					g = d[u] + cost[e] + k[u] - k[i = to[e]];
+					if(d[i] > g) pv[i] = u, pe[i] = e, q.push({d[i] = g, i});
+				}
+			}
+			if(d[u = t] == inf) break;
+			i = V, e = x;
+			while(k[i] += d[i], i--);
+			for(; u ^ s; u = pv[u]) if(cap[pe[u]] < e) e = cap[pe[u]];
+			x -= e, f += e, c += e * k[u = t];
+			while(u ^ s) cap[pe[u]] -= e, cap[pe[u] ^ 1] += e, u = pv[u];
+		}
+		return {f, c};
+	}
+	void init(int n) {
+		V = E = n + 1;
+		while(head[--E] = -1, E);
+	}
+} mc;
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 0; i < n; i++) scanf("%lf %lf", x + i, y + i);
+}
+
+
+
+
+Let's create a source node and a target node.
+Then, according to the idea in block 2, let's add edges from the source node to all ceil nodes with a capacity of 2 and a cost of 0, and add edges from all floor nodes to the target node with a capacity of 1 and a cost of 0.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using DO = double;
+using pid = pair<int, DO>;
+using pdi = pair<DO, int>;
+
+#define PQ priority_queue<pdi, vector<pdi>, greater<pdi> >
+
+const DO inf = 1e9;
+const int NN = 808, MM = 171717;
+
+DO x[NN], y[NN];
+
+struct mcmf {
+	PQ q;
+	int pv[NN], pe[NN], nxt[MM], to[MM];
+	int V, E, head[NN], cap[MM];
+    DO cost[MM], d[NN], k[NN];
+	
+	void add(int u, int v, int f, DO c) {
+		cap[E] = f, cost[E] = c, to[E] = v, nxt[E] = head[u], head[u] = E++;
+		cap[E] = 0, cost[E] = -c, to[E] = u, nxt[E] = head[v], head[v] = E++;
+	}
+	pid minCost(int s, int t, int x) { //max_flow <= x
+		int u, e, i = V, f = 0;
+        DO c = 0, g;
+		while(k[i] = 0, i--);
+		while(x) {
+			q = PQ(), i = V;
+			while(d[i] = inf, i--);
+			q.push({d[s] = 0, s});
+			while(!q.empty()) {
+				g = q.top().x, u = q.top().y, q.pop();
+				if(d[u] >= g) for(e = head[u]; ~e; e = nxt[e]) if(cap[e]) {
+					g = d[u] + cost[e] + k[u] - k[i = to[e]];
+					if(d[i] > g) pv[i] = u, pe[i] = e, q.push({d[i] = g, i});
+				}
+			}
+			if(d[u = t] == inf) break;
+			i = V, e = x;
+			while(k[i] += d[i], i--);
+			for(; u ^ s; u = pv[u]) if(cap[pe[u]] < e) e = cap[pe[u]];
+			x -= e, f += e, c += e * k[u = t];
+			while(u ^ s) cap[pe[u]] -= e, cap[pe[u] ^ 1] += e, u = pv[u];
+		}
+		return {f, c};
+	}
+	void init(int n) {
+		V = E = n + 1;
+		while(head[--E] = -1, E);
+	}
+} mc;
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 0; i < n; i++) scanf("%lf %lf", x + i, y + i);
+    
+    int src = 2 * n, tar = 2 * n + 1;
+    mc.init(tar);
+    for(int p = n; p < 2 * n; p++) mc.add(src, p, 2, 0);
+    for(int u = 0; u < n; u++) mc.add(u, tar, 1, 0);
+}
+
+
+
+
+For every possible edge \( (p \to u) \) (where \( y_p > y_u \)), let's add an edge with a capacity of 1 and a cost equal to the weight of the edge \( (p, u) \) (which represents the Euclidean distance between points \( p \) and \( u \)).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using DO = double;
+using pid = pair<int, DO>;
+using pdi = pair<DO, int>;
+
+#define PQ priority_queue<pdi, vector<pdi>, greater<pdi> >
+
+const DO inf = 1e9;
+const int NN = 808, MM = 171717;
+
+DO x[NN], y[NN];
+
+struct mcmf {
+	PQ q;
+	int pv[NN], pe[NN], nxt[MM], to[MM];
+	int V, E, head[NN], cap[MM];
+    DO cost[MM], d[NN], k[NN];
+	
+	void add(int u, int v, int f, DO c) {
+		cap[E] = f, cost[E] = c, to[E] = v, nxt[E] = head[u], head[u] = E++;
+		cap[E] = 0, cost[E] = -c, to[E] = u, nxt[E] = head[v], head[v] = E++;
+	}
+	pid minCost(int s, int t, int x) { //max_flow <= x
+		int u, e, i = V, f = 0;
+        DO c = 0, g;
+		while(k[i] = 0, i--);
+		while(x) {
+			q = PQ(), i = V;
+			while(d[i] = inf, i--);
+			q.push({d[s] = 0, s});
+			while(!q.empty()) {
+				g = q.top().x, u = q.top().y, q.pop();
+				if(d[u] >= g) for(e = head[u]; ~e; e = nxt[e]) if(cap[e]) {
+					g = d[u] + cost[e] + k[u] - k[i = to[e]];
+					if(d[i] > g) pv[i] = u, pe[i] = e, q.push({d[i] = g, i});
+				}
+			}
+			if(d[u = t] == inf) break;
+			i = V, e = x;
+			while(k[i] += d[i], i--);
+			for(; u ^ s; u = pv[u]) if(cap[pe[u]] < e) e = cap[pe[u]];
+			x -= e, f += e, c += e * k[u = t];
+			while(u ^ s) cap[pe[u]] -= e, cap[pe[u] ^ 1] += e, u = pv[u];
+		}
+		return {f, c};
+	}
+	void init(int n) {
+		V = E = n + 1;
+		while(head[--E] = -1, E);
+	}
+} mc;
+
+DO dist(int p, int u) {
+    return sqrt((x[p] - x[u]) * (x[p] - x[u]) + (y[p] - y[u]) * (y[p] - y[u]));
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 0; i < n; i++) scanf("%lf %lf", x + i, y + i);
+    
+    int src = 2 * n, tar = 2 * n + 1;
+    mc.init(tar);
+    for(int p = n; p < 2 * n; p++) mc.add(src, p, 2, 0);
+    for(int p = n; p < 2 * n; p++) {
+        for(int u = 0; u < n; u++) if(y[p % n] > y[u]) {
+            mc.add(p, u, 1, dist(p % n, u));
+        }
+    }
+    for(int u = 0; u < n; u++) mc.add(u, tar, 1, 0);
+}
+
+
+
+
+As we have built the flow system, we now only need to calculate the minimum cost of the maximum flow.
+If the maximum flow isn't \( n-1 \), it means we can't construct a valid binary tree with the current nodes.
+If the maximum flow is \( n-1 \), it indicates that we have already built a valid binary tree, and in this case, the minimum cost will be the optimal minimum cost among all possible valid binary trees.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using DO = double;
+using pid = pair<int, DO>;
+using pdi = pair<DO, int>;
+
+#define PQ priority_queue<pdi, vector<pdi>, greater<pdi> >
+
+const DO inf = 1e9;
+const int NN = 808, MM = 171717;
+
+DO x[NN], y[NN];
+
+struct mcmf {
+	PQ q;
+	int pv[NN], pe[NN], nxt[MM], to[MM];
+	int V, E, head[NN], cap[MM];
+    DO cost[MM], d[NN], k[NN];
+	
+	void add(int u, int v, int f, DO c) {
+		cap[E] = f, cost[E] = c, to[E] = v, nxt[E] = head[u], head[u] = E++;
+		cap[E] = 0, cost[E] = -c, to[E] = u, nxt[E] = head[v], head[v] = E++;
+	}
+	pid minCost(int s, int t, int x) { //max_flow <= x
+		int u, e, i = V, f = 0;
+        DO c = 0, g;
+		while(k[i] = 0, i--);
+		while(x) {
+			q = PQ(), i = V;
+			while(d[i] = inf, i--);
+			q.push({d[s] = 0, s});
+			while(!q.empty()) {
+				g = q.top().x, u = q.top().y, q.pop();
+				if(d[u] >= g) for(e = head[u]; ~e; e = nxt[e]) if(cap[e]) {
+					g = d[u] + cost[e] + k[u] - k[i = to[e]];
+					if(d[i] > g) pv[i] = u, pe[i] = e, q.push({d[i] = g, i});
+				}
+			}
+			if(d[u = t] == inf) break;
+			i = V, e = x;
+			while(k[i] += d[i], i--);
+			for(; u ^ s; u = pv[u]) if(cap[pe[u]] < e) e = cap[pe[u]];
+			x -= e, f += e, c += e * k[u = t];
+			while(u ^ s) cap[pe[u]] -= e, cap[pe[u] ^ 1] += e, u = pv[u];
+		}
+		return {f, c};
+	}
+	void init(int n) {
+		V = E = n + 1;
+		while(head[--E] = -1, E);
+	}
+} mc;
+
+DO dist(int p, int u) {
+    return sqrt((x[p] - x[u]) * (x[p] - x[u]) + (y[p] - y[u]) * (y[p] - y[u]));
+}
+
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 0; i < n; i++) scanf("%lf %lf", x + i, y + i);
+    
+    int src = 2 * n, tar = 2 * n + 1;
+    mc.init(tar);
+    for(int p = n; p < 2 * n; p++) mc.add(src, p, 2, 0);
+    for(int p = n; p < 2 * n; p++) {
+        for(int u = 0; u < n; u++) if(y[p % n] > y[u]) {
+            mc.add(p, u, 1, dist(p % n, u));
+        }
+    }
+    for(int u = 0; u < n; u++) mc.add(u, tar, 1, 0);
+    
+    pid ans = mc.minCost(src, tar, n - 1);
+    if(ans.x == n - 1) printf("%.15lf\n", ans.y);
+    else puts("-1");
+}
+
+
+
+
+3
+0 0
+1 0
+2 1
+
+
+
+
+4
+0 0
+1 0
+2 1
+2 0
+
+
+
+
+Let's examine a custom corner case where \(n\) is at its minimum value, and all \(y_i\) are the same: \(n = 2, \text{all}\ y_i\ \text{are the same}\).
+
+2
+0 0
+1 0
+
+It is impossible to construct a valid binary tree with the given nodes since both nodes have the same \(y\)-coordinate.
+Adding a directed edge between node 1 and node 2 would violate the requirement that arcs must be directed from a higher \(y\) value to a lower \(y\) value.
+Therefore, no valid directed edges are possible between the nodes, and the answer for this test case will be "-1".
+
+
+
+
+2
+0 0
+1 0

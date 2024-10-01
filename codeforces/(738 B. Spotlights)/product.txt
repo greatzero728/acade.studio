@@ -1,0 +1,162 @@
+<b>Spotlights
+time limit per test: 1 second
+memory limit per test: 256 megabytes</b>
+
+Theater stage is a rectangular field of size \(n \times m\). The director gave you the stage's plan which actors will follow. For each cell it is stated in the plan if there would be an actor in this cell or not.
+
+You are to place a spotlight on the stage in some good position. The spotlight will project light in one of the four directions (if you look at the stage from above)— left, right, up or down. Thus, the spotlight's position is a cell it is placed to and a direction it shines.
+
+A position is good if two conditions hold:
+• there is no actor in the cell the spotlight is placed to;
+• there is at least one actor in the direction the spotlight projects.
+
+Count the number of good positions for placing the spotlight. Two positions of spotlight are considered to be different if the location cells or projection direction differ.
+
+<b>Input</b>
+The first line contains two positive integers \(n\) and \(m\) (\(1 \le n,m \le 1000\))— the number of rows and the number of columns in the plan.
+
+The next \(n\) lines contain \(m\) integers, \(0\) or \(1\) each— the description of the plan. Integer \(1\), means there will be an actor in the corresponding cell, while \(0\) means the cell will remain empty. It is guaranteed that there is at least one actor in the plan.
+
+<b>Output</b>
+Print one integer— the number of good positions for placing the spotlight.
+
+<b>Note</b>
+In the first example the following positions are good:
+
+• the (1, 1) cell and right direction;
+• the (1, 1) cell and down direction;
+• the (1, 3) cell and left direction;
+• the (1, 3) cell and down direction;
+• the (1, 4) cell and left direction;
+• the (2, 2) cell and left direction;
+• the (2, 2) cell and up direction;
+• the (2, 2) and right direction;
+• the (2, 4) cell and left direction.
+
+Therefore, there are \(9\) good positions in this example.
+
+
+
+
+The naive solution will be looping on each empty cell, where we could check in all four directions (up, down, left, right) whether there is at least one actor. This would involve checking each row and column from the position of the spotlight, which can result in \(O(n \times m \times (n + m))\) time complexity. This is inefficient for larger grids, especially since \(n\) and \(m\) can be as large as 1000.
+
+Instead of checking every direction for each cell individually, we can preprocess the grid to know whether there are any actors in each direction for any given cell. This will reduce the time complexity to \(O(n \times m)\).
+
+1. <b>Preprocess the Grid</b>:
+- Create four auxiliary grids to store whether there is an actor in any of the four directions (left, right, up, down) for each cell.
+- For each row, scan from left to right to fill the \(left\) array and from right to left to fill the \(right\) array.
+- For each column, scan from top to bottom to fill the \(up\) array and from bottom to top to fill the \(down\) array.
+
+2. <b>Check for Good Positions:</b>
+- For each empty cell, check whether there is at least one actor in any of the four directions using the precomputed arrays.
+
+Now let's implement this:
+
+
+
+
+#include <iostream>
+#include <vector>
+
+int main() {
+    int n, m;
+    std::cin >> n >> m;
+
+    std::vector<std::vector<int>> grid(n, std::vector<int>(m));
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            std::cin >> grid[i][j];
+        }
+    }
+
+    int goodPositions = 0;
+
+    std::vector<std::vector<int>> left(n, std::vector<int>(m));
+    std::vector<std::vector<int>> right(n, std::vector<int>(m));
+    std::vector<std::vector<int>> up(n, std::vector<int>(m));
+    std::vector<std::vector<int>> down(n, std::vector<int>(m));
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j] == 1) {
+                left[i][j] = right[i][j] = up[i][j] = down[i][j] = 1;
+                for (int k = j - 1; k >= 0; k--) {
+                    if (left[i][k] == 0) {
+                        left[i][k] = 1;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = j + 1; k < m; k++) {
+                    if (right[i][k] == 0) {
+                        right[i][k] = 1;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = i - 1; k >= 0; k--) {
+                    if (up[k][j] == 0) {
+                        up[k][j] = 1;
+                    } else {
+                        break;
+                    }
+                }
+                for (int k = i + 1; k < n; k++) {
+                    if (down[k][j] == 0) {
+                        down[k][j] = 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j] == 0) {
+                goodPositions += left[i][j] + right[i][j] + up[i][j] + down[i][j];
+            }
+        }
+    }
+
+    std::cout << goodPositions << std::endl;
+
+    return 0;
+}
+
+
+
+
+2 4
+0 1 0 0
+1 0 1 0
+
+
+
+
+4 4
+0 0 0 0
+1 0 0 1
+0 1 1 0
+0 1 0 0
+
+
+
+
+The code works correctly against the sample test cases, Now let's test it against some custom test case with minimal constraints as a corner case.
+
+<b>Test Case</b>
+<code>1 1
+1</code>
+
+<b>Expected Output</b>
+<code>0</code>
+
+<b>Explanation:</b> Since the only cell in the grid is occupied by an actor, there is no empty cell where we can place the spotlight. As a result, there are no valid "good positions" where the spotlight can be placed.
+
+
+
+
+1 1
+1
