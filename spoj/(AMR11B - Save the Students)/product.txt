@@ -1,0 +1,196 @@
+AMR11B - Save the Students
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Hogwarts is under attack by the Dark Lord, He-Who-Must-Not-Be-Named. To protect the students, Harry Potter must cast protective spells so that those who are protected by the spells cannot be attacked by the Dark Lord.
+
+Harry has asked all the students to gather on the vast quidditch sports field so that he can cast his spells.  The students are standing in a 2D plane at all grid points - these are the points (x,y) such that both x and y are integers (positive, negative or 0). Harry's spell can take the shapes of triangle, circle or square, and all who fall within that shape (including its boundaries) are protected.
+
+Given the types of spells and the details regarding where Harry casts the spell, output the number of people saved by Harry's spells.
+
+ 
+
+Input (STDIN):
+
+The first line contains the number of test cases T. T test cases follow.
+
+Each case contains an integer N on the first line, denoting the number of spells Harry casts. N lines follow, each containing the description of a spell.
+
+If the ith spell is a triangle, then the line will be of the form "T x1 y1 x2 y2 x3 y3". Here, (x1,y1), (x2,y2) and (x3,y3) are the coordinates of the vertices of the triangle.
+
+If the ith spell is a circle, then the line will be of the form "C x y r". Here, (x,y) is the center and r is the radius of the circle.
+
+If the ith spell is a square, then the line will be of the form "S x y l". Here, (x,y) denotes the coordinates of the bottom-left corner of the square (the corner having the lowest x and y values) and l is the length of each side.
+
+ 
+
+Output (STDOUT):
+
+Output T lines, one for each test case, denoting the number of people Harry can save.
+
+ 
+
+Constraints:
+
+All numbers in the input are integers between 1 and 50, inclusive.
+
+The areas of all geometric figures will be > 0.
+
+
+
+
+\(\bullet\) Naive algorithm  
+We can iterate through all grid points within the range of -50 to 100, as all numbers in the input are integers between 1 and 50.
+The explanation about range of -50 to 100:
+- In cases where Harry's cast is a circle, we should also check the negative coordinate points; for example, if the cast is C 0 0 50, points like (-50, 0) and (0, -50) are inside the circle.
+- In cases where Harry's cast is a square, we should also check the range of 50 to 100; for example, if the cast is S 50 50 50, then points like (100, 100) and (100, 50) are inside the square.
+
+For each spell cast by Harry, which can be a triangle, circle, or square, we can check if each grid point lies within the boundaries of the shape.
+- For triangles, if the cast is triangle(A, B, C), we can easily check if point P is inside the triangle by verifying that area(A, B, C) equals area(P, A, B) plus area(P, A, C) plus area(P, B, C).
+- For circles, if the distance from the center is less than or equal to the radius, the point is inside the circle.
+- For squares, if a square is defined by its bottom-left corner coordinates (x, y) and a side length \( l \), a point \( P(px, py) \) is considered inside the square if \( x \leq px \leq x + l \) and \( y \leq py \leq y + l \).
+
+This approach efficiently determines the total number of students saved without exceeding time limits, as all coordinates have small constraints.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int T; scanf("%d", &T);
+    while(T--) {
+        int N; scanf("%d", &N);
+        while(N--) {
+            char tp; scanf(" %c", &tp);
+            if(tp == 'T') {
+                int x1, y1, x2, y2, x3, y3; scanf("%d %d %d %d %d %d", &x1, &y1, &x2, &y2, &x3, &y3);
+            }
+            else if(tp == 'C') {
+                int x, y, r; scanf("%d %d %d", &x, &y, &r);
+            }
+            else {
+                int x, y, l; scanf("%d %d %d", &x, &y, &l);
+            }
+        }
+    }
+}
+
+
+
+
+Now that we have a code to read the data, we should implement the logic for calculating the area of the shapes and determining if a point is inside a shape. We can define a function for each shape to check if a point is inside. We can then use these functions to count the number of points inside each shape.
+
+Let's start by implementing the function for the circle. The distance between two points (x1, y1) and (x2, y2) is given by \( \sqrt{(x2-x1)^2 + (y2-y1)^2} \). If this distance is less than or equal to the radius, the point is inside the circle.
+
+Next, we can implement the function for the square. A point (px, py) is inside a square defined by its bottom-left corner (x, y) and side length l if \( x \leq px \leq x + l \) and \( y \leq py \leq y + l \).
+
+Finally, we can implement the function for the triangle. We can use the shoelace formula to calculate the area of the triangle, which is \( \frac{1}{2} |x1(y2 - y3) + x2(y3 - y1) + x3(y1 - y2)| \). If the area of the triangle formed by the point and two vertices of the triangle is equal to the area of the triangle, the point is inside the triangle.
+
+We can then use these functions to count the number of points inside each shape and output the result.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+bool isInsideCircle(Point p, Point c, int r) {
+    return (p.x - c.x) * (p.x - c.x) + (p.y - c.y) * (p.y - c.y) <= r * r;
+}
+
+bool isInsideSquare(Point p, Point s, int l) {
+    return s.x <= p.x && p.x <= s.x + l && s.y <= p.y && p.y <= s.y + l;
+}
+
+double triangleArea(Point p1, Point p2, Point p3) {
+    return abs(0.5 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y)));
+}
+
+bool isInsideTriangle(Point p, Point t1, Point t2, Point t3) {
+    double area = triangleArea(t1, t2, t3);
+    return abs(area - (triangleArea(p, t1, t2) + triangleArea(p, t2, t3) + triangleArea(p, t3, t1))) < 1e-9;
+}
+
+int main() {
+    int T; scanf("%d", &T);
+    while(T--) {
+        int N; scanf("%d", &N);
+        set<pair<int, int>> points;
+        while(N--) {
+            char tp; scanf(" %c", &tp);
+            if(tp == 'T') {
+                int x1, y1, x2, y2, x3, y3; scanf("%d %d %d %d %d %d", &x1, &y1, &x2, &y2, &x3, &y3);
+                for(int i = -50; i <= 100; i++) {
+                    for(int j = -50; j <= 100; j++) {
+                        if(isInsideTriangle({i, j}, {x1, y1}, {x2, y2}, {x3, y3})) {
+                            points.insert({i, j});
+                        }
+                    }
+                }
+            }
+            else if(tp == 'C') {
+                int x, y, r; scanf("%d %d %d", &x, &y, &r);
+                for(int i = -50; i <= 100; i++) {
+                    for(int j = -50; j <= 100; j++) {
+                        if(isInsideCircle({i, j}, {x, y}, r)) {
+                            points.insert({i, j});
+                        }
+                    }
+                }
+            }
+            else {
+                int x, y, l; scanf("%d %d %d", &x, &y, &l);
+                for(int i = -50; i <= 100; i++) {
+                    for(int j = -50; j <= 100; j++) {
+                        if(isInsideSquare({i, j}, {x, y}, l)) {
+                            points.insert({i, j});
+                        }
+                    }
+                }
+            }
+        }
+        printf("%d\n", points.size());
+    }
+}
+
+
+
+
+4
+1
+C 5 5 2
+1
+S 3 3 4
+1
+T 1 1 1 3 3 1 
+3
+C 10 10 3
+S 9 8 4
+T 7 9 10 8 8 10
+
+
+
+
+Let's check the case where Harry's cast is square, and x, y, l are their minimum value: x = y = l = 1.
+
+1
+1
+S 1 1 1
+
+The expected output is 4 because the square defined by the coordinates (1, 1) with a side length of 1 encompasses the grid points (1, 1), (2, 1), (1, 2), and (2, 2), which are all within its boundaries.
+
+
+
+
+1
+1
+S 1 1 1

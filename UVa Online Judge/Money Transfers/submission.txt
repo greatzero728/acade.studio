@@ -1,0 +1,646 @@
+Money Transfers
+Time limit: 3.000 seconds
+
+Sonia is the CEO of the South Western Economic Research Consortium (SWERC). The main asset of SWERC is a group of banks spread out in several countries, which specialize in wire transfers between these countries.
+Money is transferred between banks which have transfer agreements. Such agreements settle a fixed fee whenever there is a transfer between these banks. When a client wishes to transfer money to an account in a different bank, the money flows between banks with transfer agreements until it reaches the destination account. For each intermediary transaction, the client will have to pay the corresponding transfer fee.
+SWERC's goal is to provide the cheapest fees for its clients, using only its banks as intermediaries, and profit from its commissions. Things were going quite well until the recent economic crisis. Due to the current situation, governments agreed to impose an extra tax on each wire transfer. Their objective is to both increase the tax income and avoid losing money to tax havens around the world. Hence, the intention is make this extra tax as large as possible (while avoiding too much unrest).
+Sonia, being a savvy executive, wants to take advantage of this situation and make sure SWERC provides the cheapest way to transfer money between banks X and Y (their most frequent transfer requests). She will try to lobby the politicians so that the new fee makes this happen. She gathered data about the transfer agreements between banks (including competitors) but has no idea what should be the value of the new fee.
+Can you help Sonia compute the largest fee so that SWERC can provide cheapest way to transfer money between X and Y?
+
+Input
+The input file contains several test cases, each of them as described below.
+The first line consists of four space-separated integers: N P X Y , the number of existing banks, the number of transfer partnerships, and the identifiers of banks X and Y, respectively. The next P lines have three space-separated integers: \(a_i\) \(b_i\) \(c_i\), meaning there is a partnership between banks \(a_i\) and \(b_i\) with fee \(c_i\).
+A line with an integer M , the number of banks owned by SWERC, follows. The next line contains M space-separated integers, the identifiers of these banks. X and Y are always in this list.
+
+Constraints:
+\(2 \leq M \leq N \leq 1 000\) and \(1 \leq P \leq 10 000\)
+\(1 \leq X, Y, a_i, b_i \leq N\) and \(X \neq Y\) and \(a_i \neq b_i\)
+\(1 \leq c_i \leq 1 000 000 000\)
+
+Output
+For each test case, the output should be on a line by itself a single integer greater than zero: the largest fee so that SWERC can provide cheapest way to transfer money between X and Y . However, if there is no value such that this happens, output "Impossible" instead. If the fee on each transfer can be infinitely large, output "Infinity".
+
+Sample Output 1 Explanation
+If the extra fee is 4 or more, then SWERC can not provide the cheapest transaction fee. Example: if the fee is 4, SWERC provides a cost of 20, using banks 1, 3, 4, 5 and 6, in this order. However, using bank 2 as an intermediary, we can pay only 19.
+
+
+
+
+У нас есть взвешенный двунаправленный граф с \(N\) узлами и \(P\) рёбрами. Указаны начальный узел \(X\) и конечный узел \(Y\).
+Также есть список из \(M\) индексов (\(M \leq N\)), указывающий на то, что узлы в этом списке окрашены в 1, в то время как другие узлы окрашены в 0. Гарантируется, что как \(X\), так и \(Y\) включены в этот список.
+
+Ребро задается в формате "\(a\) \(b\) \(c\)", обозначая, что между \(a\)-м узлом и \(b\)-м узлом есть двунаправленное ребро и его вес равен \(c\).
+
+Мы можем увеличить вес всех ребер на величину \(w\), и наша задача состоит в том, чтобы найти максимум \(w\), при котором граф остается валидным.
+
+Граф считается валидным, если длина кратчайшего пути, не содержащего 0-цветных узлов, строго меньше длины кратчайшего пути, включающего хотя бы один 0-цветной узел. Здесь оба кратчайших пути должны начинаться в \(X\)-м узле и заканчиваться в \(Y\)-м узле.
+
+Если такой \(w\) не существует, мы должны напечатать "Impossible". Если \(w\) может быть бесконечно большим, мы должны напечатать "Infinity". В других случаях мы должны вывести максимум \(w\), который поддерживает валидность графика.
+
+
+
+
+Обозначим кратчайший путь, который не имеет узлов цвета 0, как первый тип, а кратчайший путь, который имеет хотя бы один узел цвета 0, как второй тип. Теперь давайте объясним, как обрабатывать первый тип кратчайшего пути и второй тип кратчайшего пути.
+
+\(\bull\) Первый тип кратчайшего пути прост, так как нам нужно учитывать только 1-цветные узлы.
+
+\(\bull\) Для второго типа кратчайшего пути должен быть хотя бы один узел цвета 0. Обозначим такой 0-цветной узел как \(Z\). В этом случае текущий кратчайший путь будет комбинацией кратчайшего пути от \(X\) до \(Z\) и кратчайшего пути от \(Z\) до \(Y\). 
+Первоначально вычислив длины всех кратчайших путей от \(X\) до всех узлов и от \(Y\) до всех узлов, мы можем легко определить комбинированный кратчайший путь.
+
+
+
+
+\(\bull\) наивный подход
+Мы определили, как обрабатывать первый тип кратчайшего пути и второй тип кратчайшего пути.
+
+Теперь мы можем перебрать всех возможных кандидатов на \(w\). Если после увеличения весов всех ребер на \(w\) длина первого типа кратчайшего пути строго меньше длины второго типа кратчайшего пути, это означает, что текущий граф действителен, что позволяет нам максимизировать ответ как \(w\).
+
+Однако, поскольку мы можем увеличить вес ребер на любое неотрицательное значение, то фактически невозможно перебрать всех возможных кандидатов на \(w\).
+
+Таким образом, этот наивный подход невозможен.
+
+
+
+
+\(\bull\) Реальный подход  
+Во-первых, мы можем проверить, может ли \(w\) быть бесконечным. Для этого мы можем увеличить вес каждого ребра на очень большую величину (например, \(10^{14}\)).
+
+После этого, если длина кратчайшего пути первого типа строго меньше длины кратчайшего пути второго типа, то наш ответ будет "Infinity".  
+Рассмотрим вышеупомянутые кратчайшие пути подробнее. Возможны два случая:
+1) Количество ребер в кратчайшем пути первого типа меньше, чем количество ребер в кратчайшем пути второго типа. Поскольку число ребер в кратчайшем пути первого типа меньше, чем в кратчайшем пути второго типа, длина кратчайшего пути первого типа всегда будет строго меньше длины кратчайшего пути второго типа. Это связано с тем, что \(10^{14}\) больше, чем общая сумма весов исходных ребер, поэтому веса исходных ребер не могут повлиять на достоверность графика.
+2) Количество ребер в кратчайшем пути первого типа равно количеству ребер в кратчайшем пути второго типа, а длина кратчайшего пути первого типа строго меньше длины кратчайшего пути второго типа.
+
+Если ответ не "Infinity", то остаются два возможных случая:
+1) Количество ребер в кратчайшем пути первого типа больше, чем количество ребер в кратчайшем пути второго типа.
+2) Количество ребер в кратчайшем пути первого типа равно количеству ребер в кратчайшем пути второго типа, а длина кратчайшего пути первого типа больше или равна длине кратчайшего пути второго типа. В данном случае ответ действительно "impossible".
+
+В обоих вышеперечисленных случаях идея бинарного поиска эффективна. (Что касается второго случая, то ответ всегда "impossible", поэтому достаточно включить этот случай в первый, так как всякое действительное «w» всегда будет давать "impossible".)
+Давайте предположим, что после увеличения веса всех рёбер на \(w\) длина кратчайшего пути первого типа строго меньше длины кратчайшего пути второго типа. Если мы уменьшим \(w\), то длина кратчайшего пути первого типа уменьшится больше, чем длина кратчайшего пути второго типа. Это связано с тем, что количество ребер в кратчайшем пути первого типа больше, чем количество ребер в кратчайшем пути второго типа.
+Следовательно, если \(w\) может сделать график валидным, то все неотрицательные значения меньше \(w\) также могут сделать график валидным. Таким образом, идея бинарного поиска эффективна.
+
+Мы можем итеративно находить ответ, используя бинарный поиск, и для каждого кандидата значения \(w\) мы можем определить длины кратчайших путей первого и второго типов и сравнить их. (Я уже упоминал о том, как вычислять длины кратчайших путей первого и второго типов в блоке 2.)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+int N, P, X, Y;
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+        }
+    }
+}
+
+
+
+
+Давайте сохраним информацию о ребрах и информацию о цвете узла.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+    }
+}
+
+
+
+
+Давайте создадим функцию impossible(\(tax\)), которая проверяет, является ли граф недействительным после того, как мы установим \(w = tax\). Если граф недействителен, эта функция вернет true; в противном случае она вернет false.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+
+bool impossible(INT tax) {
+    
+}
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+    }
+}
+
+
+
+
+Сначала мы должны вычислить длину кратчайшего пути первого типа. Это можно сделать, найдя кратчайший путь от \(X\) до \(Y\), учитывая только узлы с 1-ым цветом, используя поиск в ширину.
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+const INT INF = 1e18;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+INT d[NN];
+queue<int> q;
+
+bool impossible(INT tax) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(flag[v] && d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+    INT cost_using_banks = d[Y];
+}
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+    }
+}
+
+
+
+
+Затем мы должны вычислить длину кратчайшего пути второго типа.
+Как я упоминал в блоке 2, это можно сделать, сначала вычислив длины всех кратчайших путей от \(X\) до всех узлов и от \(Y\) до всех узлов, а затем минимизировав ответ с помощью dist(\(X\), \(Z\)) + dist(\(Z\), \(Y\)). (Здесь dist(\(a\), \(b\)) представляет собой длину кратчайшего пути между \(a\) и \(b\).)
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+const INT INF = 1e18;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+INT d[NN], rd[NN];
+queue<int> q;
+
+void bfs(int X, INT tax, INT *d) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+}
+
+bool impossible(INT tax) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(flag[v] && d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+    INT cost_using_banks = d[Y];
+    
+    bfs(X, tax, d);
+    bfs(Y, tax, rd);
+    
+    INT cost_not_using_banks = INF;
+    for(int i = 1; i <= N; i++) if(!flag[i]) {
+        cost_not_using_banks = min(cost_not_using_banks, d[i] + rd[i]);
+    }
+}
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+    }
+}
+
+
+
+
+Если длина кратчайшего пути первого типа больше или равна длине кратчайшего пути второго типа, это означает, что текущий \(w\) сделал граф недействительным, поэтому мы должны вернуть true; В противном случае мы должны вернуть false.
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+const INT INF = 1e18;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+INT d[NN], rd[NN];
+queue<int> q;
+
+void bfs(int X, INT tax, INT *d) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+}
+
+bool impossible(INT tax) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(flag[v] && d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+    INT cost_using_banks = d[Y];
+    
+    bfs(X, tax, d);
+    bfs(Y, tax, rd);
+    
+    INT cost_not_using_banks = INF;
+    for(int i = 1; i <= N; i++) if(!flag[i]) {
+        cost_not_using_banks = min(cost_not_using_banks, d[i] + rd[i]);
+    }
+    return cost_not_using_banks <= cost_using_banks;
+}
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+    }
+}
+
+
+
+
+Давайте проверим, может ли \(w\) быть бесконечным.
+Как я уже упоминал в блоке 4, мы можем проверить \(w = 10^{14}\). Если после увеличения весов всех рёбер на \(10^{14}\) график действителен, то ответ должен быть "Infinity".
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+const INT INF = 1e18, inf = 1e14;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+INT d[NN], rd[NN];
+queue<int> q;
+
+void bfs(int X, INT tax, INT *d) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+}
+
+bool impossible(INT tax) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(flag[v] && d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+    INT cost_using_banks = d[Y];
+    
+    bfs(X, tax, d);
+    bfs(Y, tax, rd);
+    
+    INT cost_not_using_banks = INF;
+    for(int i = 1; i <= N; i++) if(!flag[i]) {
+        cost_not_using_banks = min(cost_not_using_banks, d[i] + rd[i]);
+    }
+    return cost_not_using_banks <= cost_using_banks;
+}
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+        
+        if(!impossible(inf)) puts("Infinity");
+    }
+}
+
+
+
+
+В противном случае, как я упоминал в блоке 4, мы можем использовать двоичный поиск для поиска максимально допустимого \(w\).
+Уменьшив длину интервала кандидатов для \(w\) до 1, мы можем проверить, может ли конечный \(w\) сделать график валидным или нет. Если итоговое значение \(w\) делает график валидным, то нам нужно вывести итоговое значение \(w\); в противном случае нам нужно напечатать "Impossible".
+
+
+
+
+#include<bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using INT = long long;
+using pii = pair<int, int>;
+
+int N, P, X, Y;
+const INT INF = 1e18, inf = 1e14;
+
+const int NN = 1010;
+
+int flag[NN];
+vector<pii> adj[NN];
+INT d[NN], rd[NN];
+queue<int> q;
+
+void bfs(int X, INT tax, INT *d) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+}
+
+bool impossible(INT tax) {
+    for(int i = 1; i <= N; i++) d[i] = INF;
+    d[X] = 0, q.push(X);
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        for(pii p : adj[u]) {
+            int v = p.x; INT w = p.y + tax;
+            if(flag[v] && d[v] > d[u] + w) {
+                d[v] = d[u] + w, q.push(v);
+            }
+        }
+    }
+    INT cost_using_banks = d[Y];
+    
+    bfs(X, tax, d);
+    bfs(Y, tax, rd);
+    
+    INT cost_not_using_banks = INF;
+    for(int i = 1; i <= N; i++) if(!flag[i]) {
+        cost_not_using_banks = min(cost_not_using_banks, d[i] + rd[i]);
+    }
+    return cost_not_using_banks <= cost_using_banks;
+}
+
+int main() {
+    while(~scanf("%d %d %d %d", &N, &P, &X, &Y)) {
+        for(int i = 1; i <= N; i++) {
+            flag[i] = 0;
+            adj[i].clear();
+        }
+        while(P--) {
+            int a, b, c; scanf("%d %d %d", &a, &b, &c);
+            adj[a].push_back({b, c});
+            adj[b].push_back({a, c});
+        }
+        int M; scanf("%d", &M);
+        while(M--) {
+            int id; scanf("%d", &id);
+            flag[id] = 1;
+        }
+        
+        if(!impossible(inf)) puts("Infinity");
+        else {
+            INT st = 0, ed = inf;
+            while(ed - st > 1) {
+                INT md = st + ed >> 1;
+                if(impossible(md)) ed = md;
+                else st = md;
+            }
+            
+            if(impossible(st)) puts("Impossible");
+            else printf("%lld\n", st);
+        }
+    }
+}
+
+
+
+
+6 8 1 6
+1 2 5
+1 3 1
+2 6 6
+2 3 6
+4 2 3
+3 4 1
+4 5 1
+5 6 1
+5
+1 3 6 5 4
+3 4 1 2
+1 2 6
+1 3 2
+1 2 7
+2 3 3
+2
+1 2
+4 4 1 4
+1 2 1
+1 3 1
+2 4 1
+3 4 1
+3
+1 2 4
+
+
+
+
+Давайте рассмотрим пользовательский тестовый случай, где \(N, M, P\) находятся на своих минимальных значениях: \(N = M = 2, P = 1\).
+
+<code>
+2 1 1 2
+1 2 1
+2
+1 2
+</code>
+
+В этом случае нет узлов цвета 0, поэтому мы можем увеличивать вес ребра по своему усмотрению. Это связано с тем, что мы не можем найти ни одного действительного кратчайшего пути, который включает хотя бы один узел цвета 0.
+Так что в этом случае ответ будет "Infinity".
+
+
+
+
+2 1 1 2
+1 2 1
+2
+1 2

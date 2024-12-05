@@ -1,0 +1,20 @@
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+    point operator + (point a) {return point(x + a.x, y + a.y);}
+    point operator - (point a) {return point(x - a.x, y - a.y);}
+    point operator * (double a) {return point(x * a, y * a);}
+    double operator ^ (point a) {return x * a.y - y * a.x;}
+};
+
+point intersect_between_two_lines (point ax, point ay, point bx, point by) {
+    double sx = by - ax ^ ay - ax, sy = ay - ax ^ bx - ax, sum = sx + sy;
+    point intersect_point = bx * (sx / sum) + by * (sy / sum);
+    return intersect_point;
+}
+
+
+To calculate the intersection point between a line \((ax, ay)\) and a line \((bx, by)\), we can use vector arithmetic and the cross product to determine the proportions at which these lines intersect.
+Begin by computing the cross products of vectors relative to \(ax\) and \(ay\): one from \(ax\) to \(by\) and another from \(ax\) to \(bx\).
+These cross products provide the proportional distances along the line segment \((bx, by)\) relative to the point \(ax\).
+Using these proportions, we can then linearly interpolate between \(bx\) and \(by\) to accurately calculate both the x and y coordinates of the intersection point.

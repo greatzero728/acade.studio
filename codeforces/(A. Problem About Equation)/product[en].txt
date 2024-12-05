@@ -1,0 +1,198 @@
+A. Задача на равенство
+ограничение по времени на тест: 2 seconds
+ограничение по памяти на тест: 256 megabytes
+
+Компания из \(n\) веселых программистов отмечает день рождения Роберта Флойда. Поликарпу досталась почетная обязанность — разливать Бер-Колу. Очень важно разлить Бер-Колу поровну, то есть так, чтобы объем напитка в каждой из \(n\) кружек оказался одинаков.
+
+Поликарп уже начал процесс, частично опустошив бутылку Бер-Колы. Сейчас в первой кружке \(a_1\) миллилитров напитка, во второй — \(a_2\) миллилитра и т.д. В бутылке осталось \(b\) миллилитров, которые Поликарп собирается распределить между кружками так, чтобы выполнялось заветное равенство.
+
+Напишите программу, которая определит объем напитка, который надо долить в каждую из кружек, чтобы следующие два условия выполнялись одновременно:
+
+\(\bull\) суммарно было разлито \(b\) миллилитров, то есть чтобы бутылка была опустошена;
+\(\bull\) после окончания процесса объемы напитка в кружках должны быть равны.
+
+Входные данные
+В первой строке записана пара целых чисел \(n, b (2 ≤ n ≤ 100, 1 ≤ b ≤ 100)\), где \(n\) — общее число друзей в компании, а \(b\) — текущий объем напитка в бутылке. Вторая строка содержит последовательность целых чисел \(a_1, a_2, ..., a_n (0 ≤ a_i ≤ 100)\), где \(a_i\) — текущий объем напитка в \(i\)-ой кружке.
+
+Выходные данные
+Выведите единственное число «-1» (без кавычек), если решения не существует. В противном случае выведите n вещественных чисел \(c_1, c_2, ..., c_n\), где \(c_i\) — объем напитка, который надо долить в \(i\)-ую кружку. Числа выводите не менее чем с 6 знаками после десятичной точки, каждое \(c_i\) выводите на отдельной строке. Поликарп доказал, что если решение существует, то оно единственно.
+
+На тестирующем компьютере по умолчанию установлена русская локаль. Убедитесь, что ваше решение выводит точку для отделения целой части вещественного числа от дробной, а не запятую.
+
+
+
+
+Currently, there are \(n\) mugs, and the \(i\)-th mug contains \(a_i\) milliliters of drink.
+We need to distribute \(b\) milliliters among the \(n\) mugs so that each mug contains the same amount of drink after the distribution.
+
+The total amount of drink remains constant, so we can determine the final amount of drink in each mug if we make them all equal after distributing \(b\) milliliters.
+
+Total amount of drink:
+\(\text{totalAmount} = a_1 + a_2 + \dots + a_n + b\)
+
+Since we should split the above value into \(n\) mugs, the final amount of each mug will be:
+\(\text{finalAmountOfEachMug} = \frac{\text{totalAmount}}{n}\)
+
+Our operation can be outlined as follows:
+1. Select index \(i\).
+2. Determine the amount \(c_i\) that should be added to the \(i\)-th mug.
+3. Subtract \(c_i\) from \(b\) and add \(c_i\) to \(a_i\). (Here, \(0 \leq c_i \leq b\)).
+
+As we can see from the operation above, we can either increase \(a_i\) or maintain it, but we cannot decrease \(a_i\).
+
+Therefore, if for a certain \(i\), \(a_i > \text{finalAmountOfEachMug}\), it is evident that we cannot adjust \(a_i\) to reach \(\text{finalAmountOfEachMug}\) using the given operation.
+
+Otherwise, we can always make the amounts in all \(n\) mugs equal.
+In this case, we can add \((\text{finalAmountOfEachMug} - a_i)\) to the \(i\)-th mug to increase \(a_i\) to \(\text{finalAmountOfEachMug}\).
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using DO = double;
+
+const int NN = 121;
+
+DO a[NN], b;
+
+int main() {
+    
+    int n; scanf("%d %lf", &n, &b);
+    for(int i = 1; i <= n; i++) scanf("%lf", a + i);
+}
+
+
+
+
+Calculate \(\text{totalAmount}\) and \(\text{finalAmountOfEachMug}\) using the following formula:
+\(\text{totalAmount} = a_1 + a_2 + \dots + a_n + b\)
+\(\text{finalAmountOfEachMug} = \frac{\text{totalAmount}}{n}\)
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using DO = double;
+
+const int NN = 121;
+
+DO a[NN], b;
+
+int main() {
+    
+    int n; scanf("%d %lf", &n, &b);
+    for(int i = 1; i <= n; i++) scanf("%lf", a + i);
+    
+    DO totalAmount = b;
+    for(int i = 1; i <= n; i++) totalAmount += a[i];
+    
+    DO finalAmountOfEachMug = totalAmount / n;
+}
+
+
+
+
+Check if there exists an \(i\) such that \(a_i > \text{finalAmountOfEachMug}\).
+If so, this indicates that there is no valid solution, so print "-1" and exit.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using DO = double;
+
+const int NN = 121;
+
+DO a[NN], b;
+
+int main() {
+    
+    int n; scanf("%d %lf", &n, &b);
+    for(int i = 1; i <= n; i++) scanf("%lf", a + i);
+    
+    DO totalAmount = b;
+    for(int i = 1; i <= n; i++) totalAmount += a[i];
+    
+    DO finalAmountOfEachMug = totalAmount / n;
+    
+    for(int i = 1; i <= n; i++) if(a[i] > finalAmountOfEachMug) {
+        puts("-1"); return 0;
+    }
+}
+
+
+
+
+Otherwise, we should add \((\text{finalAmountOfEachMug} - a_i)\) to the \(i\)-th mug to raise \(a_i\) to \(\text{finalAmountOfEachMug}\).
+Thus, we can print this value for each \(i\)-th mug.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+using DO = double;
+
+const int NN = 121;
+
+DO a[NN], b;
+
+int main() {
+    
+    int n; scanf("%d %lf", &n, &b);
+    for(int i = 1; i <= n; i++) scanf("%lf", a + i);
+    
+    DO totalAmount = b;
+    for(int i = 1; i <= n; i++) totalAmount += a[i];
+    
+    DO finalAmountOfEachMug = totalAmount / n;
+    
+    for(int i = 1; i <= n; i++) if(a[i] > finalAmountOfEachMug) {
+        puts("-1"); return 0;
+    }
+    
+    for(int i = 1; i <= n; i++) {
+        printf("%.6lf\n", finalAmountOfEachMug - a[i]);
+    }
+}
+
+
+
+
+5 50
+1 2 3 4 5
+
+
+
+
+2 2
+1 100
+
+
+
+
+Let's examine a custom corner case where \(n\) is at its minimum value, and both \(b\) and \(a_i\) are at their maximum values:
+
+2 100
+100 100
+
+There are 2 mugs, each initially containing 100 milliliters, and we need to distribute a total of 100 milliliters evenly.
+
+\(\text{totalAmount} = a_1 + a_2 + \dots + a_n + b = 100 + 100 + 100 = 300\)  
+\(\text{finalAmountOfEachMug} = \frac{\text{totalAmount}}{n} = \frac{300}{2} = 150\)
+
+Therefore, we should add 50 milliliters to each mug.
+
+
+
+2 100
+100 100
+2 100
+100 100

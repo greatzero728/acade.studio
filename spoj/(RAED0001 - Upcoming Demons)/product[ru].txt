@@ -1,0 +1,165 @@
+RAED0001 - Upcoming Demons
+Time limit:	0.100s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Archon III is an online Massively Multiplayer Online Role-Playing Game (MMORPG) where users team up in order to beat powerful demons. The game is split into levels and each level has a demon. In order to reach the next level your team must first kill the demon of the current level.
+
+The strength of a demon is known as its “Qi” or “Chi”, a positive integer coefficient that goes from 0 to 4,000,000,000. To be able to kill a demon you must have a Qi that is at least as large as the demon’s. Your team increases its own Qi by going into practice mode.
+
+VitaminAC is the best ranked team in the world because it has defeated more demons and thus the demon with the highest Qi so far. Your team wants to be ranked first and thus must kill the demon with the next highest Qi. However, VitaminAC also wants to remain on top so they will prepare to defeat that next demon. You must then beat a demon with a Qi yet higher than the next best one.
+
+You don’t know what the next best demon’s Qi is but Jorge, a team member of your team, estimates it is Q. Given a list of Qi’s for different demons, return the next highest Qi after Q.
+
+Input
+The input has 1 + N lines. The first line contains N (2 ≤ N ≤ 1,000,000) and Q (0 ≤ Q ≤ 3,999,999,999), two space-separated integers. N is the number of Qi’s in the list and Q is the estimated Qi of the next best demon. Then N lines follow. Each of these lines contain a single positive integer in the range (0 ≤ Qi ≤ 4,000,000,000). 
+
+Output
+Output the next highest Qi after Q.
+
+Notes
+It is guaranteed that a next highest Qi exists.
+No two demons will have the same Qi.
+
+
+
+
+Мы можем пройтись по списку значений Qi и проверить каждое значение, чтобы узнать, больше ли оно заданного значения Q.
+Для каждого значения Qi, которое больше Q, мы можем минимизировать ответ, используя текущее значение Qi.
+Это работает за O(N).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+INT Qi[NN];
+
+int main() {
+    int N, Q; scanf("%d %d", &N, &Q);
+    for(int i = 1; i <= N; i++) scanf("%lld", Qi + i);
+    return 0;
+}
+
+
+
+
+Перебираем все значения Qi и смотрим те, которые больше Q.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+INT Qi[NN];
+
+int main() {
+    int N, Q; scanf("%d %d", &N, &Q);
+    for(int i = 1; i <= N; i++) scanf("%lld", Qi + i);
+    
+    for(int i = 1; i <= N; i++) if(Qi[i] > Q) {
+        
+    }
+    printf("%lld\n", maximumGreaterThanQ);
+    return 0;
+}
+
+
+
+
+Среди всех значений Qi, которые больше Q, нам нужно найти минимальное.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+INT Qi[NN];
+
+int main() {
+    int N, Q; scanf("%d %d", &N, &Q);
+    for(int i = 1; i <= N; i++) scanf("%lld", Qi + i);
+    
+    INT maximumGreaterThanQ = 1e13;
+    for(int i = 1; i <= N; i++) if(Qi[i] > Q) {
+        maximumGreaterThanQ = min(maximumGreaterThanQ, Qi[i]);
+    }
+    return 0;
+}
+
+
+
+
+Наконец, выведем ответ.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int NN = 1010101;
+
+INT Qi[NN];
+
+int main() {
+    int N, Q; scanf("%d %d", &N, &Q);
+    for(int i = 1; i <= N; i++) scanf("%lld", Qi + i);
+    
+    INT maximumGreaterThanQ = 1e13;
+    for(int i = 1; i <= N; i++) if(Qi[i] > Q) {
+        maximumGreaterThanQ = min(maximumGreaterThanQ, Qi[i]);
+    }
+    printf("%lld\n", maximumGreaterThanQ);
+    return 0;
+}
+
+
+
+
+10 500
+100
+300
+500
+501
+600
+700
+800
+900
+1000
+10000
+
+
+
+
+
+Рассмотрим особый крайний случай, когда \(N\) и \(Q\) имеют минимальные значения: \(N = 2, Q = 0\).
+
+2 0  
+0 1
+
+В этом случае только одно значение Qi больше, чем Q(=0). Это значение — 1.  
+Следовательно, ответ — "1".
+
+
+
+
+2 0
+0 1

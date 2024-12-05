@@ -1,0 +1,3261 @@
+Liars
+Time limit: 1.0s
+Memory limit: 256M
+
+In a town, there are N people, numbered from 1 to N, where each person is a truthteller or a liar. A truthteller always tells the truth, and a liar always lies. Initially, no information is known about the people.
+
+On each of the following M days, a single statement is made. Each statement is in one of the following forms:
+
+\(\bull\) 1 A B : A says that B is a truthteller.
+\(\bull\) 2 A B : A says that B is a liar.
+\(\bull\) 3 A B : A says that B is of the same type of A. More specifically, A claims that A and B are either both truthtellers or both liars.
+\(\bull\) 4 A B : A says that B is of a different type than A. More specifically, A claims that out of A and B, exactly one of them will be a truthteller.
+
+Note that if A is a liar, then the statement made will also be a lie.
+
+After each day, determine the number of possible states of the town that are consistent with all statements (note that this may be zero). Two states of the town differ if there exists a person which is a truthteller in one state, and a liar in the other state. Report this number modulo \(10^9 + 7\).
+
+<b>Constraints</b>
+
+\(1 \leq N \leq 10 ^ 9\)
+\(1 \leq M \leq 2 \times 10 ^ 5\)
+\(1 \leq A, B \leq N, A \neq B\)
+
+<b>Input Specification</b>
+
+The first line contains two space separated integers N, M. Each of the following M lines contains three space-separated integers, representing a statement made. They will be in the format described above.
+
+<b>Output Specification</b>
+
+Print M integers, one on each line. The i-th integer should be the number of possible states of the town after the first i statements are made, modulo \(10 ^ 9 + 7\).
+
+Explanation
+After the second statement is made, the only possible state of the town is that everyone is a liar. Then, both statements made are false, which is consistent with person 1 being a liar.
+
+
+
+
+We can simulate every possible configuration of people (truthtellers and liars) for each statement made.
+After implementing the i-th statement, we would check all combinations of truth values for the N people to determine which configurations are consistent with the 1st, 2nd, 3rd, ..., i-th statements.
+This means we'd generate \(2^N\) possible states for N people and count the number of configurations that satisfy the above i statements.
+The time complexity of this algorithm is \(O(M \cdot 2^N)\), which is computationally infeasible for large values of N, especially since \(N\) can be as large as \(10^9\).
+Therefore, using this algorithm would result in a time limit exceeded error.
+
+
+
+
+First, let's check the meaning of configurations.
+To make the problem more understandable, let's introduce the color concept: if a person is a truthteller, then that person's color should be 1; if a person is a liar, then that person's color should be 0.
+
+\(\bull\) 1 A B: A says that B is a truthteller.
+There are two possible cases:
+1) If A is a truthteller, then B must also be a truthteller.
+2) If A is a liar, then the statement "A says that B is a truthteller" is false, meaning B must be a liar as well.
+As we can see, the statement "1 A B" indicates that the colors of A and B are the same.
+
+\(\bull\) 2 A B : A says that B is a liar.
+There are two possible cases:
+1) If A is a truthteller, then B must be a liar.
+2) If B is a liar, then the statement "A says that B is a liar" is false, meaning B must be a truthteller.
+As we can see, the statement "2 A B" indicates that the colors of A and B are different.
+
+\(\bull\) 3 A B : A says that B is of the same type of A.
+There are two possible cases:
+1) If A is a truthteller, then B must also be a truthteller.
+2) If B is a liar, then the statement "A says that B is of the same type as A" is false, meaning B must be a truthteller.
+As we can see, the statement "3 A B" indicates that the color of B is 1.
+
+\(\bull\) 4 A B : A says that B is of a different type than A.
+There are two possible cases:
+1) If A is a truthteller, then B must be a liar.
+2) If B is a liar, then the statement "A says that B is of a different type than A" is false, meaning B must also be a liar.
+As we can see, the statement "4 A B" indicates that the color of B is 0.
+
+So we can determine each query as follows:
+1 A B: A's color is the same as B's color.
+2 A B: A's color is different from B's color.
+3 A B: B's color is 1.
+4 A B: B's color is 0.
+
+
+
+
+We can solve this problem using a Disjoint Set Union (DSU) because it enables us to efficiently manage and merge groups of people based on their statements regarding each other's truthfulness, while also tracking contradictions in relationships.
+By representing each person's possible states (truthteller or liar) as connected components, we can dynamically update and query the consistency of the group's configurations after each statement.
+
+N can be as large as \(10^9\), but this is not a problem, as there are \(M \leq 2 \times 10^5\) statements, meaning at most \(2 \times M\) people can be affected.
+We can use a map to manage the affected individuals, allowing us to focus only on those with unique indices from 1 to \(2 \times M\) (where \(2 \times M\) is the maximum possible value).
+
+For each group, let's maintain the following information:
+Set[0], color[0]  
+Set[1], color[1]  
+Here, Set[0] and Set[1] represent the subgroups of people divided by their color. Specifically, the colors of all individuals in subgroup Set[0] are all color[0], while the colors of all individuals in subgroup Set[1] are all color[1]. (Of course, color[0] and color[1] represent different colors) Merging subgroup Set[0] and subgroup Set[1] represents the current group.
+
+
+
+
+Initially, there are N groups, and the i-th group (representing the i-th person) can be represented as follows:  
+Set[i][0]: {}, color[i][0]: -1
+Set[i][1]: {i}, color[i][1]: -1
+Since we don't know whether the color of the i-th person is 0 or 1, we can initially set color[i][0] = color[i][1] = -1.
+Additionally, there are no relationships between the group members, as the number of people in the initial group is just 1. Therefore, we can add the i-th person to either subgroup Set[i][0] or subgroup Set[i][1]. For convenience, I have added the i-th person to subgroup Set[i][1].
+
+The answer (the number of all possible configurations that meet the requirement) can initially be set as \(2^N\). This is because there are N groups that are independent of each other, and there are two possible options for the i-th group: the color of the i-th group can be either 0 or 1.
+
+After implementing each statement, we need to update the group information according to their definitions and also adjust the answer accordingly. Let's explain in detail in next blocks step by step.
+
+Let's denote the current group as group_current, the group that includes A as group(A), and the group that includes B as group(B).
+
+
+
+
+\(\bull\) 1 A B: A's color is the same as B's color.
+There are two possible cases:
+1) A and B are already in the same group.
+If A and B are in different subgroups, it means their colors are already determined to be different. This contradicts the current statement, so after adding this statement, we cannot find any valid configurations. Therefore, after adding this statement, the answer will always be 0.
+2) A and B are in different groups.
+There are two possible cases:
+2-1) A's color and B's color are already determined.
+If A's color is different from B's color, then current statement contradicts the information provided by the previous statements. Therefore, after adding this statement, the answer will always be 0.
+2-2) Otherwise.
+We can merge the group that includes A with the group that includes B. To reduce time complexity, we should merge the smaller group into the larger group.
+2-2-1) If the index of the subgroup that includes A is the same as the index of the subgroup that includes B (for example, A is in Set[group(A)][0] and B is in Set[group(B)][0], or A is in Set[group(A)][1] and B is in Set[group(B)][1]), we can merge the subgroups with the same index to place A and B in the same subgroup after the merge (merging Set[group(A)][0] with Set[group(B)][0] and Set[group(A)][1] with Set[group(B)][1]).  
+2-2-2) Otherwise (for example, A is in Set[group(A)][0] and B is in Set[group(B)][1], or A is in Set[group(A)][1] and B is in Set[group(B)][0]), we can merge the subgroups with different indices to place A and B in the same subgroup after the merge (merging Set[group(A)][0] with Set[group(B)][1] and Set[group(A)][1] with Set[group(B)][0]).
+While merging, if the color of A or B is already determined, we can easily establish color[group_current][0] and color[group_current][1].
+After merging, the answer reduces by half because the two groups that were previously separate are now combined into one, effectively eliminating one configuration.
+
+
+
+
+\(\bull\) 2 A B: A's color is different from B's color.
+There are two possible cases:
+1) A and B are already in the same group.
+If A and B are in the same subgroup, it means their colors are already determined to be the same. This contradicts the current statement, so after adding this statement, we cannot find any valid configurations. Therefore, after adding this statement, the answer will always be 0.
+2) A and B are in different groups.
+There are two possible cases:
+2-1) A's color and B's color are already determined.
+If A's color is same as B's color, then current statement contradicts the information provided by the previous statements. Therefore, after adding this statement, the answer will always be 0.
+2-2) Otherwise.
+We can merge the group that includes A with the group that includes B. To reduce time complexity, we should merge the smaller group into the larger group.
+2-2-1) If the index of the subgroup that includes A is different from the index of the subgroup that includes B (for example, A is in Set[group(A)][0] and B is in Set[group(B)][1], or A is in Set[group(A)][1] and B is in Set[group(B)][0]), we can merge the subgroups with the same index to place A and B in different subgroups after the merge (merging Set[group(A)][0] with Set[group(B)][0] and Set[group(A)][1] with Set[group(B)][1]).  
+2-2-2) Otherwise (for example, A is in Set[group(A)][0] and B is in Set[group(B)][0], or A is in Set[group(A)][1] and B is in Set[group(B)][1]), we can merge the subgroups with different indices to place A and B in different subgroups after the merge (merging Set[group(A)][0] with Set[group(B)][1] and Set[group(A)][1] with Set[group(B)][0]).
+While merging, if the color of A or B is already determined, we can easily establish color[group_current][0] and color[group_current][1].
+After merging, the answer reduces by half because the two groups that were previously separate are now combined into one, effectively eliminating one configuration.
+
+
+
+
+
+
+\(\bull\) 3 A B: B's color is 1.
+There are two possible cases:
+1) If B's color is already determined.
+If B's color is 0, then the current statement contradicts the information derived from previous statements. Thus, after adding this statement, we cannot find any valid configurations. Therefore, after adding this statement, the answer will always be 0.
+2) Otherwise.
+We can determine color[group(B)][0] and color[group(B)][1] from B's color.
+The answer reduces by half since before determining B's color, the possible pairs for (color[group(B)][0], color[group(B)][1]) can be (0, 1) or (1, 0), but once B's color is established, the group's color is fixed, leaving only one valid configuration.
+
+\(\bull\) 4 A B: B's color is 0.
+There are two possible cases:
+1) If B's color is already determined.
+If B's color is 1, then the current statement contradicts the information derived from previous statements. Thus, after adding this statement, we cannot find any valid configurations. Therefore, after adding this statement, the answer will always be 0.
+2) Otherwise.
+We can determine color[group(B)][0] and color[group(B)][1] from B's color.
+The answer reduces by half since before determining B's color, the possible pairs for (color[group(B)][0], color[group(B)][1]) can be (0, 1) or (1, 0), but once B's color is established, the group's color is fixed, leaving only one valid configuration.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+    }
+}
+
+
+
+
+The answer (the number of all possible configurations that meet the requirement) can initially be set as \(2^N\). This is because there are N groups that are independent of each other, and there are two possible options for the i-th group: the color of the i-th group can be either 0 or 1. (mentioned in block 4)
+
+We can calculate \(2 ^ N\) modulo \(10^9 + 7\) using exponentiation by squaring.
+Exponentiation by squaring is a method for fast computation of powers in modular arithmetic. It is based on the fact that \(a^{2n} = (a^n)^2\) and \(a^{2n+1} = a \cdot (a^n)^2\).
+We can use this method to calculate \(2 ^ N\) modulo \(10^9 + 7\) in \(O(\log N)\) time.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+int ans;
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+    }
+}
+
+
+
+
+N can be as large as \(10^9\), but this is not a problem, as there are \(M \leq 2 \times 10^5\) statements, meaning at most \(2 \times M\) people can be affected.
+We can use a map to manage the affected individuals, allowing us to focus only on those with unique indices from 1 to \(2 \times M\) (where \(2 \times M\) is the maximum possible value). 
+We can save the unique index that starting from 0 in map structure.
+Let's declare the required information for the \(i\)-th indexed group: \(rt[i]\), subgroups \(Set[i][0]\), \(Set[i][1]\), and color information \(color[i][0]\), \(color[i][1]\). (Here, \(rt[i]\) represents the index of the \(i\)-th group.)
+\(rt[i] = i\) (This is the primary initialization method for the DSU algorithm.)
+Their initial valued are following: (mentioned in block 4)
+Set[i][0]: {}, color[i][0]: -1
+Set[i][1]: {i}, color[i][1]: -1
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        A = id(A);
+        B = id(B);
+    }
+}
+
+
+
+
+Let's initialize each element in the disjoint set union (DSU) so that each node is its own parent.
+Additionally, let's write the find(\(u\)) function to retrieve the representative of the group that includes \(u\), using recursion and path compression to optimize future queries by flattening the tree structure.
+
+We can calculate the representative (Root_A) of the group that includes A and the representative (Root_B) of the group that includes B, firstly.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+    }
+}
+
+
+
+
+I explained the reason for the following statements in block 2:
+1 A B: A's color is the same as B's color.
+2 A B: A's color is different from B's color.
+3 A B: B's color is 1.
+4 A B: B's color is 0.
+
+Let's write functions that handle the statements above.
+After implementing each statement, we can print the updated answer using these functions.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+Let's implement the add(rt_a, a, rt_b, b, flag) function.
+Here, rt_a is the representative of the group that includes \(a\), and rt_b is the representative of the group that includes \(b\).
+If the flag is "same," the current statement indicates that the colors of \(a\) and \(b\) are the same; otherwise, it indicates that the colors of \(a\) and \(b\) are different.
+
+First, let's implement the function get_index(\(rt, u\)) that returns the index of the subgroup that includes \(u\) (where \(rt\) is the representative of the group containing \(u\)).
+It's simple: if \(u\) is in \(Set[rt][1]\), the index is 1; otherwise, the index is 0.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+\(\bull\) 1 A B: A's color is the same as B's color.
+There are two possible cases:
+1) A and B are already in the same group.
+2) A and B are in different groups.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    
+    if(flag == "same") {
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+1) the case where A and B are already in the same group.
+If A and B are in different subgroups, it means their colors are already determined to be different. This contradicts the current statement, so after adding this statement, we cannot find any valid configurations. Therefore, after adding this statement, the answer will always be 0.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2) A and B are in different groups.
+There are two possible cases:
+2-1) A's color and B's color are already determined.
+2-2) Otherwise.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+            }
+            else {
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-1) A's color and B's color are already determined.
+If A's color is different from B's color, then current statement contradicts the information provided by the previous statements. Therefore, after adding this statement, the answer will always be 0.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-2) Otherwise.
+We can merge the group that includes A with the group that includes B. To reduce time complexity, we should merge the smaller group into the larger group.
+Let's consider group_current as RT. Then RT should be either A or B, depending on which has the larger group size. (I mentioned about group_current in block 4)
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                ::rt[rt] = RT;
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-2-1) If the index of the subgroup that includes A is the same as the index of the subgroup that includes B (for example, A is in Set[group(A)][0] and B is in Set[group(B)][0], or A is in Set[group(A)][1] and B is in Set[group(B)][1]), we can merge the subgroups with the same index to place A and B in the same subgroup after the merge (merging Set[group(A)][0] with Set[group(B)][0] and Set[group(A)][1] with Set[group(B)][1]).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                    }
+                }
+                ::rt[rt] = RT;
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-2-2) Otherwise (for example, A is in Set[group(A)][0] and B is in Set[group(B)][1], or A is in Set[group(A)][1] and B is in Set[group(B)][0]), we can merge the subgroups with different indices to place A and B in the same subgroup after the merge (merging Set[group(A)][0] with Set[group(B)][1] and Set[group(A)][1] with Set[group(B)][0]).
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                    }
+                }
+                ::rt[rt] = RT;
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+While merging, if the color of A or B is already determined, we can easily establish color[group_current][0] and color[group_current][1].
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040;
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+After merging, the answer reduces by half because the two groups that were previously separate are now combined into one, effectively eliminating one configuration.
+The inverse of 2 modulo \(mod\) is calculated using Fermat's Little Theorem, which states that \(a^{mod-1} \equiv 1 \mod mod\); thus, the inverse of \(2\) is \(2^{mod-2} \mod mod\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+\(\bull\) 2 A B: A's color is different from B's color.
+There are two possible cases:
+1) A and B are already in the same group.
+2) A and B are in different groups.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+        }
+        else {
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+1) A and B are already in the same group.
+If A and B are in the same subgroup, it means their colors are already determined to be the same. This contradicts the current statement, so after adding this statement, we cannot find any valid configurations. Therefore, after adding this statement, the answer will always be 0.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2) A and B are in different groups.
+There are two possible cases:
+2-1) A's color and B's color are already determined.
+2-2) Otherwise.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+            }
+            else {
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-1) A's color and B's color are already determined.
+If A's color is same as B's color, then current statement contradicts the information provided by the previous statements. Therefore, after adding this statement, the answer will always be 0.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-2) Otherwise.
+We can merge the group that includes A with the group that includes B. To reduce time complexity, we should merge the smaller group into the larger group. (already calculated in coding block 28)
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                ::rt[rt] = RT;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-2-1) If the index of the subgroup that includes A is different from the index of the subgroup that includes B (for example, A is in Set[group(A)][0] and B is in Set[group(B)][1], or A is in Set[group(A)][1] and B is in Set[group(B)][0]), we can merge the subgroups with the same index to place A and B in different subgroups after the merge (merging Set[group(A)][0] with Set[group(B)][0] and Set[group(A)][1] with Set[group(B)][1]).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                    }
+                }
+                ::rt[rt] = RT;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2-2-2) Otherwise (for example, A is in Set[group(A)][0] and B is in Set[group(B)][0], or A is in Set[group(A)][1] and B is in Set[group(B)][1]), we can merge the subgroups with different indices to place A and B in different subgroups after the merge (merging Set[group(A)][0] with Set[group(B)][1] and Set[group(A)][1] with Set[group(B)][0]).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                    }
+                }
+                ::rt[rt] = RT;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+While merging, if the color of A or B is already determined, we can easily establish color[group_current][0] and color[group_current][1].
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+After merging, the answer reduces by half because the two groups that were previously separate are now combined into one, effectively eliminating one configuration.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+Let's implement the replace(rt, u, x) function.
+Here, rt is the representative of the group that includes \(u\), and \(x\) is the color we need to assign to \(u\).
+As we can see in block 7, we first need to check the case where \(u\) is already colored with a different color than \(x\); in this situation, the current statement contradicts the information derived from previous statements.
+Therefore, after adding this statement, we cannot find any valid configurations, and the answer will always be 0.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+    int pos = get_index(rt, u);
+    if(~color[rt][pos]) {
+        if(color[rt][pos] != x) ans = 0;
+        return;
+    }
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+Otherwise, we can determine color[group(u)][0] and color[group(u)][1] based on \(u\)'s color \(\rightarrow\) \(x\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+    int pos = get_index(rt, u);
+    if(~color[rt][pos]) {
+        if(color[rt][pos] != x) ans = 0;
+        return;
+    }
+    color[rt][pos] = x;
+    color[rt][pos ^ 1] = x ^ 1;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+The answer reduces by half since before determining \(u\)'s color, the possible pairs for (color[group(\(u\))][0], color[group(\(u\))][1]) can be (0, 1) or (1, 0), but once \(u\)'s color is established, the group's color is fixed, leaving only one valid configuration.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+using INT = long long;
+
+const int mod = 1e9 + 7;
+
+int power(int a, int b) {
+    int ans = 1;
+    for(; b; b >>= 1, a = (INT)a * a % mod) {
+        if(b & 1) ans = (INT)ans * a % mod;
+    }
+    return ans;
+}
+
+const int NN = 404040, inv_2 = power(2, mod - 2);
+
+int rt[NN], ans;
+set<int> Set[NN][2];
+int color[NN][2];
+
+int nn;
+map<int, int> mp;
+
+int id(int x) {
+    if(mp.find(x) == mp.end()) {
+        mp[x] = nn;
+        rt[nn] = nn;
+        color[nn][0] = -1, Set[nn][0].clear();
+        color[nn][1] = -1, Set[nn][1].clear(), Set[nn][1].insert(nn);
+        nn++;
+    }
+    return mp[x];
+}
+
+int find(int u) {
+    return rt[u] == u ? u : rt[u] = find(rt[u]);
+}
+
+int get_index(int rt, int u) {
+    return Set[rt][1].find(u) != Set[rt][1].end();
+}
+
+void add(int rt_a, int a, int rt_b, int b, string flag) {
+    if(!ans) return;
+    int pos_a = get_index(rt_a, a);
+    int pos_b = get_index(rt_b, b);
+    int sz_a = Set[rt_a][0].size() + Set[rt_a][1].size();
+    int sz_b = Set[rt_b][0].size() + Set[rt_b][1].size();
+    int RT, POS;
+    int rt, pos;
+    
+    if(sz_a > sz_b) {
+        RT = rt_a, POS = pos_a, rt = rt_b, pos = pos_b;
+    }
+    else {
+        RT = rt_b, POS = pos_b, rt = rt_a, pos = pos_a;
+    }
+    
+    if(flag == "same") {
+        if(rt_a == rt_b) {
+            if(pos_a != pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] != color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS == pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+    else {
+        if(rt_a == rt_b) {
+            if(pos_a == pos_b) ans = 0;
+        }
+        else {
+            if(~color[rt_a][pos_a] && ~color[rt_b][pos_b]) {
+                if(color[rt_a][pos_a] == color[rt_b][pos_b]) ans = 0;
+            }
+            else {
+                if(POS != pos) {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i].insert(x);
+                        if(~color[rt][i]) color[RT][i] = color[rt][i];
+                    }
+                }
+                else {
+                    for(int i = 2; i--; ) {
+                        for(int x : Set[rt][i]) Set[RT][i ^ 1].insert(x);
+                        if(~color[rt][i]) color[RT][i ^ 1] = color[rt][i];
+                    }
+                }
+                ::rt[rt] = RT;
+                ans = (INT)ans * inv_2 % mod;
+            }
+        }
+    }
+}
+
+void replace(int rt, int u, int x) {
+    if(!ans) return;
+    int pos = get_index(rt, u);
+    if(~color[rt][pos]) {
+        if(color[rt][pos] != x) ans = 0;
+        return;
+    }
+    color[rt][pos] = x;
+    color[rt][pos ^ 1] = x ^ 1;
+    ans = (INT)ans * inv_2 % mod;
+}
+
+int main() {
+    int N, M; scanf("%d %d", &N, &M);
+    ans = power(2, N);
+    while(M--) {
+        int tp, A, B; scanf("%d %d %d", &tp, &A, &B);
+        int Root_A = find(A = id(A));
+        int Root_B = find(B = id(B));
+
+        if(tp == 1) {
+            add(Root_A, A, Root_B, B, "same");
+        }
+        else if(tp == 2) {
+            add(Root_A, A, Root_B, B, "diff");
+        }
+        else if(tp == 3) {
+            replace(Root_B, B, 1);
+        }
+        else {
+            replace(Root_B, B, 0);
+        }
+        printf("%d\n", ans);
+    }
+}
+
+
+
+
+2 2
+1 1 2
+4 1 2
+
+
+
+
+Let's consider a custom corner case where \(N\) and \(M\) are at their minimum values: \(N = 2\) and \(M = 1\).
+According to the constraints, the minimum value of \(N\) is 1. However, since \(A \neq B\) and there must be at least one statement (\(1 \leq M\)), setting \(N\) to 1 would not allow us to select two different values for \(A\) and \(B\).
+Therefore, in this problem, the minimum possible value of \(N\) is 2.
+
+2 1
+1 1 2
+
+In this case, we have two people (1 and 2) and one statement: "1 says that 2 is a truthteller." 
+
+If Person 1 is a truthteller, then Person 2 must also be a truthteller, resulting in the configuration (True, True). On the other hand, if Person 1 is a liar, then the statement "2 is a truthteller" is false, meaning Person 2 must be a liar as well, leading to the configuration (False, False). 
+
+Thus, the two possible configurations that satisfy the statement are (True, True) and (False, False), which results in an output of 2.
+
+
+
+
+2 1
+1 1 2

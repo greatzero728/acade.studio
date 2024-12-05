@@ -1,0 +1,686 @@
+Dice
+Time limit: 1.000 seconds
+
+Mary add Sue are playing with dices. Rules are simple: at the begging each of them puts coin on the table and roll a dice. Wins a player who rolled a larger number. If numbers are the same, coins stay on the table for a next round. In order to make this game more interesting they decided to play now with normal dices, but with dice that can have arbitrary number of bones, from 0 till 9. However each round must be played with same dice by both players.
+Girls have been playing this game for a day long, till Mary run out of coins (nevertheless she had more coins at the beginning of the game). Now Mary is confused. How could she have lost all her coins? She thinks that Sue had been cheating. Before each roll Mary wrote on a paper numbers of bones on each side of the dice. Now she wonders if same dice was always used during one round. Help her to find it out.
+
+Input
+On the first line there is the total number of test cases T (T ≤ \(10^3\)), next T lines follows. Each line contains two six digit numbers, each digit stands for number of bones on side of a dice in this order:
+top, bottom, front, left, back, right.
+
+Output
+For each test case output line ‘Equal’ if two dices are equals, or ‘Not Equal’ otherwise.
+
+
+
+
+The digits on each face of two dice are given, and we need to determine if the two dice are the same.
+
+We can fix the position of the first die and roll the second die to see if they are the same.
+
+There are 6 faces on a die, so there will be 6 possible cases:
+1. The top face of the second die can move to the top position after a roll.  
+2. The bottom face of the second die can move to the top position after a roll.  
+3. The front face of the second die can move to the top position after a roll.  
+4. The back face of the second die can move to the top position after a roll.  
+5. The left face of the second die can move to the top position after a roll.  
+6. The right face of the second die can move to the top position after a roll.
+
+For each case, we can fix the top and bottom positions and then rotate the die 90 degrees four times to obtain all possible different states with the fixed top and bottom positions.
+
+Thus, we can check all possible \(6 \times 4\) configurations, and for each case, we can verify if the two dice have corresponding faces that match: top-top, bottom-bottom, front-front, back-back, left-left, and right-right.
+
+If in any of the 24 cases the two dice completely match, it means the given two dice are the same, so we can immediately print "Equal" and exit.
+
+If none of the 24 cases match, then the given two dice are different, and in this case, we should print "Not Equal."
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+Let's handle all 24 steps one by one according to the following cases:
+
+1. The top face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+2. The bottom face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+3. The front face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+4. The back face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+5. The left face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+6. The right face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+If in any of the 24 cases the two dice completely match, it means the given two dice are the same, so we can immediately print "Equal" and exit.
+
+
+
+
+1. The top face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+2. The bottom face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is bottom position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+3. The front face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is bottom position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is front position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+4. The back face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is bottom position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is front position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is back position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+5. The left face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is bottom position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is front position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is back position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is left position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.top && a.left == b.front && a.back == b.bottom && a.right == b.back) return true;
+        
+        // front position of current b is front position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.front && a.left == b.bottom && a.back == b.back && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.bottom && a.left == b.back && a.back == b.top && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.back && a.left == b.top && a.back == b.front && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+6. The right face of the second die can move to the top position after a roll. We should check four possible cases in this state.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is bottom position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is front position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is back position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is left position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.top && a.left == b.front && a.back == b.bottom && a.right == b.back) return true;
+        
+        // front position of current b is front position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.front && a.left == b.bottom && a.back == b.back && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.bottom && a.left == b.back && a.back == b.top && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.back && a.left == b.top && a.back == b.front && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is right position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.top && a.left == b.back && a.back == b.bottom && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.back && a.left == b.bottom && a.back == b.front && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.bottom && a.left == b.front && a.back == b.top && a.right == b.back) return true;
+        
+        // front position of current b is front position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.front && a.left == b.top && a.back == b.back && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+If none of the 24 cases match, then the given two dice are different, and in this case, we should print "Not Equal".
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {// top position of current b is top position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is bottom position of original b
+        // front position of current b is front position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {// top position of current b is front position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is back position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        
+        // front position of current b is left position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        
+        // front position of current b is right position of original b
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is left position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.top && a.left == b.front && a.back == b.bottom && a.right == b.back) return true;
+        
+        // front position of current b is front position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.front && a.left == b.bottom && a.back == b.back && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.bottom && a.left == b.back && a.back == b.top && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.left && a.bottom == b.right && a.front == b.back && a.left == b.top && a.back == b.front && a.right == b.bottom) return true;
+    }
+    
+    {// top position of current b is right position of original b
+        // front position of current b is top position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.top && a.left == b.back && a.back == b.bottom && a.right == b.front) return true;
+        
+        // front position of current b is back position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.back && a.left == b.bottom && a.back == b.front && a.right == b.top) return true;
+        
+        // front position of current b is bottom position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.bottom && a.left == b.front && a.back == b.top && a.right == b.back) return true;
+        
+        // front position of current b is front position of original b
+        if(a.top == b.right && a.bottom == b.left && a.front == b.front && a.left == b.top && a.back == b.back && a.right == b.bottom) return true;
+    }
+    
+    return false;
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+3
+345678 345678
+123123 123456
+123456 351624
+
+
+
+
+
+Let's examine the following custom corner case where \(T\) is at its minimum value, all digits of the first die are at their minimum possible values, and all digits of the second die are at their maximum possible values:
+
+1  
+000000 999999
+
+Since all digits of the first die are 0 and all digits of the second die are 9, even if we roll both, we can't make them equal dice.
+So, we should print "Not Equal".
+
+
+
+
+1  
+000000 999999

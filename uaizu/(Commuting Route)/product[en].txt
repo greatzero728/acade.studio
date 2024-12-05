@@ -1,0 +1,37 @@
+Commuting Route
+Time Limit : 1 sec, Memory Limit : 262144 KB
+
+In the town of Aizu, where PCK lives, there are \(N\) points and \(N−1\) roads connecting each point. Each point is numbered from 1 to \(N\), and all roads can be traveled in both directions. Also, from any point, you can reach other points by taking some paths.
+
+PCK, the CEO of IZUA Corporation, decides to change his route to work every day as a routine work to add a change to his daily life.
+
+PCK commutes to work by a route that satisfies the following conditions.
+
+\(\bull\) It is a route that departs from the nearest point u at home and arrives at the nearest point \(v\) at work.
+\(\bull\) The route passes through \(u\) and \(v\) exactly once on departure and arrival, respectively.
+\(\bull\) Each point on the path except \(u\) and \(v\) is passed at most twice.
+\(\bull\) Each path on the route is traversed up to two times.
+
+PCK is considering relocating his home and office and wants to know how many different ways he can enjoy his commute after the move.
+
+We are given the number of points, information about the roads that directly connect the points and the nearest point \(u\) to our home and \(v\) to our office after the relocation. However, several pairs of \(u\) and \(v\) are given as questions. For each question, create a program to find the number of commuting routes.
+
+Input
+Input is given in the following format.
+
+\(N\)
+\(s_1\) \(t_1\)
+\(s_2\) \(t_2\)
+:
+\(s_{N−1}\) \(t_{N−1}\)
+
+\(Q\)
+\(u_1\) \(v_1\)
+\(u_2\) \(v_2\)
+:
+\(u_Q\) \(v_Q\)
+
+On the first line, the number of points \(N (2≤N≤100,000)\) is given. In the following \(N−1\) line, the information about the road that directly connects the two points is given. \(s_i\) and \(t_i (1≤s_i<t_i≤N)\) are the numbers of the two points connected by the \(i\)-th path. However, for any two points, no more than one road connects them directly. The number of questions \(Q (1≤Q≤100,000)\) is given in the following line. The subsequent \(Q\) line is given two integers \(u_i\) and \(v_i (1≤u_i<v_i≤N)\) representing each question.
+
+Output
+For each question, output the remainder of the number of commuting routes divided by 998,244,353 on one line.

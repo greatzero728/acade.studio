@@ -1,0 +1,440 @@
+GIWED - The Great Indian Wedding
+Time limit:	0.100s
+Source limit:	50000B
+Memory limit:	1536MB
+
+A wedding is to be organized in a rectangular park of dimensions M by N. Some parts of the park are covered by K rectangular carpets. These carpets, produced by ItSucks Corporation are revolutionary self cleaning carpets - they suck any liquid they come in contact with! The organizer wants to water the park to keep the grass fresh. If there were no carpets, the organizer could have used a single pipe to water the whole park but unfortunately, the water doesn't seep through the carpets. The organizer has at his disposal L pipes. The pipes would be placed at fixed locations chosen by the organizer and can't be moved. Water spreads from a pipe in all directions unless obstructed by the park boundary or a carpet. What is the maximum area that can be watered using these L pipes?
+
+Input
+The first line of the input contains a single integer T, the number of test cases (1<=T<=30) . Each test case starts with a single line containing the values M, N, K and L (1<=M<=10000, 1<=N<=10000, 0<=K<=50, 1<=L<=10). It is followed by K lines, each line containing 4 integers separated by single spaces, \(x_1, y_1, x_2, y_2\) where \((x_1, y_1)\) and \((x_2, y_2)\) are the zero based coordinates of lower left and upper right vertex of the carpet. Assume that \(x_1 < x_2\) and \(y_1 < y_2\). The carpets may cover each other. Water would not be able to seep through even if two carpets touch in a corner.
+
+Output
+For each test case, print the maximum area that can be watered on a single line
+
+
+
+
+\(\bull\) naive algorithm
+We first identify all possible positions where we can place pipes in the \(N \times M\) grid. There can be at most \(10^8\) candidates in the case where \(N = 10,000\), \(M = 10,000\), and \(K = 0\).
+We need to select \(L\) candidates for the pipe positions, resulting in a maximum of \(\binom{10^8}{L}\) possible combinations. For each combination of selected positions, we would perform a breadth-first search (BFS) to explore the area that can be watered.
+However, iterating through all possible candidates is not feasible, as \(\binom{10^8}{L}\) can be extremely large.
+Consequently, while the naive algorithm is conceptually simple, it is inefficient and cannot effectively handle the problem's constraints.
+
+
+
+
+\(\bull\) real algorithm
+First, we can reduce the range of the grid since there are only \(K \leq 50\) carpets. Let's define an area \((x_{\text{mn}}, y_{\text{mn}}, x_{\text{mx}}, y_{\text{mx}})\) as the rectangular region where the lower-left vertex is \((x_{\text{mn}}, y_{\text{mn}})\) and the upper-right vertex is \((x_{\text{mx}}, y_{\text{mx}})\). We can then split the full area \((0, 0, M, N)\) into \(nx \times ny\) smaller rectangles as follows: 
+
+\(area(xrr_0, yrr_{ny - 1}, xrr_1, yrr_{ny}\ \ \ \ ), area(xrr_1, yrr_{ny - 1}, xrr_2, yrr_{ny}\ \ \ ), ..., area(xrr_{nx - 1}, yrr_{ny - 1}, xrr_{nx}, yrr_{ny}\ \ \ \ )\)
+\(area(xrr_0, yrr_{ny - 2}, xrr_1, yrr_{ny - 1}), area(xrr_1, yrr_{ny - 2}, xrr_2, yrr_{ny - 1}), ..., area(xrr_{nx - 1}, yrr_{ny - 2}, xrr_{nx}, yrr_{ny - 1})\)
+...
+\(area(xrr_0, yrr_0\ \ \ \ \ \ , xrr_1, yrr_1\ \ \ \ \ ), area(xrr_1, yrr_0\ \ \ \ \ \ , xrr_2, yrr_1\ \ \ \ \ ), ..., area(xrr_{nx - 1}, yrr_0\ \ \ \ \ , xrr_{nx}, yrr_1\ \ \ \ \ )\)
+
+Here, \((xrr_0, yrr_0)\) represents the lower-left vertex \((0, 0)\) of the full area, and \((xrr_{nx}, yrr_{ny})\) represents the upper-right vertex \((M, N)\) of the full area. Each \(\text{area}(xrr_i, yrr_j, xrr_{i + 1}, yrr_{j + 1})\) should have a corresponding attribute indicating whether it contains a carpet area or not. \((0 \leq i < nx, 0 \leq j < ny)\)
+For every carpet \((x_1, y_1, x_2, y_2)\), \(x_1\) and \(x_2\) can be candidates for \(xrr_i\), while \(y_1\) and \(y_2\) can be candidates for \(yrr_j\). Therefore, \(nx\) can be up to \(2K + 1\) and \(ny\) can also be up to \(2K + 1\), resulting in a grid size reduced from \(10,000 \times 10,000\) to \(101 \times 101\).
+
+Now, we can implement the basic solution. For each carpet \((x_1, y_1, x_2, y_2)\), we can mark all grid areas included in the current carpet. Then, we need to select the maximum \(L\) connected areas that are not marked.
+We can convert the \(nx \times ny\) grid into a graph where each grid element \(\text{area}(xrr_i, yrr_j, xrr_{i + 1}, yrr_{j + 1})\) represents a vertex. We can add edges between two adjacent unmarked areas.
+Finally, we can find all connected components in this graph and select the \(L\) connected components with the maximum area, as we aim to maximize the area that can be watered.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+int X1[NN], X2[NN];
+int Y1[NN], Y2[NN];
+
+void solve() {
+    int M, N, K, L; scanf("%d %d %d %d", &M, &N, &K, &L);
+    
+    for(int i = 1; i <= K; i++) {
+        scanf("%d %d %d %d", X1 + i, Y1 + i, X2 + i, Y2 + i);
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+
+First, let's split the full area \((0, 0, M, N)\) into the following \(nx \times ny\) areas:
+\(area(xrr_0, yrr_{ny - 1}, xrr_1, yrr_{ny}\ \ \ \ ), area(xrr_1, yrr_{ny - 1}, xrr_2, yrr_{ny}\ \ \ ), ..., area(xrr_{nx - 1}, yrr_{ny - 1}, xrr_{nx}, yrr_{ny}\ \ \ \ )\)
+\(area(xrr_0, yrr_{ny - 2}, xrr_1, yrr_{ny - 1}), area(xrr_1, yrr_{ny - 2}, xrr_2, yrr_{ny - 1}), ..., area(xrr_{nx - 1}, yrr_{ny - 2}, xrr_{nx}, yrr_{ny - 1})\)
+...
+\(area(xrr_0, yrr_0\ \ \ \ \ \ , xrr_1, yrr_1\ \ \ \ \ ), area(xrr_1, yrr_0\ \ \ \ \ \ , xrr_2, yrr_1\ \ \ \ \ ), ..., area(xrr_{nx - 1}, yrr_0\ \ \ \ \ , xrr_{nx}, yrr_1\ \ \ \ \ )\)
+For every carpet \((x_1, y_1, x_2, y_2)\), \(x_1\) and \(x_2\) can be candidates for \(xrr_i\), while \(y_1\) and \(y_2\) can be candidates for \(yrr_j\).
+Of course, we must include the lower-left vertex and upper-right vertex of the full area \((0, 0, M, N)\) as candidates.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+int X1[NN], X2[NN], xrr[NN], nx;
+int Y1[NN], Y2[NN], yrr[NN], ny;
+
+void solve() {
+    int M, N, K, L; scanf("%d %d %d %d", &M, &N, &K, &L);
+    
+    nx = 0, xrr[nx++] = 0;
+    ny = 0, yrr[ny++] = 0;
+    for(int i = 1; i <= K; i++) {
+        scanf("%d %d %d %d", X1 + i, Y1 + i, X2 + i, Y2 + i);
+        xrr[nx++] = X1[i];
+        if(X2[i] < M) xrr[nx++] = X2[i];
+        yrr[ny++] = Y1[i];
+        if(Y2[i] < N) yrr[ny++] = Y2[i];
+    }
+    sort(xrr, xrr + nx), nx = unique(xrr, xrr + nx) - xrr, xrr[nx] = M;
+    sort(yrr, yrr + ny), ny = unique(yrr, yrr + ny) - yrr, yrr[ny] = N;
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+
+For each carpet \((x_1, y_1, x_2, y_2)\), we can mark all grid areas that are included in the current carpet.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+int X1[NN], X2[NN], xrr[NN], nx;
+int Y1[NN], Y2[NN], yrr[NN], ny;
+bool vst[NN][NN];
+
+void solve() {
+    int M, N, K, L; scanf("%d %d %d %d", &M, &N, &K, &L);
+    
+    nx = 0, xrr[nx++] = 0;
+    ny = 0, yrr[ny++] = 0;
+    for(int i = 1; i <= K; i++) {
+        scanf("%d %d %d %d", X1 + i, Y1 + i, X2 + i, Y2 + i);
+        xrr[nx++] = X1[i];
+        if(X2[i] < M) xrr[nx++] = X2[i];
+        yrr[ny++] = Y1[i];
+        if(Y2[i] < N) yrr[ny++] = Y2[i];
+    }
+    sort(xrr, xrr + nx), nx = unique(xrr, xrr + nx) - xrr, xrr[nx] = M;
+    sort(yrr, yrr + ny), ny = unique(yrr, yrr + ny) - yrr, yrr[ny] = N;
+    
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) vst[i][j] = 0;
+    }
+    for(int k = 1; k <= K; k++) {
+        X1[k] = lower_bound(xrr, xrr + nx, X1[k]) - xrr;
+        X2[k] = lower_bound(xrr, xrr + nx, X2[k]) - xrr;
+        Y1[k] = lower_bound(yrr, yrr + ny, Y1[k]) - yrr;
+        Y2[k] = lower_bound(yrr, yrr + ny, Y2[k]) - yrr;
+        for(int i = X1[k]; i < X2[k]; i++) {
+            for(int j = Y1[k]; j < Y2[k]; j++) vst[i][j] = 1;
+        }
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+
+Then, we need to select the maximum \(L\) connected areas that do not include any carpet area. We can convert the \(nx \times ny\) grid into a graph where each grid element \(\text{area}(xrr_i, yrr_j, xrr_{i + 1}, yrr_{j + 1})\) represents a vertex. We can add edges between two adjacent areas if neither contains a carpet area.
+Finally, we can find all connected components in this graph and select the \(L\) connected components with the maximum area, as we aim to maximize the area that can be watered.
+
+So first, let's find the components mentioned above using simple depth-first search algorithm.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+int X1[NN], X2[NN], xrr[NN], nx;
+int Y1[NN], Y2[NN], yrr[NN], ny;
+bool vst[NN][NN];
+
+int dx[] = {0, 0, 1, -1};
+int dy[] = {1, -1, 0, 0};
+
+bool out(int x, int y) {
+    return x < 0 || y < 0 || x >= nx || y >= ny;
+}
+
+void dfs(int x, int y) {
+    vst[x][y] = 1;
+    for(int k = 4; k--; ) {
+        int X = x + dx[k], Y = y + dy[k];
+        if(!out(X, Y) && !vst[X][Y]) {
+            vst[X][Y] = 1, dfs(X, Y);
+        }
+    }
+}
+
+void solve() {
+    int M, N, K, L; scanf("%d %d %d %d", &M, &N, &K, &L);
+    
+    nx = 0, xrr[nx++] = 0;
+    ny = 0, yrr[ny++] = 0;
+    for(int i = 1; i <= K; i++) {
+        scanf("%d %d %d %d", X1 + i, Y1 + i, X2 + i, Y2 + i);
+        xrr[nx++] = X1[i];
+        if(X2[i] < M) xrr[nx++] = X2[i];
+        yrr[ny++] = Y1[i];
+        if(Y2[i] < N) yrr[ny++] = Y2[i];
+    }
+    sort(xrr, xrr + nx), nx = unique(xrr, xrr + nx) - xrr, xrr[nx] = M;
+    sort(yrr, yrr + ny), ny = unique(yrr, yrr + ny) - yrr, yrr[ny] = N;
+    
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) vst[i][j] = 0;
+    }
+    for(int k = 1; k <= K; k++) {
+        X1[k] = lower_bound(xrr, xrr + nx, X1[k]) - xrr;
+        X2[k] = lower_bound(xrr, xrr + nx, X2[k]) - xrr;
+        Y1[k] = lower_bound(yrr, yrr + ny, Y1[k]) - yrr;
+        Y2[k] = lower_bound(yrr, yrr + ny, Y2[k]) - yrr;
+        for(int i = X1[k]; i < X2[k]; i++) {
+            for(int j = Y1[k]; j < Y2[k]; j++) vst[i][j] = 1;
+        }
+    }
+    
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) if(!vst[i][j]) {
+            vst[i][j] = 1, dfs(i, j);
+        }
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+Since we have identified all connected components, we can select the \(L\) largest areas among them to maximize the area that can be watered.
+
+We can add the area calculation logic in the dfs function.
+Each vertex \((i, j)\) represents the area \((xrr_i, yrr_j, xrr_{i + 1}, yrr_{j + 1})\), so we can add \((xrr_{i + 1} - xrr_i) \times (yrr_{j + 1} - yrr_j)\) to calculate the area of the connected component.
+
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+int X1[NN], X2[NN], xrr[NN], nx;
+int Y1[NN], Y2[NN], yrr[NN], ny;
+bool vst[NN][NN];
+
+int dx[] = {0, 0, 1, -1};
+int dy[] = {1, -1, 0, 0};
+vector<int> area;
+
+bool out(int x, int y) {
+    return x < 0 || y < 0 || x >= nx || y >= ny;
+}
+
+int s;
+
+void dfs(int x, int y) {
+    vst[x][y] = 1, s += (xrr[x + 1] - xrr[x]) * (yrr[y + 1] - yrr[y]);
+    for(int k = 4; k--; ) {
+        int X = x + dx[k], Y = y + dy[k];
+        if(!out(X, Y) && !vst[X][Y]) {
+            vst[X][Y] = 1, dfs(X, Y);
+        }
+    }
+}
+
+void solve() {
+    int M, N, K, L; scanf("%d %d %d %d", &M, &N, &K, &L);
+    
+    nx = 0, xrr[nx++] = 0;
+    ny = 0, yrr[ny++] = 0;
+    for(int i = 1; i <= K; i++) {
+        scanf("%d %d %d %d", X1 + i, Y1 + i, X2 + i, Y2 + i);
+        xrr[nx++] = X1[i];
+        if(X2[i] < M) xrr[nx++] = X2[i];
+        yrr[ny++] = Y1[i];
+        if(Y2[i] < N) yrr[ny++] = Y2[i];
+    }
+    sort(xrr, xrr + nx), nx = unique(xrr, xrr + nx) - xrr, xrr[nx] = M;
+    sort(yrr, yrr + ny), ny = unique(yrr, yrr + ny) - yrr, yrr[ny] = N;
+    
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) vst[i][j] = 0;
+    }
+    for(int k = 1; k <= K; k++) {
+        X1[k] = lower_bound(xrr, xrr + nx, X1[k]) - xrr;
+        X2[k] = lower_bound(xrr, xrr + nx, X2[k]) - xrr;
+        Y1[k] = lower_bound(yrr, yrr + ny, Y1[k]) - yrr;
+        Y2[k] = lower_bound(yrr, yrr + ny, Y2[k]) - yrr;
+        for(int i = X1[k]; i < X2[k]; i++) {
+            for(int j = Y1[k]; j < Y2[k]; j++) vst[i][j] = 1;
+        }
+    }
+    
+    area.clear();
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) if(!vst[i][j]) {
+            s = 0, vst[i][j] = 1, dfs(i, j);
+            area.push_back(s);
+        }
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+
+Since we have calculated all selectable areas, we only need to select the \(L\) largest among them. This can be done by sorting the area candidates in decreasing order and selecting the first \(L\) areas.
+
+
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+int X1[NN], X2[NN], xrr[NN], nx;
+int Y1[NN], Y2[NN], yrr[NN], ny;
+bool vst[NN][NN];
+
+int dx[] = {0, 0, 1, -1};
+int dy[] = {1, -1, 0, 0};
+vector<int> area;
+
+bool out(int x, int y) {
+    return x < 0 || y < 0 || x >= nx || y >= ny;
+}
+
+int s;
+
+void dfs(int x, int y) {
+    vst[x][y] = 1, s += (xrr[x + 1] - xrr[x]) * (yrr[y + 1] - yrr[y]);
+    for(int k = 4; k--; ) {
+        int X = x + dx[k], Y = y + dy[k];
+        if(!out(X, Y) && !vst[X][Y]) {
+            vst[X][Y] = 1, dfs(X, Y);
+        }
+    }
+}
+
+void solve() {
+    int M, N, K, L; scanf("%d %d %d %d", &M, &N, &K, &L);
+    
+    nx = 0, xrr[nx++] = 0;
+    ny = 0, yrr[ny++] = 0;
+    for(int i = 1; i <= K; i++) {
+        scanf("%d %d %d %d", X1 + i, Y1 + i, X2 + i, Y2 + i);
+        xrr[nx++] = X1[i];
+        if(X2[i] < M) xrr[nx++] = X2[i];
+        yrr[ny++] = Y1[i];
+        if(Y2[i] < N) yrr[ny++] = Y2[i];
+    }
+    sort(xrr, xrr + nx), nx = unique(xrr, xrr + nx) - xrr, xrr[nx] = M;
+    sort(yrr, yrr + ny), ny = unique(yrr, yrr + ny) - yrr, yrr[ny] = N;
+    
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) vst[i][j] = 0;
+    }
+    for(int k = 1; k <= K; k++) {
+        X1[k] = lower_bound(xrr, xrr + nx, X1[k]) - xrr;
+        X2[k] = lower_bound(xrr, xrr + nx, X2[k]) - xrr;
+        Y1[k] = lower_bound(yrr, yrr + ny, Y1[k]) - yrr;
+        Y2[k] = lower_bound(yrr, yrr + ny, Y2[k]) - yrr;
+        for(int i = X1[k]; i < X2[k]; i++) {
+            for(int j = Y1[k]; j < Y2[k]; j++) vst[i][j] = 1;
+        }
+    }
+    
+    area.clear();
+    for(int i = 0; i < nx; i++) {
+        for(int j = 0; j < ny; j++) if(!vst[i][j]) {
+            s = 0, vst[i][j] = 1, dfs(i, j);
+            area.push_back(s);
+        }
+    }
+    sort(area.begin(), area.end(), [&](int u, int v) {
+        return u > v;
+    });
+    
+    int ans = 0;
+    for(int i = min(L, (int)area.size()); i--; ) {
+        ans += area[i];
+    }
+    printf("%d\n", ans);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+2
+10 10 0 1
+10 10 1 1
+3 3 4 4
+
+
+
+
+Let's examine a custom corner case where \(T, M, N, K, L\) are at their minimum values: \(T = M = N = L = 1\) and \(K = 0\).
+
+1
+1 1 0 1
+
+In this case, there is no carpet area, and we need to select one non-carpet area. Therefore, we can simply select the full area, which has an area of \(1 \times 1\) since \(N = M = 1\). Thus, in this case, my answer will be "1".
+
+
+
+
+1
+1 1 0 1

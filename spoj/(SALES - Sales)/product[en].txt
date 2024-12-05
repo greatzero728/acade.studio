@@ -1,0 +1,386 @@
+SALES - Sales
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+Bosco has gotten his hands on B (1≤B≤50) dollars! Being a Magic the Gathering™ enthusiast, he wishes to spend some amount of his budget on cards to improve his deck.
+
+He has located a local store that has N (1≤N≤30,000) cards for sale. Card i costs \(c_i\) (1≤\(c_i\)≤50) dollars, and will improve Bosco’s DQI (Deck Quality Index) by \(v_i (1≤v_i≤1000)\) points. Only one copy of each card is for sale.
+
+Business hasn’t been too great lately, so the store is offering sales on various days. Though the term “price adjustments” would be more accurate, as card prices can increase, “sales” are much more appealing – and, indeed, Bosco wants to go do all of his shopping on one of the D (1≤D≤3000) days of the sales. In fact, he’s already acquired a list of the price adjustments that will be made.
+
+On day i, the cost of card \(a_i (1≤a_i≤N)\) is changed to \(b_i (1≤b_i≤50)\), while all other cards remain unchanged. That is, before day 1, all cards have their initial costs \((c_{1..N})\), and from then on, price adjustments accumulate from day to day.
+
+Additionally, on each day, only certain cards from the store’s inventory are actually up for sale. In particular, on day i, only cards \(x_i\) to \(y_i (1≤x_i≤y_i≤N)\), inclusive, may be purchased.
+
+Bosco doesn’t care how much of his budget he spends, but he absolutely must have the best possible deck. As such, for each of the D days, he wants to consider buying some (possibly empty) set of cards, such that the sum of their costs is no larger than B, and the sum of their DQI points is maximal. Determine this DQI sum for each day, so that Bosco will know when to go to take full advantage of the “sales”.
+
+Input
+Line 1: 3 integers, B, N, and D
+Next N lines: 2 integers, \(c_i\) and \(v_i\), for i=1..N
+Next D lines: 4 integers, \(a_i, b_i, x_i\), and \(y_i\), for i=1..D
+
+Output
+For each day, output the maximal DQI sum of cards up for purchase that day which Bosco can purchase without going over his budget, considering all price changes that have occurred so far.
+
+Explanation of Sample:
+
+At first, the 5 cards (with point values 6, 5, 3, 11, and 7, respectively) have costs of 9, 1, 2, 3, and 2 dollars, in that order.
+
+On the first day, the cost of the first card is reduced to 1 dollar, and the first 4 cards are up for purchase.
+
+On the second day, the cost of the fourth card is increased to 6 dollars, and only the last 3 cards can be bought.
+
+On the final day, the cost of card 4 is changed again, this time to 1 dollar, and the first 4 cards are once again considered.
+
+ 
+On the first day, Bosco should buy the first, second, and fourth cards, costing a total of 5 dollars.
+
+On the second, cards 3 and 5 should be purchased with 4 dollars, as card 4 is now too expensive.
+
+On the final day, all of the cards up for sale can be bought for 5 dollars. Notice that card 1 still costs 1 dollar, from the first price change.
+
+
+
+
+First, let's identify the list of possible cards that can be purchased for each day.
+For each day, we can update the cost of the \(a_i\)-th card to \(b_i\). Then, we can consider the set of cards with indices in the interval \([x_i, y_i]\).
+After that, we can iterate through all possible subsets of this card set to implement the purchasing.
+For each subset, we would calculate the total cost and total DQI points, checking if the total cost is within the budget \(B\). If the current subset is purchaseable, we can maximize the answer with the total DQI points.
+The time complexity of this algorithm is \(O(D \cdot 2^N \cdot N)\). This algorithm exceeds the time limit constraint, as \(N\) can be as large as 30,000.
+
+
+
+
+Let's reduce the time complexity.
+
+Assume there are several cards, all costing \(c\).
+For each day, we don't need all of them; we only need \(\frac{B}{c}\) cards with the highest DQI points, as our goal is to maximize the total DQI point sum from our purchases.
+There are 50 possible costs: 1, 2, ..., 50. (\(1 \leq c_i \leq 50\))
+First, let's count the maximum possible number of cards needed for each query. The maximum possible number is \(\frac{50}{1} + \frac{50}{2} + ... + \frac{50}{50}\).
+Let's calculate this total first to confirm the maximum number of possible cards for each query.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int totalNumberOfPossibleCards = 0;
+    for(int i = 1; i <= 50; i++) {
+        totalNumberOfPossibleCards += 50 / i;
+    }
+    cout<<"Total number of possible cards are "<<totalNumberOfPossibleCards;
+}
+
+
+
+
+execute
+
+
+
+
+There could be 30,000 possible cards for each query, but we only need a maximum of \(MX\_NUMBER = 207\) cards now.
+Without loss of generality, let's refer to the step of calculating the maximum DQI points for each day as a query.
+
+Let's explain how to handle each query:
+Instead of iterating through all possible subsets, we can utilize the knapsack dynamic programming approach.
+
+Let's implement the possible cards step by step. Suppose we've currently implemented the 1st, 2nd, ..., and \(k-1\)-th cards.
+At this point, let's denote \(dp[i]\) as the maximum DQI points that we can earn with \(i\) dollars.
+
+The initial state is where \(dp[i] = 0\) and no cards have been implemented.
+The final answer is \(dp[B]\) after implementing all possible cards.
+
+Let the cost of the \(k\)-th card be \(C\) and the DQI point be \(P\).
+We should then update \(dp[i]\) by implementing the card \((C, P)\). To avoid conflicts, let's denote the state of \(dp\) after implementing \((C, P)\) as \(next\_dp\). We can calculate \(next\_dp\) first, and then update \(dp\) to \(next\_dp\).
+
+But how can we update \(dp[i]\) to \(next\_dp[i]\) after implementing the card \((C, D)\)? It's simple.
+\(\bull\) The case where we don't consider the current card(C, P)
+In this case, \(next\_dp[i]\) is simply \(dp[i]\).
+\(\bull\) The case where we consider the current card(C, P)
+First, we can iterate through all possible \(dp[i]\). Here, \(dp[i]\) represents the maximum DQI points we can achieve with \(i\) dollars using the 1st, 2nd, ..., and \((k-1)\)-th cards.
+By adding the card \((C, P)\), we can maximize \(next\_dp[i + C]\) as \(dp[i] + P\). This is because, after earning \(dp[i]\) DQI points with \(i\) dollars, purchasing the card \((C, P)\) changes the total amount spent to \(i + C\), and the maximum DQI points increase from \(dp[i]\) to \(dp[i] + P\).
+
+The time complexity for implementing each query is \(O(N + MX\_NUMBER \times MX\_DOLLARS)\). Here, \(N\) represents the iteration over all possible cards in the range \([x_i, y_i]\), \(MX\_NUMBER = 207\) indicates the maximum number of cards needed for each query, and \(MX\_DOLLARS\) represents the range of dollars when updating \(next\_dp[i]\) (with \(MX\_DOLLARS\) being 50, the maximum value of \(B\)).
+
+Thus, the time complexity of this algorithm is \(O(D \times (N + MX\_NUMBER \times MX\_DOLLARS)) = O(D \times N)\).
+Given that \(D \leq 3000\), \(MX\_NUMBER \leq 207\), and \(MX\_DOLLARS \leq 30\), this algorithm is acceptable.
+
+Let's erase the test code written to calculate \(MX\_NUMBER\) and write boilerplate code that reads the input data.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MM = 30001;
+
+int c[MM], v[MM];
+
+int main() {
+    int B, N, D; scanf("%d %d %d", &B, &N, &D);
+    
+    for(int i = 1; i <= N; i++) scanf("%d %d", c + i, v + i);
+    
+    while(D--) {
+        int a, b, x, y; scanf("%d %d %d %d", &a, &b, &x, &y);
+    }
+}
+
+
+
+
+
+First, according to the query definition, let's update the cost of the \(a\)-th card to \(b\).
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int MM = 30001;
+
+int c[MM], v[MM];
+
+int main() {
+    int B, N, D; scanf("%d %d %d", &B, &N, &D);
+    
+    for(int i = 1; i <= N; i++) scanf("%d %d", c + i, v + i);
+    
+    while(D--) {
+        int a, b, x, y; scanf("%d %d %d %d", &a, &b, &x, &y);
+        
+        c[a] = b;
+    }
+}
+
+
+
+
+
+Let's store the mandatory cards to implement for each query. First, we can store all available cards (the cards in the index range \([x_i, y_i]\)) in the pq array.
+
+As I mentioned in block 2, we don't need all of them; we only need \(\frac{B}{c}\) cards with the highest DQI points, as our goal is to maximize the total DQI point sum from our purchases. Here, \(c\) represents the cost of a certain card, and \(\frac{B}{c}\) represents the maximum number of mandatory cards that have a cost of \(c\).
+
+How can we pick \(\frac{B}{c}\) cards with the highest DQI points?
+It's simple: we can utilize the nth_element method, which efficiently rearranges the elements so that the top \(\frac{B}{c}\) cards are positioned at the beginning of the array.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+
+const int NN = 51, MM = 30001;
+
+int c[MM], v[MM];
+vector<int> pq[NN];
+vector<pii> vec;
+
+int main() {
+    int B, N, D; scanf("%d %d %d", &B, &N, &D);
+    
+    for(int i = 1; i <= N; i++) scanf("%d %d", c + i, v + i);
+    
+    while(D--) {
+        int a, b, x, y; scanf("%d %d %d %d", &a, &b, &x, &y);
+        
+        c[a] = b;
+        
+        for(int i = 1; i <= B; i++) pq[i].clear();
+        
+        for(int i = x; i <= y; i++) {
+            if(c[i] <= B) pq[c[i]].push_back(v[i]);
+        }
+        
+        vec.clear();
+        for(int i = 1; i <= B; i++) {
+            int max_num = B / i;
+            if (pq[i].size() > max_num) {
+                nth_element(pq[i].begin(), pq[i].begin() + max_num, pq[i].end(), greater<int>());
+                pq[i].resize(max_num);
+            }
+            for (int val : pq[i]) vec.push_back({i, val});
+        }
+    }
+}
+
+
+
+
+
+Let's implement the possible cards step by step. Suppose we've currently implemented the 1st, 2nd, ..., and \(k-1\)-th cards.
+At this point, let's denote \(dp[i]\) as the maximum DQI points that we can earn with \(i\) dollars.
+
+The initial state is where \(dp[i] = 0\) and no cards have been implemented.
+The final answer is \(dp[B]\) after implementing all possible cards.
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+
+const int NN = 51, MM = 30001;
+
+int c[MM], v[MM];
+vector<int> pq[NN];
+vector<pii> vec;
+int dp[NN];
+
+int main() {
+    int B, N, D; scanf("%d %d %d", &B, &N, &D);
+    
+    for(int i = 1; i <= N; i++) scanf("%d %d", c + i, v + i);
+    
+    while(D--) {
+        int a, b, x, y; scanf("%d %d %d %d", &a, &b, &x, &y);
+        
+        c[a] = b;
+        
+        for(int i = 1; i <= B; i++) pq[i].clear();
+        
+        for(int i = x; i <= y; i++) {
+            if(c[i] <= B) pq[c[i]].push_back(v[i]);
+        }
+        
+        vec.clear();
+        for(int i = 1; i <= B; i++) {
+            int max_num = B / i;
+            if (pq[i].size() > max_num) {
+                nth_element(pq[i].begin(), pq[i].begin() + max_num, pq[i].end(), greater<int>());
+                pq[i].resize(max_num);
+            }
+            for (int val : pq[i]) vec.push_back({i, val});
+        }
+        
+        for(int i = 0; i <= B; i++) dp[i] = 0;
+        for(pii p: vec) {
+            int C = p.x, P = p.y;
+            
+            //update dp[i] by implementing card(C, P)
+        }
+        
+        printf("%d\n", dp[B]);
+    }
+}
+
+
+
+
+
+As I explained in block 5, the transition is as follows:
+\(\bull\) The case where we don't consider the current card(C, P)
+In this case, \(next\_dp[i]\) is simply \(dp[i]\).
+\(\bull\) The case where we consider the current card(C, P)
+First, we can iterate through all possible \(dp[i]\). Here, \(dp[i]\) represents the maximum DQI points we can achieve with \(i\) dollars using the 1st, 2nd, ..., and \((k-1)\)-th cards.
+By adding the card \((C, P)\), we can maximize \(next\_dp[i + C]\) as \(dp[i] + P\). This is because, after earning \(dp[i]\) DQI points with \(i\) dollars, purchasing the card \((C, P)\) changes the total amount spent to \(i + C\), and the maximum DQI points increase from \(dp[i]\) to \(dp[i] + P\).
+
+We calculated \(next\_dp\), so we can update \(dp\) to \(next\_dp\).
+
+
+
+
+#include <bits/stdc++.h>
+#define y second
+#define x first
+
+using namespace std;
+using pii = pair<int, int>;
+
+const int NN = 51, MM = 30001;
+
+int c[MM], v[MM];
+vector<int> pq[NN];
+vector<pii> vec;
+int dp[NN], next_dp[NN];
+
+int main() {
+    int B, N, D; scanf("%d %d %d", &B, &N, &D);
+    
+    for(int i = 1; i <= N; i++) scanf("%d %d", c + i, v + i);
+    
+    while(D--) {
+        int a, b, x, y; scanf("%d %d %d %d", &a, &b, &x, &y);
+        
+        c[a] = b;
+        
+        for(int i = 1; i <= B; i++) pq[i].clear();
+        
+        for(int i = x; i <= y; i++) {
+            if(c[i] <= B) pq[c[i]].push_back(v[i]);
+        }
+        
+        vec.clear();
+        for(int i = 1; i <= B; i++) {
+            int max_num = B / i;
+            if (pq[i].size() > max_num) {
+                nth_element(pq[i].begin(), pq[i].begin() + max_num, pq[i].end(), greater<int>());
+                pq[i].resize(max_num);
+            }
+            for (int val : pq[i]) vec.push_back({i, val});
+        }
+        
+        for(int i = 0; i <= B; i++) dp[i] = 0;
+        for(pii p: vec) {
+            int C = p.x, P = p.y;
+            
+            for(int i = 0; i <= B; i++) next_dp[i] = dp[i];
+            for(int i = 0; i <= B; i++) if(i + C <= B) {
+                next_dp[i + C] = max(next_dp[i + C], dp[i] + P);
+            }
+            for(int i = 0; i <= B; i++) dp[i] = next_dp[i];
+        }
+        
+        printf("%d\n", dp[B]);
+    }
+}
+
+
+
+
+
+5 5 3
+9 6
+1 5
+2 3
+3 11
+2 7
+1 1 1 4
+4 6 3 5
+4 1 1 4
+
+
+
+
+Let's examine a custom corner case where \(B, N, D\) are at their minimum values: \(B = N = D = 1\).
+
+1 1 1
+1 1
+1 2 1 1
+
+In this test case, Bosco has a budget of 1 dollar and can only buy one card, which costs 1 dollar and provides 1 DQI point.
+However, on the only day available, the price of the card is adjusted to 2 dollars, making it unaffordable; therefore, the expected output is "0" since he cannot purchase any cards.
+
+
+
+
+1 1 1
+1 1
+1 2 1 1

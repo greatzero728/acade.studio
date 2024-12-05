@@ -1,0 +1,411 @@
+TREE - Another Counting Problem
+Time limit: 0.5s
+Memory limit: 1536MB
+
+Tree is an important data structure in Computer Science. Of all trees we work with, Binary Tree is probably the most popular one. A Binary Tree is called a Strictly Binary Tree if every non-leaf node in a binary tree has nonempty left and right subtrees. Let us define a Strictly Binary Tree of depth \(d\), as a Strictly Binary Tree that has at least one root to leaf path of length \(d\), and no root to leaf path in that tree is longer than \(d\). So let us use a similar reasoning to define a generalized structure.
+
+An \(n\)-ary Tree is called a Strictly \(n\)-ary Tree if every non-leaf node in an \(n\)-ary tree has \(n\) children each. A Strictly \(n\)-ary Tree of depth \(d\) can now be defined as a Strictly \(n\)-ary Tree that has at least one root to leaf path of length \(d\), and no root to leaf path in that tree is longer than \(d\).
+
+Given the value of \(n\) and depth \(d\), your task is to find the number of different strictly \(n\)-ary trees of depth \(d\).
+
+The figure below shows the 3 different strictly binary trees of depth 2.
+
+<img 1>
+
+Input
+Input consists of several test cases. Each test case consists of two integers \(n (0 < n <= 32), d (0 <= d <= 16)\). Input is terminated a test case where \(n=0\) and \(d=0\), you must not process this test case.
+
+Output
+For each test case, print three integers, \(n, d\) and the number of different strictly \(n\)-ary trees of level \(d\), in a single line. There will be a single space in between two integers of a line. You can assume that you would not be asked about cases where you had to consider trees that may have more than \(2^{10}\) nodes in a level of the tree. You may also find it useful to know that the answer for each test case will always fit in a 200 digit integer.
+
+
+
+
+
+Нам нужно вычислить количество различных строго \(n\)-арных деревьев глубины \(d\). Это можно сделать, определив количество строго \(n\)-арных деревьев глубины, меньшей или равной \(d\). Если обозначить это количество как \(\text{dp}[n][d]\), то количество различных строго \(n\)-арных деревьев глубины \(d\) задаётся выражением \(\text{dp}[n][d] - \text{dp}[n][d - 1]\).
+
+Теперь давайте вычислим \(\text{dp}[n][d]\).
+
+\(\bull\) Очевидно, что \(\text{dp}[0] = 1\), так как строго \(n\)-арное дерево глубины меньше или равной 0 состоит только из корня.
+\(\bull\) Давайте вычислим \(\text{dp}[i]\).
+Мы будем вычислять \(\text{dp}[i]\) в порядке возрастания \(i\).
+При вычислении \(\text{dp}[i]\) мы уже знаем значения \(\text{dp}[0], \text{dp}[1], \ldots, \text{dp}[i - 1]\).
+
+Существует два случая:
+
+1. Случай, когда  корень не имеет детей.
+Этот случай относится к дереву, состоящему только из корня без детей.
+Следовательно, существует 1 возможное строго \(n\)-арное дерево глубины меньше или равной \(i\) в этом случае.
+
+2. Случай, когда у корня есть дети.
+Поскольку мы считаем количество строго \(n\)-арных деревьев, и у корня есть дети, мы можем сначала построить \(n\) прямых детей.
+
+После добавление прямых детей, глубина построенного дерева стала 1.
+Теперь мы должны продолжить строить так, чтобы глубина конечного дерева была меньше или равна \(i\).
+
+Когда у корня есть \(n\) прямых детей, каждый прямой потомок корня может служить корнем любого строго \(n\)-арного дерева глубины меньше или равной \(i-1\).
+Поддерево каждого дочернего узла может иметь любую форму строго \(n\)-арного дерева с глубиной меньше или равной \(i-1\), и общее количество таких деревьев для каждого сына задаётся \(\text{dp}[i-1]\).
+
+Поскольку структура поддерева одного дочернего узла не влияет на выбранные структуры для других поддеревьев (они независимы), общее количество способов конфигурирования поддеревьев для всех \(n\) детей равно произведению.
+
+Таким образом, в этом случае существует \(\text{dp}[i-1]^n\) возможных строго \(n\)-арных деревьев глубины меньше или равной \(i\).
+
+
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+    }
+}
+
+
+
+
+
+Крайний случай, когда \(d=0\), тогда существует только 1 дерево.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        if(d == 0) puts("1");
+    }
+}
+
+
+
+
+
+Иначе нам нужно посчитать \(\text{dp}[i]\) для \(0 \leq i \leq d\).
+
+Используем рекурсию из нашего решения:
+\(\text{dp}[0] = 1\)
+\(\text{dp}[i] = 1 + (\text{dp}[i - 1]) ^ n\).
+
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+using INT = __int128;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            cout<<dp[d] - dp[d - 1]<<endl;
+        }
+    }
+}
+
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+Окончательный ответ — это \(\text{dp}[d] - \text{dp}[d - 1]\).
+Так как нельзя выводить \(\text{\_\_int128}\), мы должны выводить его по цифрах.
+
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+using INT = __int128;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+Задача требует вывести \(n\) и \(d\) перед количеством различных строго \(n\)-арных деревьев глубины \(d\).
+
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+using INT = __int128;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        printf("%d %d ", n, d);
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+Давайте рассмотрим крайний случай, где \(n\) и \(d\) имеют минимальные значения: \(n = 1, d = 0\).
+
+1 0
+0 0
+
+В этом случае существует ровно одно строгое n-арное дерево, которое имеет только один узел.
+Поэтому мы должны напечатать "1 0 1".
+Здесь первые два числа представляют \(n\) и \(d\) соответственно, а последнее число - общее количество различных строго \(n\)-арных деревьев глубины \(d\).
+
+
+
+
+
+1 0
+0 0
+
+
+
+
+Я не заметил примечания, указывающего на то, что \(\text{dp}[d]\) может быть очень большим, потенциально превышая максимальный лимит \(\text{\_\_int128}\).
+Мы можем использовать тип \(\text{cpp\_int}\) из библиотеки \(\text{Boost Multiprecision}\), чтобы обрабатывать и хранить эти большие числа.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
+using INT = cpp_int;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        printf("%d %d ", n, d);
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+Библиотека \(\text{Boost Multiprecision}\) не установлена локально.
+Можем разделить тип \(\text{INT}\) в зависимости от того, в зависимости от того установлен ли ONLINE_JUDGE или нет.
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#ifdef ONLINE_JUDGE
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
+using INT = cpp_int;
+#else
+using INT = __int128;
+#endif
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        printf("%d %d ", n, d);
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+#ifdef ONLINE_JUDGE
+            cout<<dp[d] - dp[d - 1]<<endl;
+#else
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+#endif
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+Давайте рассмотрим крайний случай (еще раз), где \(n\) и \(d\) имеют минимальные значения: \(n = 1, d = 0\).
+
+1 0
+0 0
+
+В этом случае существует ровно одно строгое n-арное дерево, которое имеет только один узел.
+Поэтому мы должны напечатать "1 0 1".
+Здесь первые два числа представляют \(n\) и \(d\) соответственно, а последнее число - общее количество различных строго \(n\)-арных деревьев глубины \(d\).
+
+
+
+
+
+1 0
+0 0

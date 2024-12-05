@@ -61,15 +61,15 @@ Let's define a recursive function to help us find the optimal way to insert elem
 
 Then, we can get optimal assigning strategy by just calling solve(1, n, 1, m).
 
-In the solve function, we first determine the position of the middle element \( b[md] \) to minimize the number of inversions. Without loss of generality, we can set \( md \) as \(\lfloor \frac{st + ed}{2} \rfloor\). This is crucial as it allows us to effectively split the current recursive segment into two parts: \( (L, pos_{md}, st, md - 1) \) and \( (pos_{md}, R, md + 1, R) \). By finding the optimal position for \( b[md] \), we can reduce the range to \( (st, md - 1) \) and \( (md + 1, R) \).
+In the solve function, we first determine the position of the middle element \( b[md] \) to minimize the number of inversions. Without loss of generality, we can set \( md \) as \(\lfloor \frac{st + ed}{2} \rfloor\). This is crucial as it allows us to effectively split the current recursive segment into two parts: \( (L, pos_{md}, st, md - 1) \) and \( (pos_{md}, R, md + 1, R) \). By finding the optimal position for \( b_{md} \), we can reduce the range to \( (st, md - 1) \) and \( (md + 1, R) \).
 The recursive nature of this approach ensures that at every depth of the recursion, we reduce the range by at least half. This logarithmic reduction leads to a recursion depth of \( \log_2(m) \), making the algorithm efficient.
 
-Let's confirm the method to determine the optimal position of \( b[md] \). As we iterate through the elements in the segment of \( a \), we compare each element with \( b[md] \). If \( b[md] \) is less than an element in \( a \), we increment the inversion count; if it’s greater, we decrement it. Whenever we find that the current inversion count is less than the minimum recorded \( mn \), we update \( mn \) and set \( pos[md] \) to the current index.
+Let's confirm the method to determine the optimal position of \( b_{md} \). As we iterate through the elements in the segment of \( a \), we compare each element with \( b_{md} \). If \( b_{md} \) is less than an element in \( a \), we increment the inversion count; if it’s greater, we decrement it. Whenever we find that the current inversion count is less than the minimum recorded \( mn \), we update \( mn \) and set \( pos_{md} \) to the current index.
 
 We've already built the optimal array \(c\). The remaining task is to calculate the number of inversions in the current array \(c\). We can iterate through all elements of \(c\) from left to right, adding them to a Binary Indexed Tree (Fenwick tree). Each time before we add an element, we can count the number of elements that are greater than the current element being added. Both operations are standard BIT operations that can be performed in time complexity \(O(\log(n + m))\).
 Since we need to add \(n + m\) elements and calculate the number of elements greater than each element for a total of \(n + m\) times, the time complexity to calculate the inversions in the current array \(c\) is \(O((n + m) \cdot \log_2(n + m))\).
 
-The total time complexity of your algorithm is \(O((n + m) \cdot \log_2(n + m))\). This accounts for the sorting of array \(b\), the recursive function calls in solve function, and the calculation of inversions using a Binary Indexed Tree (Fenwick tree).
+The total time complexity of this algorithm is \(O((n + m) \cdot \log_2(n + m))\). This accounts for the sorting of array \(b\), the recursive function calls in solve function, and the calculation of inversions using a Binary Indexed Tree (Fenwick tree).
 
 
 

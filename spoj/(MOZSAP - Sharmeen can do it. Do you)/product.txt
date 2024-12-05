@@ -1,0 +1,34 @@
+<b>MOZSAP - Sharmeen can do it. Do you?</b>
+
+Time limit: 1s
+Memory limit: 1536MB
+
+Sharmeen, a little girl learned C programming recently. She can print anything in this programming language. Can you do the same as Sharmeen?
+
+<b>Input</b>
+There is no input for this problem.
+
+<b>Output</b>
+Just output ‘Print \C Programming’ without quotes.
+
+
+
+
+The problem seems to be asking us to simply print a string "Print \C Programming" without any input or processing. We can start by thinking about how to print a string in C++.
+
+Since we don't need to read any input, we can directly use the `std::cout` statement to print the required string. However, we need to make sure that the backslash character in the string is properly escaped.
+
+Let's think about how to escape the backslash character in C++. We can use another backslash to escape it, so the correct string to print would be "Print \\C Programming".
+
+Now, let's think about the code structure. We can start with a simple `main` function and use `std::cout` to print the string. We don't need any headers or namespaces other than `iostream`.
+
+
+
+
+
+#include <iostream>
+
+int main() {
+    std::cout << "Print \\C Programming" << std::endl;
+    return 0;
+}

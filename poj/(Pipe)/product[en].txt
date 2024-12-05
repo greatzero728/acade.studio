@@ -1,0 +1,528 @@
+Pipe
+Time Limit: 1000MS
+Memory Limit: 10000K
+
+The GX Light Pipeline Company started to prepare bent pipes for the new transgalactic light pipeline. During the design phase of the new pipe shape the company ran into the problem of determining how far the light can reach inside each component of the pipe. Note that the material which the pipe is made from is not transparent and not light reflecting.
+
+<img 1>
+
+Each pipe component consists of many straight pipes connected tightly together. For the programming purposes, the company developed the description of each component as a sequence of points \((x_1, y_1), (x_2, y_2), . . ., (x_n, y_n)\), where \(x_1 < x_2 < . . . <x_n\) . These are the upper points of the pipe contour. The bottom points of the pipe contour consist of points with \(y\)-coordinate decreased by 1. To each upper point \((x_i, y_i)\) there is a corresponding bottom point \((x_i, y_i-1)\) (see picture above). The company wants to find, for each pipe component, the point with maximal \(x\)-coordinate that the light will reach. The light is emitted by a segment source with endpoints \((x_1, y_1-1)\) and \((x_1, y_1)\) (endpoints are emitting light too). Assume that the light is not bent at the pipe bent points and the bent points do not stop the light beam.
+
+Input
+
+The input file contains several blocks each describing one pipe component. Each block starts with the number of bent points \(2 <= n <= 20\) on separate line. Each of the next \(n\) lines contains a pair of real values \(x_i, y_i\) separated by space. The last block is denoted with \(n = 0\).
+
+Output
+
+The output file contains lines corresponding to blocks in input file. To each block in the input file there is one line in the output file. Each such line contains either a real value, written with precision of two decimal places, or the message Through all the pipe. The real value is the desired maximal \(x\)-coordinate of the point where the light can reach from the source for corresponding pipe component. If this value equals to \(x_n\), then the message Through all the pipe. will appear in the output file.
+
+
+
+
+Let's denote \( U_1 = (x_1, y_1) \), \( D_1 = (x_1, y_1 - 1) \), \( U_2 = (x_2, y_2) \), \( D_2 = (x_2, y_2 - 1) \), \(\dots\), \( U_n = (x_n, y_n) \), \( D_n = (x_n, y_n - 1) \).
+
+Observation on the light in the optimal strategy:
+The light can be represented as a light ray passing through two points.
+We can perform some operations to obtain more detailed information about the light ray while maintaining the current optimal answer:
+
+If this light ray passes the rightmost position of the pipe component, we can move the light ray either upwards to ensure it passes through a certain point \( U_i \), where \( 1 \leq i \leq n \).
+After that, we can rotate the light ray around the above mentioned point \(U_i\) so that it also passes through one additional point \(U_j\) or \(D_j\), where \(1 \leq j \leq n\) and \(i \neq j\).
+
+If the light ray cannot extend to the rightmost position of the pipe component, this indicates that the light ray is obstructed by the pipe's bends, making further progression impossible.
+Consequently, the line cannot be adjusted upward, downward, or rotated.
+Therefore, in optimal strategy, the light ray must intersect two specific points: the first being either \(U_i\) or \(D_i\) (the starting point or directly below it), and the second being either \(U_j\) or \(D_j\), where \(1 \leq i < j \leq n\).
+
+Among all the facts mentioned above, we can iterate through all possible candidate light rays for the optimal strategy.
+The light ray must intersect two specific points: the first being either \(U_i\) or \(D_i\), and the second being either \(U_j\) or \(D_j\), where \(1 \leq i < j \leq n\).
+By iterating through all possible candidates, we can calculate the first position where the light ray intersects the internal outline of the pipe component, allowing us to maximize the answer with this value.
+
+Let's assume the current candidate light ray is \(L: (L_x, L_y)\). Here, \(L_x\) represents either \(U_i\) or \(D_i\), while \(L_y\) represents either \(U_j\) or \(D_j\).
+
+We can iterate through all the pipe components from the leftmost position to the rightmost position step by step.
+If, for a certain component, the right vertical edge segment \((U_i, D_i)\) is located strictly above or strictly below line \(L\), this indicates that the pipe component from \((U_{i-1}, D_{i-1})\) to \((U_i, D_i)\) is obstructing the light ray.
+Therefore, we can calculate the intersection point between line \( L \) and the non-vertical edge of the current pipe component (which could be either the segment \((U_{i-1}, U_i)\) or \((D_{i-1}, D_i)\)).
+Of course, if \(i\) equals 1, the current light ray is invalid because it does not start from the segment \((U_1, D_1)\).
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+} U[22];
+
+int n;
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+    }
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+Let's calculate \(D_i = (x_i, y_i - 1)\) and iterate through all possible candidates for the straight line \(L\): \((U_i, U_j)\), \((U_i, D_j)\), \((D_i, U_j)\), and \((D_i, D_j)\). (Here, \(1 \le i < j \le n\))
+
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+} U[22], D[22];
+
+int n;
+
+struct line {
+    point x, y;
+    line(point x = point(0, 0), point y = point(0, 0)) : x(x), y(y) {}
+} L;
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+        D[i] = point(U[i].x, U[i].y - 1);
+    }
+    for(int i = 1; i <= n; i++) {
+        for(int j = i + 1; j <= n; j++) {
+            L = line(U[i], U[j]);
+            L = line(U[i], D[j]);
+            L = line(D[i], U[j]);
+            L = line(D[i], D[j]);
+        }
+    }
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+For each candidate light ray, calculate the \(x\)-coordinate of the first intersection point where the light ray intersects with the non-vertical edge of the pipe component to obtain the optimal answer.
+The optimal answer is the maximum value among all the calculated values.
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+} U[22], D[22];
+
+int n;
+
+struct line {
+    point x, y;
+    line(point x = point(0, 0), point y = point(0, 0)) : x(x), y(y) {}
+} L;
+
+double calc_the_left_most_interset_X_coordinate() {
+    return U[n].x;
+}
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+        D[i] = point(U[i].x, U[i].y - 1);
+    }
+    double maxX = U[1].x;
+    for(int i = 1; i <= n; i++) {
+        for(int j = i + 1; j <= n; j++) {
+            L = line(U[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(U[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+        }
+    }
+    if(maxX < U[n].x) printf("%.2lf\n", (double)maxX);
+    else puts("Through all the pipe.");
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+Iterate through all the pipe components from left to right and identify the first pipe component that obstructs the light ray.
+If, for a certain component, the right vertical edge segment \((U_i, D_i)\) is located strictly above or strictly below line \(L\), this indicates that the pipe component from \((U_{i-1}, D_{i-1})\) to \((U_i, D_i)\) is obstructing the light ray.
+
+How to check a certain point \(p\) is located strictly above the line \(L\)?
+Compute the cross product of vectors \( \vec{u} = L.x - p \) and \( \vec{v} = L.y - p \) to determine the orientation of these vectors.
+If the cross product is positive, it means the angle between \( \vec{u} \) and \( \vec{v} \) (traversed in a counter-clockwise direction) is less than 180 degrees.
+This indicates that point \( p \) is indeed above the line when moving from \( L.x \) to \( L.y \).
+
+How can we check if a certain point \( p \) is located strictly below the line \( L \)?
+We can use a similar approach as for determining if a point is above the line; in this case, we should check if the cross product is negative.
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+    point operator - (point a) {return point(x - a.x, y - a.y);}
+    double operator ^ (point a) {return x * a.y - y * a.x;}
+} U[22], D[22];
+
+int n;
+
+struct line {
+    point x, y;
+    line(point x = point(0, 0), point y = point(0, 0)) : x(x), y(y) {}
+} L;
+
+bool is_located_strictly_above_the_line(point p) {
+    return (L.x - p ^ L.y - p) > 0;
+}
+
+bool is_located_strictly_below_the_line(point p) {
+    return (L.x - p ^ L.y - p) < 0;
+}
+
+double calc_the_left_most_interset_X_coordinate() {
+    for(int i = 1; i <= n; i++) {
+        if(is_located_strictly_above_the_line(D[i]) || is_located_strictly_below_the_line(U[i])) {
+        }
+    }
+    return U[n].x;
+}
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+        D[i] = point(U[i].x, U[i].y - 1);
+    }
+    double maxX = U[1].x;
+    for(int i = 1; i <= n; i++) {
+        for(int j = i + 1; j <= n; j++) {
+            L = line(U[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(U[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+        }
+    }
+    if(maxX < U[n].x) printf("%.2lf\n", (double)maxX);
+    else puts("Through all the pipe.");
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+We need to calculate the position where the light ray intersects the internal outline of the pipe component. Again, we should determine the intersection point between line \( L \) and the non-vertical edge of the current pipe component (which could be either the segment \((U_{i-1}, U_i)\) or \((D_{i-1}, D_i)\)).
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+    point operator - (point a) {return point(x - a.x, y - a.y);}
+    double operator ^ (point a) {return x * a.y - y * a.x;}
+} U[22], D[22];
+
+int n;
+
+struct line {
+    point x, y;
+    line(point x = point(0, 0), point y = point(0, 0)) : x(x), y(y) {}
+} L;
+
+bool is_located_strictly_above_the_line(point p) {
+    return (L.x - p ^ L.y - p) > 0;
+}
+
+bool is_located_strictly_below_the_line(point p) {
+    return (L.x - p ^ L.y - p) < 0;
+}
+
+double x_coordinate_of_interest_point(point ax, point ay, point bx, point by) {
+}
+
+double calc_the_left_most_interset_X_coordinate() {
+    for(int i = 1; i <= n; i++) {
+        if(is_located_strictly_above_the_line(D[i]) || is_located_strictly_below_the_line(U[i])) {
+            if(is_located_strictly_above_the_line(U[i - 1]) && is_located_strictly_below_the_line(U[i])) {
+                return x_coordinate_of_interest_point(U[i - 1], U[i], L.x, L.y);
+            }
+            if(is_located_strictly_below_the_line(U[i - 1]) && is_located_strictly_above_the_line(U[i])) {
+                return x_coordinate_of_interest_point(U[i - 1], U[i], L.x, L.y);
+            }
+            if(is_located_strictly_above_the_line(D[i - 1]) && is_located_strictly_below_the_line(D[i])) {
+                return x_coordinate_of_interest_point(D[i - 1], D[i], L.x, L.y);
+            }
+            if(is_located_strictly_below_the_line(D[i - 1]) && is_located_strictly_above_the_line(D[i])) {
+                return x_coordinate_of_interest_point(D[i - 1], D[i], L.x, L.y);
+            }
+        }
+    }
+    return U[n].x;
+}
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+        D[i] = point(U[i].x, U[i].y - 1);
+    }
+    double maxX = U[1].x;
+    for(int i = 1; i <= n; i++) {
+        for(int j = i + 1; j <= n; j++) {
+            L = line(U[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(U[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+        }
+    }
+    if(maxX < U[n].x) printf("%.2lf\n", (double)maxX);
+    else puts("Through all the pipe.");
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+To calculate the intersection point between a line segment \((ax, ay)\) and a line \((bx, by)\), we can use vector arithmetic and the cross product to determine the proportions at which these lines intersect.
+Begin by computing the cross products of vectors relative to \(ax\) and \(ay\): one from \(ax\) to \(by\) and another from \(ax\) to \(bx\).
+These cross products provide the proportional distances along the line segment \((bx, by)\) relative to the point \(ax\).
+Using these proportions, we can then linearly interpolate between \(bx\) and \(by\) to accurately calculate both the x and y coordinates of the intersection point.
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+    point operator + (point a) {return point(x + a.x, y + a.y);}
+    point operator - (point a) {return point(x - a.x, y - a.y);}
+    point operator * (double a) {return point(x * a, y * a);}
+    double operator ^ (point a) {return x * a.y - y * a.x;}
+} U[22], D[22];
+
+int n;
+
+struct line {
+    point x, y;
+    line(point x = point(0, 0), point y = point(0, 0)) : x(x), y(y) {}
+} L;
+
+bool is_located_strictly_above_the_line(point p) {
+    return (L.x - p ^ L.y - p) > 0;
+}
+
+bool is_located_strictly_below_the_line(point p) {
+    return (L.x - p ^ L.y - p) < 0;
+}
+
+double x_coordinate_of_interest_point(point ax, point ay, point bx, point by) {
+    double sx = by - ax ^ ay - ax, sy = ay - ax ^ bx - ax, sum = sx + sy;
+    point intersect_point = bx * (sx / sum) + by * (sy / sum);
+    return intersect_point.x;
+}
+
+double calc_the_left_most_interset_X_coordinate() {
+    for(int i = 1; i <= n; i++) {
+        if(is_located_strictly_above_the_line(D[i]) || is_located_strictly_below_the_line(U[i])) {
+            if(is_located_strictly_above_the_line(U[i - 1]) && is_located_strictly_below_the_line(U[i])) {
+                return x_coordinate_of_interest_point(U[i - 1], U[i], L.x, L.y);
+            }
+            if(is_located_strictly_below_the_line(U[i - 1]) && is_located_strictly_above_the_line(U[i])) {
+                return x_coordinate_of_interest_point(U[i - 1], U[i], L.x, L.y);
+            }
+            if(is_located_strictly_above_the_line(D[i - 1]) && is_located_strictly_below_the_line(D[i])) {
+                return x_coordinate_of_interest_point(D[i - 1], D[i], L.x, L.y);
+            }
+            if(is_located_strictly_below_the_line(D[i - 1]) && is_located_strictly_above_the_line(D[i])) {
+                return x_coordinate_of_interest_point(D[i - 1], D[i], L.x, L.y);
+            }
+        }
+    }
+    return U[n].x;
+}
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+        D[i] = point(U[i].x, U[i].y - 1);
+    }
+    double maxX = U[1].x;
+    for(int i = 1; i <= n; i++) {
+        for(int j = i + 1; j <= n; j++) {
+            L = line(U[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(U[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+        }
+    }
+    if(maxX < U[n].x) printf("%.2lf\n", (double)maxX);
+    else puts("Through all the pipe.");
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+If a light ray does not intersect any internal point of the line segments \((U_{i - 1}, U_i)\) or \((D_{i - 1}, D_i)\), it indicates that the light ray has moved outside the pipe component at the left vertical edge, where the \(x\)-coordinate is \((U_{i - 1}).x\). (\(P.x\) denotes the \(x\)-coordinate of point \(P\))
+Of course, if \(i\) equals 1, the current light ray is invalid because it does not start from the segment \((U_1, D_1)\).
+
+
+
+
+#include <iostream>
+
+using namespace std;
+
+struct point {
+    double x, y;
+    point(double x = 0, double y = 0) : x(x), y(y) {}
+    point operator + (point a) {return point(x + a.x, y + a.y);}
+    point operator - (point a) {return point(x - a.x, y - a.y);}
+    point operator * (double a) {return point(x * a, y * a);}
+    double operator ^ (point a) {return x * a.y - y * a.x;}
+} U[22], D[22];
+
+int n;
+
+struct line {
+    point x, y;
+    line(point x = point(0, 0), point y = point(0, 0)) : x(x), y(y) {}
+} L;
+
+bool is_located_strictly_above_the_line(point p) {
+    return (L.x - p ^ L.y - p) > 0;
+}
+
+bool is_located_strictly_below_the_line(point p) {
+    return (L.x - p ^ L.y - p) < 0;
+}
+
+double x_coordinate_of_interest_point(point ax, point ay, point bx, point by) {
+    double sx = by - ax ^ ay - ax, sy = ay - ax ^ bx - ax, sum = sx + sy;
+    point intersect_point = bx * (sx / sum) + by * (sy / sum);
+    return intersect_point.x;
+}
+
+double calc_the_left_most_interset_X_coordinate() {
+    for(int i = 1; i <= n; i++) {
+        if(is_located_strictly_above_the_line(D[i]) || is_located_strictly_below_the_line(U[i])) {
+            if(i == 1) return U[1].x;
+            if(is_located_strictly_above_the_line(U[i - 1]) && is_located_strictly_below_the_line(U[i])) {
+                return x_coordinate_of_interest_point(U[i - 1], U[i], L.x, L.y);
+            }
+            if(is_located_strictly_below_the_line(U[i - 1]) && is_located_strictly_above_the_line(U[i])) {
+                return x_coordinate_of_interest_point(U[i - 1], U[i], L.x, L.y);
+            }
+            if(is_located_strictly_above_the_line(D[i - 1]) && is_located_strictly_below_the_line(D[i])) {
+                return x_coordinate_of_interest_point(D[i - 1], D[i], L.x, L.y);
+            }
+            if(is_located_strictly_below_the_line(D[i - 1]) && is_located_strictly_above_the_line(D[i])) {
+                return x_coordinate_of_interest_point(D[i - 1], D[i], L.x, L.y);
+            }
+            return U[i - 1].x;
+        }
+    }
+    return U[n].x;
+}
+
+void solve() {
+    for(int i = 1; i <= n; i++) {
+        cin>>U[i].x>>U[i].y;
+        D[i] = point(U[i].x, U[i].y - 1);
+    }
+    double maxX = U[1].x;
+    for(int i = 1; i <= n; i++) {
+        for(int j = i + 1; j <= n; j++) {
+            L = line(U[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(U[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], U[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+            L = line(D[i], D[j]), maxX = max(maxX, calc_the_left_most_interset_X_coordinate());
+        }
+    }
+    if(maxX < U[n].x) printf("%.2lf\n", (double)maxX);
+    else puts("Through all the pipe.");
+}
+
+int main() {
+    while(scanf("%d", &n) && n) solve();
+}
+
+
+
+
+4
+0 1
+2 2
+4 1
+6 4
+6
+0 1
+2 -0.6
+5 -4.45
+7 -5.57
+12 -10.8
+17 -16.55
+0
+
+
+
+
+Let's examine a custom case where \(n\) is at its minimum value: \(n = 2\).
+
+2
+0 1
+2 2
+0
+
+Since \( n \) is just 2, we can select any light ray that passes through the following two points: the first point is any point on the segment \((0, 0)\) to \((0, 1)\), and the second point is any point on the segment \((2, 1)\) to \((2, 2)\).
+If we select any light ray that meets the above requirements, the light can reach the rightmost pipe component at an \(x\)-coordinate of 2.
+So we should print "Through all the pipe.".
+
+
+
+
+2
+0 1
+2 2
+0

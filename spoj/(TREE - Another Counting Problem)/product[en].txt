@@ -1,0 +1,398 @@
+TREE - Another Counting Problem
+Time limit: 0.5s
+Memory limit: 1536MB
+
+Tree is an important data structure in Computer Science. Of all trees we work with, Binary Tree is probably the most popular one. A Binary Tree is called a Strictly Binary Tree if every non-leaf node in a binary tree has nonempty left and right subtrees. Let us define a Strictly Binary Tree of depth \(d\), as a Strictly Binary Tree that has at least one root to leaf path of length \(d\), and no root to leaf path in that tree is longer than \(d\). So let us use a similar reasoning to define a generalized structure.
+
+An \(n\)-ary Tree is called a Strictly \(n\)-ary Tree if every non-leaf node in an \(n\)-ary tree has \(n\) children each. A Strictly \(n\)-ary Tree of depth \(d\) can now be defined as a Strictly \(n\)-ary Tree that has at least one root to leaf path of length \(d\), and no root to leaf path in that tree is longer than \(d\).
+
+Given the value of \(n\) and depth \(d\), your task is to find the number of different strictly \(n\)-ary trees of depth \(d\).
+
+The figure below shows the 3 different strictly binary trees of depth 2.
+
+<img 1>
+
+Input
+Input consists of several test cases. Each test case consists of two integers \(n (0 < n <= 32), d (0 <= d <= 16)\). Input is terminated a test case where \(n=0\) and \(d=0\), you must not process this test case.
+
+Output
+For each test case, print three integers, \(n, d\) and the number of different strictly \(n\)-ary trees of level \(d\), in a single line. There will be a single space in between two integers of a line. You can assume that you would not be asked about cases where you had to consider trees that may have more than \(2^{10}\) nodes in a level of the tree. You may also find it useful to know that the answer for each test case will always fit in a 200 digit integer.
+
+
+
+
+We need to calculate the number of different strictly \(n\)-ary trees of depth \(d\).
+This can be achieved by determining the number of strictly \(n\)-ary trees of depth less than or equal to \(d\).
+If we denote this number as \(\text{dp}[n][d]\), then the number of different strictly \(n\)-ary trees of depth \(d\) is given by \(\text{dp}[n][d] - \text{dp}[n][d - 1]\).
+
+Now, let's compute \(\text{dp}[n][d]\).
+
+\(\bull\) It is clear that \(\text{dp}[0] = 1\) since a strictly \(n\)-ary tree of depth less than or equal to 0 consists of a single root node.
+\(\bull\) Let's calculate \(\text{dp}[i]\).
+We will calculate \(\text{dp}[i]\) in ascending order of index \(i\).
+Therefore, when calculating \(\text{dp}[i]\), we already know the values of \(\text{dp}[0], \text{dp}[1], \ldots, \text{dp}[i - 1]\).
+
+There are two possible cases:
+
+1. The case where the root node doesn't have any child nodes.
+This case refers to a tree that consists of only one node (the root node) because the root node does not have any child nodes.
+Therefore, there is 1 possible strictly \(n\)-ary tree of depth less than or equal to \(i\) in this case.
+
+2. The case where the root node has child nodes.
+Since we are counting the number of strictly \(n\)-ary trees and the root node has child nodes, we can first build \(n\) direct child nodes of the root node.
+
+This operation has set the depth of the currently built tree to 1.
+Now we should continue building so that the depth of the final tree is less than or equal to \(i\).
+
+When the root has \(n\) children, each direct child of the root node can serve as the root of any strictly \(n\)-ary tree of depth less than or equal to \(i-1\).
+Each child's subtree can take any form of a strictly \(n\)-ary tree with a depth of less than or equal to \(i-1\), and the total number of such trees available for each child is given by \(\text{dp}[i-1]\).
+
+Since the structure of one child’s subtree does not affect the structures chosen for the other subtrees (they are independent), the total number of ways to configure the subtrees for all \(n\) children is the product of the number of configurations for each child.
+
+Therefore, there is \(\text{dp}[i-1]^n\) possible strictly \(n\)-ary tree of depth less than or equal to \(i\) in this case.
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+    }
+}
+
+
+
+
+If \(d\) is equal to 0, there is only one valid tree: it consists of a single node.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        if(d == 0) puts("1");
+    }
+}
+
+
+
+
+Otherwise, we should calculate \(\text{dp}[i]\) for \(0 \leq i \leq d\).
+
+As I mentioned in block 1, the following facts hold:
+\(\text{dp}[0] = 1\)
+\(\text{dp}[i] = 1 + (\text{dp}[i - 1]) ^ n\).
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+using INT = __int128;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            cout<<dp[d] - dp[d - 1]<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+Final answer is \(\text{dp}[d] - \text{dp}[d - 1]\).
+Since there is no option to print the current type, we should split the final answer into digits and print them as a string.
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+using INT = __int128;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+The output of the problem requires printing \(n\) and \(d\) before displaying the number of different strictly \(n\)-ary trees of depth \(d\).
+
+
+
+
+#include <bits/stdc++.h>
+ 
+using namespace std;
+using INT = __int128;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        printf("%d %d ", n, d);
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+Let's examine a custom case where \(n, d\) are at their minimum values: \(n = 1, d = 0\).
+
+1 0
+0 0
+
+In this case, there is exactly one strictly n-ary tree, which has only one node.
+Therefore, we should print "1 0 1".
+Here, the first two numbers represent \(n\) and \(d\) respectively, and the last number indicates the total number of different strictly \(n\)-ary trees of depth \(d\).
+
+
+
+
+1 0
+0 0
+
+
+
+
+I didn't notice the note in the output field indicating that \(\text{dp}[d]\) can be very large, potentially exceeding the maximum limit of \(\text{\_\_int128}\).
+We can use the \(\text{Boost Multiprecision}\) library’s \(\text{cpp\_int}\) type to accurately handle and store these large integers.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
+using INT = cpp_int;
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        printf("%d %d ", n, d);
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+It seems that the \(\text{Boost Multiprecision}\) library isn't installed on the local server used by the judge.
+I will bypass this error by splitting the variable type based on whether it is on the ONLIN_JUDGE side or not.
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+#ifdef ONLINE_JUDGE
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
+using INT = cpp_int;
+#else
+using INT = __int128;
+#endif
+
+INT power(INT a, int b) {
+    INT ans = 1;
+    while(b--) ans *= a;
+    return ans;
+}
+
+INT dp[33] = {1};
+
+int main() {
+    int n, d;
+    while(~scanf("%d %d", &n, &d)) {
+        if(n == 0 && d == 0) return 0;
+        
+        printf("%d %d ", n, d);
+        
+        if(d == 0) puts("1");
+        else {
+            for(int i = 1; i <= d; i++) dp[i] = 1 + power(dp[i - 1], n);
+            
+#ifdef ONLINE_JUDGE
+            cout<<dp[d] - dp[d - 1]<<endl;
+#else
+            string count;
+            for(INT ans = dp[d] - dp[d - 1]; ans; ans /= 10) {
+                count += '0' + ans % 10;
+            }
+            reverse(count.begin(), count.end());
+            cout<<count<<endl;
+#endif
+        }
+    }
+}
+
+
+
+
+2 0
+2 1
+2 2
+2 3
+3 5
+0 0
+
+
+
+
+
+Let's examine a custom case where \(n, d\) are at their minimum values: \(n = 1, d = 0\).
+
+1 0
+0 0
+
+In this case, there is exactly one strictly n-ary tree, which has only one node.
+Therefore, we should print "1 0 1".
+Here, the first two numbers represent \(n\) and \(d\) respectively, and the last number indicates the total number of different strictly \(n\)-ary trees of depth \(d\).
+
+
+
+
+1 0
+0 0

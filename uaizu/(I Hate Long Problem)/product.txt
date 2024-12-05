@@ -1,0 +1,118 @@
+<b>I Hate Long Problem
+Time Limit: 2 sec
+Memory Limit: 262144 KB</b>
+
+<b>Problem Statement</b>
+Mr. Mo3tthi hates long problem statements. He glances at the problem and skips it if it has more than or equal to X lines.
+There are N problems, and the i-th problem has \(M_i\) lines in its statement. Mr. Mo3tthi is trying to solve them. Please find the number of problems he will ignore.
+
+<b>Constraints</b>
+\(1 ≤ N ≤ 10^6\\
+1 ≤ X, M_i ≤ 10^9
+\)
+
+<b>Input</b>
+The first line contains the number of problems N and the number of lines X that Mr. Mo3tthi will ignore, separated by a space. This is followed by N lines, each containing the number of lines \(M_i\) for each problem.
+
+<code>
+\(N\ X\\
+M_1\\
+M_2\\
+⋮\\
+M_N\)
+</code>
+
+<b>Output</b>
+Output the number of problems Mr. Mo3tthi will ignore on one line.
+
+
+
+
+
+To solve this problem, we need to count the number of problems Mr. Mo3tthi will ignore, which are the problems with more than or equal to X lines in their statements. We can do this by iterating over each problem, comparing its number of lines to X, and incrementing a counter if it's greater than or equal to X. The final counter value will be the number of problems Mr. Mo3tthi will ignore.
+
+We should first write the code to read the input and iterate over the problems, and then implement the logic to count the ignored problems.
+
+The time complexity of this solution will be O(N), where N is the number of problems, since we're iterating over each problem once. The space complexity will be O(1), since we only need a constant amount of space to store the counter and other variables.
+
+Next, we'll write the boilerplate code for reading the input and iterating over the problems.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int N, X;
+    cin >> N >> X;
+    vector<int> M(N);
+    for (int i = 0; i < N; i++) {
+        cin >> M[i];
+    }
+    return 0;
+}
+
+
+
+
+Now that we have the boilerplate code for reading the input and iterating over the problems, we need to implement the logic to count the ignored problems. We can do this by introducing a counter variable, initializing it to 0, and incrementing it every time we encounter a problem with more than or equal to X lines. We can use a simple if statement to check this condition.
+
+After the loop, the counter variable will hold the number of problems Mr. Mo3tthi will ignore, and we can simply print this value to get the final answer.
+
+We should modify the code to include this logic and then test it with some sample inputs to make sure it's working correctly.
+
+Next, we'll modify the code to implement this logic.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    int N, X;
+    cin >> N >> X;
+    vector<int> M(N);
+    for (int i = 0; i < N; i++) {
+        cin >> M[i];
+    }
+    int ignored = 0;
+    for (int i = 0; i < N; i++) {
+        if (M[i] >= X) {
+            ignored++;
+        }
+    }
+    cout << ignored << endl;
+    return 0;
+}
+
+
+
+
+5 7
+5
+6
+7
+8
+9
+
+
+
+
+5 1 
+5 
+6 
+7 
+8 
+9
+
+
+
+

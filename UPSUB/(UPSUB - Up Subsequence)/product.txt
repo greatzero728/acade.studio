@@ -1,0 +1,154 @@
+UPSUB - Up Subsequence
+Time limit:	0.309s
+Source limit:	30000B
+Memory limit:	1536MB
+
+If x = \(a_0a_1a_2...a_{n-1}\) is a string where \(a_i\) denotes the character at index i, a subsequence \(a_{j0}a_{j1}a_{j2}...a_{jn}\) is called an upsubsequence if \(a_{j0} <= a_{j1} <= a_{j2} <= ... <= a_{jn}\) and j0 < j1 < j2 < ... < jn.
+
+A maximal upsubsequence of a string is defined as the upsubsequence of maximum length. BuggyD observes that a string x can have many maximal upsubsequences. Help him find all the maximal upsubsequences in x.
+
+Input
+The first line of the input contains an integer t, the number of test cases. t test cases follow.
+
+Each test case consists of a single line containing a string x, where the length of x is no more than 100. x will not contain any spaces, tabs or other whitespace characters.
+
+Output
+For each test csae, output all of the maximal upsubsequences of x in lexicographical order. Print a blank line after each test case.
+
+
+
+
+Given the string x, we need to print all possible non-decreasing subsequences that have maximal length of in lexicographical order.
+
+\(\bullet\) naive approach
+We can iterate all possible \(2^n\) subsequences and can check if the current subsequence is non-decreasing subsequence in \(O(n)\).
+After collecting all possible non-decreasing subsequences that have maximal length, we need to sort all the subsequences we have calculated in lexicographical order.
+But, n can be up to 100, so we can't iterate all \(2 ^ n\) possible subsequences, so this algorithm is time limit exceed algorithm.
+
+\(\bullet\) real algorithm
+Let's assume \( dp[i] \) represents the maximum length of a non-decreasing subsequence where the indices fall within the range \([1...i]\) and the rightmost index is \( i \).  
+The initial state is \( dp[0] = 0 \) (since the maximum length of a non-decreasing subsequence with the rightmost index at 0 is 0).  
+The transition is defined as \( dp[i] = dp[j] + 1 \) (where \( 0 \leq j < i \) and \( x_j \leq x_i \)). This is because, in the representation of a non-decreasing subsequence that has the maximum length, the left index \( j \) must be positioned to the left of \( i \), ensuring \( 0 \leq j < i \). Additionally, since the current subsequence is non-decreasing, it follows that \( x_j \leq x_i \).
+To calculate \( dp[i] \), we need to iterate through all possible \( j \) (\( 0 \leq j < i \)). Therefore, the time complexity for calculating all \( dp[i] \) is \( O(n^2) \).
+
+After calculating all \( dp[i] \), we can easily determine the maximum length of a non-decreasing subsequence by finding the maximum value among all \( dp[i] \).
+This means we can also identify all possible rightmost indices that correspond to our desired non-decreasing subsequences. By using these rightmost indices, we can store all possible non-decreasing subsequences of maximum length by determining the subsequence from right to left.
+
+Let's suppose we have determined that the current position of the desired non-decreasing subsequence is at index \( k \) in the original string. This means we have already identified all indices of the non-decreasing subsequence that are located to the right of \( k \).
+In this case, we only need to identify all possible indices \( j \) that are directly to the left of \( k \). This can be achieved by iterating through all \( j \) (where \( 1 \leq j < k \), \( a_j \leq a_k \), and \( dp[j] + 1 = dp[k] \)). For each candidate index \( j \), the condition \( dp[j] + 1 = dp[k] \) must be satisfied. If \( dp[j] + 1 < dp[k] \), it indicates that the maximum non-decreasing subsequence does not include index \( j \).
+
+So we have already identified all possible rightmost indices of our desired sequence and determined how to identify the left index of the current index as well. Consequently, we can easily find all possible maximum non-decreasing subsequences using the recursive method outlined in the previous rules.
+Finally, we can sort all of them using the sort function and print them in lexicographical order.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+char x[NN];
+
+void solve() {
+    scanf("%s", x + 1);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+
+We have identified the high-level idea of solving this problem, so now we can start implementing this idea by writing the code.
+Let's start by initializing an array dp of size n to store the lengths of the longest non-decreasing subsequences ending at each position in the string.
+Next, we need to iterate through the string from left to right and update the dp array based on the previously computed values.
+For each position i, we need to find all previous positions j where the character at j is less than or equal to the character at i.
+We also need to check if dp[j] + 1 is equal to dp[i]. If it is, we can extend the subsequence ending at j by appending the character at i.
+Finally, we can collect all the non-decreasing subsequences of maximum length by recursively backtracking from each position i where dp[i] is equal to the maximum value in the dp array.
+After collecting all the subsequences, we can sort them in lexicographical order and print them.
+
+Let's write the code for this step-by-step approach. We will start by initializing the dp array and then implement the dynamic programming logic to fill up the dp array. 
+
+Next, we will implement the backtracking logic to collect all the non-decreasing subsequences of maximum length.
+Finally, we will sort the subsequences and print them in lexicographical order.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+char x[NN];
+vector<string> ans;
+
+int dp[NN], n;
+
+void dfs(int i, string cur) {
+    if(!i) {
+        ans.push_back(cur);
+        return;
+    }
+    for(int j = 0; j < i; j++) {
+        if(x[j] <= x[i] && dp[i] == dp[j] + 1) {
+            dfs(j, x[i] + cur);
+        }
+    }
+}
+
+void solve() {
+    scanf("%s", x + 1);
+    n = strlen(x + 1);
+    for(int i = 0; i <= n; i++) {
+        dp[i] = 1;
+    }
+    for(int i = 1; i <= n; i++) {
+        for(int j = 0; j < i; j++) {
+            if(x[i] >= x[j]) {
+                dp[i] = max(dp[i], dp[j] + 1);
+            }
+        }
+    }
+    int mx = 0;
+    for(int i = 0; i <= n; i++) {
+        mx = max(mx, dp[i]);
+    }
+    ans.clear();
+    for(int i = n; i >= 1; i--) {
+        if(dp[i] == mx) {
+            dfs(i, "");
+        }
+    }
+    sort(ans.begin(), ans.end());
+    for(string v: ans) {
+        printf("%s\n", v.c_str());
+    }
+    puts("");
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) solve();
+    return 0;
+}
+
+
+
+
+Let's examine a custom corner case, where n is its minimum value: n = 1.
+1
+a
+In this case, the length of the given string x is only 1, so it's obvious that the maximum length of non-decreasing subsequences is 1. So in this case the answer will be "a".
+
+
+
+
+1
+a

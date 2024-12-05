@@ -1,0 +1,170 @@
+BIA - Bytelandian Information Agency
+
+Time limit: 7s
+Source limit: 50000B
+Memory limit: 1536MB
+
+Bytelandian Information Agency (BIA) uses a net of n computers. The computers are numbered from 1 to n, and the computer number 1 is a server. The computers are connected by one-way information channels. Every channel connects a pair of computers. The whole network is organised in such a way that one can send information from the server to any other computer either directly or indirectly.
+
+When BIA acquires new information, the information is put on the server and propagated in the net. The chief of BIA considers what would happen if one computer stopped working (was blown away by terrorists for example). It could happen that some other computers would stop receiving information from the server, because the broken computer was a necessary transmitter. We will call such computers critical. For example in the situation in the picture below the critical computers are 1 and 2. 1 is the server and all information sent from the server to 3 has to go through 2.
+
+<img 1>
+
+Task
+Write a program which
+
+reads a description of the net from standard input,
+finds all critical computers.
+writes the numbers of critical computers to standard output.
+Input
+Ten test cases (given one under another, you have to process all!). Each test case consists of several lines. In the first line there are numbers n and m. n denotes the number of computers in the net,\((2 \leq n \leq 5000). m\) denotes the number of information channels, \(n-1\leq m \leq 200000\). The following m lines describes a single information channel and consist of two integer numbers a and b separated by a space. It means the computer a sends information to computer b by that channel. You may assume there are no two channels which start and end at the same points a, b.
+
+Output
+For every testcase your program should write two lines. In the first line \(k\) - the number of critical computers in the net. In the second line \(k\) numbers separated by single spaces - the numbers of critical computers in increasing order.
+
+
+
+
+a naive solution would just to try for each computer to erase it from the network then start sending message from the server (dfs) if the message reached all the other devices then this computer wasn't a critical point otherwise if the message didn't reach some device then the computer was a critical point and this solution could pass because the number of computers is only \(5000\) in the worse case so we can actually implement this without getting TLE.
+
+so as summary for the solution:
+for each node we mark this node as it is deleted from the network and try to dfs from the computer number \(1\) as it is the server then if the message reached the other devices then the computer we blocked wasn't critical and doing this to all computers we can find the answer.
+
+note: the first computer is always critical as it is the server.
+
+
+
+
+
+we will use bitsets in visited and marking critical points as it is very efficient than the normal arrays (in memory and time)
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const int N = 5e3 + 1;
+vector<int>adj[N];
+bitset<N>vis , ArtPoint;
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    while(cin>>n>>m) {
+        for(int i = 1;i <= n;i++)adj[i].clear();
+        ArtPoint.reset();
+        for(int i = 0;i < m;i++) {
+            int a , b;cin>>a>>b;
+            adj[a].emplace_back(b);
+        }
+    }
+}
+
+
+
+
+
+Now let's do a standard dfs to check reachability.
+
+if the node visited don't visit it again otherwise try to visit it and recursively do this again
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const int N = 5e3 + 1;
+vector<int>adj[N];
+bitset<N>vis , ArtPoint;
+void dfs(int u) {
+    vis[u] = true;
+    for(auto &val:adj[u]) {
+        if(!vis[val])dfs(val);
+    }
+}
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    while(cin>>n>>m) {
+        for(int i = 1;i <= n;i++)adj[i].clear();
+        ArtPoint.reset();
+        for(int i = 0;i < m;i++) {
+            int a , b;cin>>a>>b;
+            adj[a].emplace_back(b);
+        }
+    }
+}
+
+
+
+
+
+Now we brute force on each computer and check if we erase this computer from network (mark it visited in order not to visit it in the dfs) will we remain reaching all the others? if so then this is not a critical computer. otherwise we mark it as critical computer.
+
+we mark the first computer to be critical point as it is the server
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+const int N = 5e3 + 1;
+vector<int>adj[N];
+bitset<N>vis , ArtPoint;
+void dfs(int u) {
+    vis[u] = true;
+    for(auto &val:adj[u]) {
+        if(!vis[val])dfs(val);
+    }
+}
+int main() {
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    int n , m;
+    while(cin>>n>>m) {
+        for(int i = 1;i <= n;i++)adj[i].clear();
+        ArtPoint.reset();
+        for(int i = 0;i < m;i++) {
+            int a , b;cin>>a>>b;
+            adj[a].emplace_back(b);
+        }
+        for(int i = 2;i <= n;i++) {
+            vis.reset(); vis[i] = true;
+            dfs(1);
+            if(vis.count() != n)ArtPoint[i] = true;
+        }
+        ArtPoint[1] = true;
+        cout<<ArtPoint.count()<<'\n';
+        for(int i = 1;i <= n;i++) {
+            if(ArtPoint[i])cout<<i<<" ";
+        }
+        cout<<'\n';
+    }
+}
+
+
+
+
+4 5
+1 2
+1 4
+2 3
+3 4
+4 2
+
+
+
+
+Let's use custom test on the minimal constraints \(n = 2 , m = 1\) to check if the code handle this case
+
+2 1
+1 2
+
+output should be
+1
+1
+because the only critical point here is the server
+
+
+
+
+2 1
+1 2

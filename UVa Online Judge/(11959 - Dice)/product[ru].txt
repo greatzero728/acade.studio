@@ -1,0 +1,505 @@
+Dice
+Time limit: 1.000 seconds
+
+Mary add Sue are playing with dices. Rules are simple: at the begging each of them puts coin on the table and roll a dice. Wins a player who rolled a larger number. If numbers are the same, coins stay on the table for a next round. In order to make this game more interesting they decided to play now with normal dices, but with dice that can have arbitrary number of bones, from 0 till 9. However each round must be played with same dice by both players.
+Girls have been playing this game for a day long, till Mary run out of coins (nevertheless she had more coins at the beginning of the game). Now Mary is confused. How could she have lost all her coins? She thinks that Sue had been cheating. Before each roll Mary wrote on a paper numbers of bones on each side of the dice. Now she wonders if same dice was always used during one round. Help her to find it out.
+
+Input
+On the first line there is the total number of test cases T (T ≤ \(10^3\)), next T lines follows. Each line contains two six digit numbers, each digit stands for number of bones on side of a dice in this order:
+top, bottom, front, left, back, right.
+
+Output
+For each test case output line ‘Equal’ if two dices are equals, or ‘Not Equal’ otherwise.
+
+
+
+
+Цифры на каждой грани двух кубиков заданы, и нам нужно определить, являются ли эти два кубика одинаковыми.
+
+Мы можем зафиксировать положение первого кубика и вращать второй кубик, чтобы проверить их идентичность.
+
+У кубика 6 граней, поэтому возможны 6 случаев:
+1. Верхняя грань второго кубика может стать верхней после броска.
+2. Нижняя грань второго кубика может стать верхней после броска.
+3. Передняя грань второго кубика может стать верхней после броска.
+4. Задняя грань второго кубика может стать верхней после броска.
+5. Левая грань второго кубика может стать верхней после броска.
+6. Правая грань второго кубика может стать верхней после броска.
+
+Для каждого случая можно зафиксировать верхнюю и нижнюю грани, а затем повернуть кубик на 90 градусов четыре раза, чтобы получить все возможные различные состояния с фиксированными верхней и нижней гранями.
+
+Таким образом, мы можем проверить все \(6 \times 4 = 24\) конфигурации, и для каждого случая проверить, совпадают ли соответствующие грани двух кубиков: верхняя-верхняя, нижняя-нижняя, передняя-передняя, задняя-задняя, левая-левая и правая-правая.
+
+Если хотя бы в одном из 24 случаев два кубика полностью совпадают, это означает, что данные два кубика одинаковы, и мы сразу выводим "Equal" и завершаем выполнение.
+
+Если ни одна из 24 конфигураций не совпадает, значит, данные два кубика различны, и в этом случае мы выводим "Not Equal".
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+Рассмотрим все 24 шага по одному в соответствии со следующими случаями:
+
+1. Верхняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+2. Нижняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+3. Передняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+4. Задняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+5. Левая грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+6. Правая грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+Если в любом из 24 случаев два кубика полностью совпадают, это означает, что данные два кубика одинаковы, и мы сразу выводим "Equal" и завершаем выполнение.
+
+
+
+
+
+1. Верхняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+2. Нижняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+3. Передняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+4. Задняя грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+5. Левая грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.left && a.bottom == b.right && a.front == b.top && a.left == b.front && a.back == b.bottom && a.right == b.back) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.front && a.left == b.bottom && a.back == b.back && a.right == b.top) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.bottom && a.left == b.back && a.back == b.top && a.right == b.front) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.back && a.left == b.top && a.back == b.front && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+6. Правая грань второго кубика может стать верхней после броска. В этом состоянии нужно проверить четыре возможных случая.
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.left && a.bottom == b.right && a.front == b.top && a.left == b.front && a.back == b.bottom && a.right == b.back) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.front && a.left == b.bottom && a.back == b.back && a.right == b.top) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.bottom && a.left == b.back && a.back == b.top && a.right == b.front) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.back && a.left == b.top && a.back == b.front && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.right && a.bottom == b.left && a.front == b.top && a.left == b.back && a.back == b.bottom && a.right == b.front) return true;
+        if(a.top == b.right && a.bottom == b.left && a.front == b.back && a.left == b.bottom && a.back == b.front && a.right == b.top) return true;
+        if(a.top == b.right && a.bottom == b.left && a.front == b.bottom && a.left == b.front && a.back == b.top && a.right == b.back) return true;
+        if(a.top == b.right && a.bottom == b.left && a.front == b.front && a.left == b.top && a.back == b.back && a.right == b.bottom) return true;
+    }
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+Если ни один из 24 случаев не работает, то данные два кубика различны, и мы должны вывести "Not Equal".
+
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+struct dice {
+    int top, bottom, front, left, back, right;
+} a, b;
+
+bool equal() {
+    scanf("%1d%1d%1d%1d%1d%1d", &a.top, &a.bottom, &a.front, &a.left, &a.back, &a.right);
+    scanf("%1d%1d%1d%1d%1d%1d", &b.top, &b.bottom, &b.front, &b.left, &b.back, &b.right);
+    
+    {
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.front && a.left == b.left && a.back == b.back && a.right == b.right) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.left && a.left == b.back && a.back == b.right && a.right == b.front) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.back && a.left == b.right && a.back == b.front && a.right == b.left) return true;
+        if(a.top == b.top && a.bottom == b.bottom && a.front == b.right && a.left == b.front && a.back == b.left && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.front && a.left == b.right && a.back == b.back && a.right == b.left) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.right && a.left == b.back && a.back == b.left && a.right == b.front) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.back && a.left == b.left && a.back == b.front && a.right == b.right) return true;
+        if(a.top == b.bottom && a.bottom == b.top && a.front == b.left && a.left == b.front && a.back == b.right && a.right == b.back) return true;
+    }
+    
+    {
+        if(a.top == b.front && a.bottom == b.back && a.front == b.top && a.left == b.right && a.back == b.bottom && a.right == b.left) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.right && a.left == b.bottom && a.back == b.left && a.right == b.top) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.bottom && a.left == b.left && a.back == b.top && a.right == b.right) return true;
+        if(a.top == b.front && a.bottom == b.back && a.front == b.left && a.left == b.top && a.back == b.right && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.back && a.bottom == b.front && a.front == b.top && a.left == b.left && a.back == b.bottom && a.right == b.right) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.left && a.left == b.bottom && a.back == b.right && a.right == b.top) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.bottom && a.left == b.right && a.back == b.top && a.right == b.left) return true;
+        if(a.top == b.back && a.bottom == b.front && a.front == b.right && a.left == b.top && a.back == b.left && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.left && a.bottom == b.right && a.front == b.top && a.left == b.front && a.back == b.bottom && a.right == b.back) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.front && a.left == b.bottom && a.back == b.back && a.right == b.top) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.bottom && a.left == b.back && a.back == b.top && a.right == b.front) return true;
+        if(a.top == b.left && a.bottom == b.right && a.front == b.back && a.left == b.top && a.back == b.front && a.right == b.bottom) return true;
+    }
+    
+    {
+        if(a.top == b.right && a.bottom == b.left && a.front == b.top && a.left == b.back && a.back == b.bottom && a.right == b.front) return true;
+        if(a.top == b.right && a.bottom == b.left && a.front == b.back && a.left == b.bottom && a.back == b.front && a.right == b.top) return true;
+        if(a.top == b.right && a.bottom == b.left && a.front == b.bottom && a.left == b.front && a.back == b.top && a.right == b.back) return true;
+        if(a.top == b.right && a.bottom == b.left && a.front == b.front && a.left == b.top && a.back == b.back && a.right == b.bottom) return true;
+    }
+    
+    return false;
+}
+
+int main() {
+    int t; scanf("%d", &t);
+    while(t--) {
+        if(equal()) puts("Equal");
+        else puts("Not Equal");
+    }
+}
+
+
+
+
+3
+345678 345678
+123123 123456
+123456 351624
+
+
+
+
+
+Рассмотрим свой тест, где \(T = 1\), все цифры первого кубика будут идентичны, и все цифры второго кубика — также:
+
+\(
+1 \\
+000000 \, 999999
+\)
+
+Так как все цифры первого кубика равны 0, а все цифры второго кубика равны 9, даже если мы будем вращать оба кубика, мы не сможем сделать их одинаковыми.  
+Поэтому мы должны вывести "Not Equal".
+
+
+
+
+
+1  
+000000 999999

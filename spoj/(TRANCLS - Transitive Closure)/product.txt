@@ -1,0 +1,139 @@
+TRANCLS - Transitive Closure
+Time limit:	1s
+Source limit:	50000B
+Memory limit:	1536MB
+
+In mathematics, a set \(S\) is transitive if whenever an element a is related to an element b, and b is in turn related to an element \(c\), then \(a\) is also related to \(c\). In other words, any set of pairs is transitive if and only if you have \((a,b)\) and \((b,c)\) then you also must have \((a,c)\). Check this example: \(S\) = { (1,2), (2,3), (3,4), (2,4) }. Is set \(S\) is transitive relation ? No, Because you have (1,2) and (2,3) but you don’t have (1,3) If we add (1,3) will it be transitive ? ((\(S\) = { (1,2), (2,3), (3,4), (2,4), (1,3) } )) No, Because you have (1,3) and (3,4) but you don’t have (1,4) If we add (1,4) will it be transitive ? ((\(S\) = { (1,2), (2,3), (3,4), (2,4), (1,3), (1,4) } )) Yes, Now the set \(S\) is now transitive after we added 2 pairs { (1,3), (1,4) } These pairs called transitive closure (which means the minimal pairs that convert set \(S\) into a transitive set). Your task is given the set \(S\) you have to output the minimal pairs have to be added to make the set \(S\) transitive.
+
+Input
+The first line of input is the number of test cases \(T\) where \((0 < T \leq 100)\), Each test case you'll be given the number of pairs in the set \(N\) where \((0 < N \leq 100)\), followed by \(N\) pairs \((a, b)\) where \((0 \leq a,b < N)\).
+
+Output
+For each test case print "Case_#i:_X" where "i" is the case number, "X" is the minimal number of pairs have to be added to make the set transitive and "_" is a white space. Each test case should be in a separate line.
+
+
+
+
+To solve this problem, we need to find the minimal number of pairs that need to be added to make the set S transitive. This can be done by using the Floyd-Warshall algorithm, which is used to find the shortest path between all pairs of vertices in a weighted graph. In this case, we can treat the pairs in S as edges in a graph, and the transitive closure as the shortest path between all pairs of vertices.
+
+We will start by initializing a 2D matrix to represent the graph, where the entry at row i and column j is 1 if there is an edge from vertex i to vertex j, and 0 otherwise. We will then use the Floyd-Warshall algorithm to find the shortest path between all pairs of vertices.
+
+Once we have found the shortest path between all pairs of vertices, we can count the number of pairs that need to be added to make the set S transitive. This can be done by comparing the original graph with the transitive closure, and counting the number of edges that are present in the transitive closure but not in the original graph.
+
+Let's start by initializing the graph and implementing the Floyd-Warshall algorithm.
+
+Next step will be to write the code to read the input and initialize the graph.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+bool adj[NN][NN], flag[NN][NN];
+
+int solve() {
+    int N; scanf("%d", &N);
+    memset(adj, 0, sizeof adj);
+    for(int i = 0; i < N; i++) {
+        int a, b; scanf("%d %d", &a, &b);
+        adj[a][b] = 1;
+    }
+}
+
+int main() {
+    int T; scanf("%d", &T);
+    for(int i = 1; i <= T; i++) printf("Case #%d: %d\n", i, solve());
+}
+
+
+
+
+Next, we need to implement the Floyd-Warshall algorithm to find the shortest path between all pairs of vertices. The Floyd-Warshall algorithm works by iteratively improving the shortest path between all pairs of vertices. It does this by considering each vertex as an intermediate vertex, and updating the shortest path between all pairs of vertices if a shorter path is found.
+
+In this case, since we are dealing with an unweighted graph, we can simplify the algorithm by only considering the presence or absence of an edge between two vertices. If there is an edge from vertex i to vertex j, and an edge from vertex j to vertex k, then we can add an edge from vertex i to vertex k.
+
+We will also need to count the number of pairs that need to be added to make the set S transitive. This can be done by comparing the original graph with the transitive closure, and counting the number of edges that are present in the transitive closure but not in the original graph.
+
+Let's implement the Floyd-Warshall algorithm and count the number of pairs that need to be added.
+
+Next step will be to write the code to implement the Floyd-Warshall algorithm and count the number of pairs that need to be added.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int NN = 121;
+
+bool adj[NN][NN], flag[NN][NN];
+
+int solve() {
+    int N; scanf("%d", &N);
+    memset(adj, 0, sizeof adj);
+    memset(flag, 0, sizeof flag);
+    for(int i = 0; i < N; i++) {
+        int a, b; scanf("%d %d", &a, &b);
+        adj[a][b] = 1;
+        flag[a][b] = 1;
+    }
+    for(int k = 0; k < N; k++) {
+        for(int i = 0; i < N; i++) {
+            for(int j = 0; j < N; j++) {
+                if(adj[i][k] && adj[k][j]) adj[i][j] = 1;
+            }
+        }
+    }
+    int cnt = 0;
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < N; j++) {
+            if(adj[i][j] && !flag[i][j]) cnt++;
+        }
+    }
+    return cnt;
+}
+
+int main() {
+    int T; scanf("%d", &T);
+    for(int i = 1; i <= T; i++) printf("Case #%d: %d\n", i, solve());
+}
+
+
+
+
+3
+4
+0 1
+1 2
+2 3
+1 3
+2
+0 1
+1 0
+1
+0 0
+
+
+
+
+Let's examine a custom corner case where \(T, N, a, b\) are at their minimum value: \(T = N = 1, a = b = 0\).
+
+1
+1
+0 0
+
+In this case, no additional pairs are needed to make the set transitive, as the only given pair is \((0, 0)\), which already satisfies the transitive property.
+Therefore, there are no missing relationships to add.
+So the answer will be "Case #1: 0".
+
+
+
+
+1
+1
+0 0

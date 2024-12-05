@@ -1,0 +1,209 @@
+Factors and Factorials
+Time limit: 3.000 seconds
+
+The factorial of a number N (written N!) is defined as the product of all the integers from 1 to N . It is often defined recursively as follows:
+1! = 1
+N! = N * (N − 1)!
+Factorials grow very rapidly — 5! = 120, 10! = 3, 628, 800. One way of specifying such large numbers is by specifying the number of times each prime number occurs in it, thus 825 could be specified as (0 1 2 0 1) meaning no twos, 1 three, 2 fives, no sevens and 1 eleven.
+Write a program that will read in a number N (2 ≤ N ≤ 100) and write out its factorial in terms of the numbers of the primes it contains.
+
+Input
+Input will consist of a series of lines, each line containing a single integer N . The file will be terminated by a line consisting of a single ‘0’.
+
+Output
+Output will consist of a series of blocks of lines, one block for each line of the input. Each block will start with the number N, right justified in a field of width 3, and the characters ‘!’, space, and ‘=’. This will be followed by a list of the number of times each prime number occurs in N!.
+These should be right justified in fields of width 3 and each line (except the last of a block, which may be shorter) should contain fifteen numbers. Any lines after the first should be indented.
+Follow the layout of the example shown below exactly.
+
+
+
+
+
+Наивный алгоритм:
+Наивный алгоритм сначала вычисляет факториал числа N, а затем определяет количество каждого простого числа в этом факториале. Этот подход требует значительных вычислительных ресурсов, так как факториалы быстро растут и становятся очень большими. После нахождения N! необходимо разложить его на простые множители, что также требует дополнительных вычислений. Таким образом, наивный метод неэффективен для больших значений N, так как он использует много памяти и времени.
+
+Реальный алгоритм:
+Реальный алгоритм избегает вычисления N! напрямую. Вместо этого он проходит по всем числам от 1 до N и обновляет количество каждого простого числа, используя теорему о делимости. Для каждого простого числа p, алгоритм подсчитывает, сколько раз \(p\) делит числа от 1 до N, включая степени \(p\), \(p^2\) и так далее. Это позволяет эффективно находить количество каждого простого числа в факториале без необходимости вычисления самого факториала. Такой подход значительно уменьшает вычислительные затраты и позволяет работать с большими значениями N.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    int N;
+    while (cin >> N && N != 0) {
+        
+    }
+    return 0;
+}
+
+
+
+
+Давайте найдем все простые числа меньше или равны 100.
+Все эти простые числа существенны, так как N ≤ 100.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> primes;
+
+void prime_sieve(int n = 100) {
+    vector<bool> is_prime(n + 1, true);
+    for (int p = 2; p <= n; ++p) {
+        if (is_prime[p]) {
+            primes.push_back(p);
+            for (int i = p * 2; i <= n; i += p) {
+                is_prime[i] = false;
+            }
+        }
+    }
+}
+
+int main() {
+    prime_sieve();
+    
+    int N;
+    while (cin >> N && N != 0) {
+        
+    }
+    return 0;
+}
+
+
+
+
+Давайте переберем все простые числа от 1 до N и обновим количество простых чисел с помощью теоремы о делимости. Для каждого простого числа \(p\) мы можем подсчитать, сколько раз \(p\) делит числа от 1 до N, включая степени \(p\), \(p^2\) и так далее.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> primes;
+
+void prime_sieve(int n = 100) {
+    vector<bool> is_prime(n + 1, true);
+    for (int p = 2; p <= n; ++p) {
+        if (is_prime[p]) {
+            primes.push_back(p);
+            for (int i = p * 2; i <= n; i += p) {
+                is_prime[i] = false;
+            }
+        }
+    }
+}
+
+vector<int> count_prime_factors(int N) {
+    vector<int> counts;
+
+    for (int i = 0, n = N; i < primes.size() && primes[i] <= N; i++) {
+        int p = primes[i];
+        int count = 0;
+        for (int j = p; j <= n; j *= p) {
+            count += n / j;
+        }
+        counts.push_back(count);
+    }
+
+    return counts;
+}
+
+int main() {
+    prime_sieve();
+    
+    int N;
+    while (cin >> N && N != 0) {
+        vector<int> prime_counts = count_prime_factors(N);
+    }
+    return 0;
+}
+
+
+
+
+Наконец, мы можем вывести ответ в соответствии с форматом.
+
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+vector<int> primes;
+
+void prime_sieve(int n = 100) {
+    vector<bool> is_prime(n + 1, true);
+    for (int p = 2; p <= n; ++p) {
+        if (is_prime[p]) {
+            primes.push_back(p);
+            for (int i = p * 2; i <= n; i += p) {
+                is_prime[i] = false;
+            }
+        }
+    }
+}
+
+vector<int> count_prime_factors(int N) {
+    vector<int> counts;
+
+    for (int i = 0, n = N; i < primes.size() && primes[i] <= N; i++) {
+        int p = primes[i];
+        int count = 0;
+        for (int j = p; j <= n; j *= p) {
+            count += n / j;
+        }
+        counts.push_back(count);
+    }
+
+    return counts;
+}
+
+int main() {
+    prime_sieve();
+    
+    int N;
+    while (cin >> N && N != 0) {
+        vector<int> prime_counts = count_prime_factors(N);
+        cout << setw(3) << N << "! =";
+        
+        for (int i = 0; i < prime_counts.size(); i++) {
+            if (i > 0 && i % 15 == 0) {
+                cout << endl << "      ";
+            }
+            cout << setw(3) << prime_counts[i];
+        }
+        cout << endl;
+    }
+    return 0;
+}
+
+
+
+
+5
+53
+0
+
+
+
+
+Я хочу протестировать пользовательский крайний случай, где N находится на минимальном значении: N = 2.
+ 
+Ответ "  2! =  1" объясняется тем, что факториал 2 равен 2, и единственным простым множителем является 2, который встречается один раз. Таким образом, количество раз, которое 2 делит 2!, составляет 1.
+
+
+
+
+2
+0

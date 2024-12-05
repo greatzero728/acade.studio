@@ -1,0 +1,13 @@
+VFMUL - Very Fast Multiplication
+#simple-math #big-numbers #karatsuba
+Multiply the given numbers.
+
+Input
+n [the number of multiplications <= 101]
+
+l1 l2 [numbers to multiply (at most 300000 decimal digits each)]
+
+Text grouped in [ ] does not appear in the input file.
+
+Output
+The results of multiplications.

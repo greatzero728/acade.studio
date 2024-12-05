@@ -1,0 +1,6 @@
+This problem involves checking whether two lines are parallel using the slope formula.
+The slope of a line is calculated as \( \text{slope} = \frac{y_2 - y_1}{x_2 - x_1} \), and two lines are parallel if their slopes are equal.
+To avoid division errors (like division by zero), it's safer to compare the cross-products \( (y_2 - y_1) \times (x_4 - x_3) \) and \( (y_4 - y_3) \times (x_2 - x_1) \) instead of directly dividing.
+
+
+As I mentioned in block 1, we only need to determine if \( (y_2 - y_1) \times (x_4 - x_3) \) and \( (y_4 - y_3) \times (x_2 - x_1) \) are the same. If they are the same, we should print "YES"; otherwise, we should print "NO."

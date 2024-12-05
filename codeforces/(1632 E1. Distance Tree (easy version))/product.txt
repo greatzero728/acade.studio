@@ -196,7 +196,7 @@ int main() {
 
 
 Let's assume the nodes \(vec_0, vec_1, \ldots, vec_m\) are the remaining nodes.
-Currently, we have \(dist(1, vec_0) > h\) and \(dist(1, vec_1) > 0\), ..., \(dist(1, vec_m) > 0\). (Here, \(dist(u, v)\) represents the shortest path from \(u\) to \(v\).)
+Currently, we have \(dist(1, vec_0) > h\) and \(dist(1, vec_1) > h\), ..., \(dist(1, vec_m) > h\). (Here, \(dist(u, v)\) represents the shortest path from \(u\) to \(v\).)
 The obvious requirement is that we need to add the edge (1, u). Here, node \(u\) should be the central point, meaning that \(max(dist(u, vec_0), dist(u, vec_1), dist(u, vec_m))\) should be minimized.
 If we don't chose this central point into the node of our adding edge, some nodes from \(vec_0, vec_1, \ldots, vec_m\) will be biased toward one side. Consequently, we won't be able to minimize the answer.
 The central node is the middle point of diameter of node set: {\(vec_0, vec_1, .., vec_m\)}
@@ -273,7 +273,7 @@ int main() {
 
 
 
-Let's let's calculate the length of diameter:
+Let's calculate the length of diameter:
 The method for calculating the diameter involves selecting one node first, then identifying the farthest node from it as one endpoint of the diameter.
 From that endpoint, you select another farthest node to determine the other endpoint of the diameter.
 
